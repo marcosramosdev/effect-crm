@@ -18,8 +18,8 @@ const config = defineConfig({
     },
   },
   plugins: [
-    devtools(),
     tailwindcss(),
+    devtools(),
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     viteReact(),
   ],

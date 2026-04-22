@@ -1,13 +1,25 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import {
+  Link,
+  Outlet,
+  createRootRouteWithContext,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import type { QueryClient } from '@tanstack/react-query'
 
-import '../styles.css'
-
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+}>()({
   component: RootComponent,
+  notFoundComponent: () => {
+    return (
+      <div>
+        <p>This is the notFoundComponent configured on root route</p>
+        <Link to="/">VOLTAR</Link>
+      </div>
+    )
+  },
 })
-
 function RootComponent() {
   return (
     <>
