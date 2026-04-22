@@ -1,0 +1,12 @@
+{
+  "name": "crm-effect",
+  "scripts": {
+    "dev": "bun run --hot server/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.12.14"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
