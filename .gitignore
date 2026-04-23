@@ -3,3 +3,4 @@ node_modules/
 .specify
 .claude
 uazapi-openapi-spec.yaml
+.env
