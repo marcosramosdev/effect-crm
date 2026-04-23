@@ -58,12 +58,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Database + RLS
 
-- [ ] T011 Criar `server/db/migrations/001__init.sql` — `create extension pgcrypto`; tabelas `tenants`, `tenant_members`, `leads`, `conversations`, `messages`, `pipeline_stages`, `stage_transitions`, `whatsapp_sessions` conforme `data-model.md`; todos os FKs, UNIQUEs, CHECKs, índices.
-- [ ] T012 Criar `server/db/migrations/002__rls.sql` — enable RLS em todas as tabelas tenant-scoped; policies `tenant_members_select`, `owner_only_*` para `pipeline_stages` e `tenant_members`, zero policies em `whatsapp_sessions`. Ver data-model.md.
-- [ ] T013 Criar `server/db/migrations/003__seed_defaults.sql` — função `seed_default_pipeline_for_tenant()` + trigger `after insert on tenants`. Etapas default: Novo → Em conversa → Proposta → Ganho → Perdido. `Novo` com `is_default_entry=true`.
-- [ ] T014 Criar `server/db/migrations/004__triggers.sql` — função + trigger `bump_conversation_on_message` em `messages` (actualiza `last_message_at`, incrementa `unread_count` em inbound); função + trigger `enforce_single_default_entry` em `pipeline_stages`.
-- [ ] T015 Criar `server/db/migrations/005__views.sql` — view `whatsapp_sessions_public(tenant_id, status, phone_number, last_heartbeat_at, last_error)`; RLS na view permitindo select a membros do tenant.
-- [ ] T016 Aplicar todas as migrations 001-005 no projecto Supabase de dev via SQL editor ou Supabase CLI. Confirmar que `tenant_members` aceita apenas `role in ('owner','agent')`.
+- [x] T011 Criar `server/db/migrations/001__init.sql` — `create extension pgcrypto`; tabelas `tenants`, `tenant_members`, `leads`, `conversations`, `messages`, `pipeline_stages`, `stage_transitions`, `whatsapp_sessions` conforme `data-model.md`; todos os FKs, UNIQUEs, CHECKs, índices.
+- [x] T012 Criar `server/db/migrations/002__rls.sql` — enable RLS em todas as tabelas tenant-scoped; policies `tenant_members_select`, `owner_only_*` para `pipeline_stages` e `tenant_members`, zero policies em `whatsapp_sessions`. Ver data-model.md.
+- [x] T013 Criar `server/db/migrations/003__seed_defaults.sql` — função `seed_default_pipeline_for_tenant()` + trigger `after insert on tenants`. Etapas default: Novo → Em conversa → Proposta → Ganho → Perdido. `Novo` com `is_default_entry=true`.
+- [x] T014 Criar `server/db/migrations/004__triggers.sql` — função + trigger `bump_conversation_on_message` em `messages` (actualiza `last_message_at`, incrementa `unread_count` em inbound); função + trigger `enforce_single_default_entry` em `pipeline_stages`.
+- [x] T015 Criar `server/db/migrations/005__views.sql` — view `whatsapp_sessions_public(tenant_id, status, phone_number, last_heartbeat_at, last_error)`; RLS na view permitindo select a membros do tenant.
+- [x] T016 Aplicar todas as migrations 001-005 no projecto Supabase de dev via SQL editor ou Supabase CLI. Confirmar que `tenant_members` aceita apenas `role in ('owner','agent')`.
 
 ### Shared types
 
