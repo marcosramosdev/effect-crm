@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
 
@@ -15,6 +16,7 @@ const config = defineConfig({
       '@features/*': 'src/features/*',
       '@hooks/*': 'src/hooks/*',
       '@routes/*': 'src/routes/*',
+      '@shared': path.resolve(__dirname, '../server/types'),
     },
   },
   plugins: [
@@ -23,6 +25,11 @@ const config = defineConfig({
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     viteReact(),
   ],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
 })
 
 export default config
