@@ -96,7 +96,11 @@ Objetivo: um único processo/porta em runtime.
 
 <!-- SPECKIT START -->
 
+Current plan: [specs/001-whatsapp-crm-core/plan.md](./specs/001-whatsapp-crm-core/plan.md)
+
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read that plan first,
+followed by its siblings (`research.md`, `data-model.md`, `contracts/*`,
+`quickstart.md`) as needed.
 
 <!-- SPECKIT END -->

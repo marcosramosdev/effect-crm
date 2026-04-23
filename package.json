@@ -1,12 +1,15 @@
 {
   "name": "crm-effect",
   "scripts": {
-    "dev": "bun run --hot server/index.ts"
+    "dev": "concurrently \"bun run --hot server\" \"cd client && bun run --hot dev\"",
+    "server": "bun run --hot server/index.ts",
+    "client": "cd client && bun run --hot dev"
   },
   "dependencies": {
     "hono": "^4.12.14"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "concurrently": "^9.2.1"
   }
 }
