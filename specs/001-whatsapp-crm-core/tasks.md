@@ -81,11 +81,11 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Server — utilitários de domínio partilhados
 
-- [ ] T025 [P] **Red** Criar `server/lib/whatsapp/rate-limiter.test.ts` com testes T-S-001..005. Usar `Bun.test`'s fake timers (`mock.useFakeTimers()` ou equivalente Bun). Todos MUST fail.
-- [ ] T026 **Green** Implementar `server/lib/whatsapp/rate-limiter.ts` — token-bucket com dois níveis (20/min, 1000/24h) por `tenantId`. Export `consume(tenantId): { ok: true } | { ok: false, retryAfterSeconds }`. Testes T-S-001..005 ⇒ green.
-- [ ] T027 [P] **Red** Criar `server/lib/whatsapp/uazapi-client.test.ts` com testes T-S-010..017. Usar `vi.stubGlobal('fetch', …)` ou o helper nativo de Bun para mock de `fetch`. Cada teste verifica URL, headers, body.
-- [ ] T028 **Green** Implementar `server/lib/whatsapp/uazapi-client.ts` — funções `createInstance`, `connect`, `disconnect`, `sendText`, `configureWebhook`. Errors tipados (`UazapiUnauthorizedError`, `UazapiRateLimitedError`, `UazapiTransientError`). Lê `UAZAPI_BASE_URL` + `UAZAPI_ADMIN_TOKEN` do env. Testes T-S-010..017 ⇒ green.
-- [ ] T029 [P] Criar `server/lib/whatsapp/index.ts` — interface pública do adapter: `export { createInstance, connect, disconnect, sendText, configureWebhook, consume as rateLimit, handleWebhookEvent /* stub, preenchido em US1..US3 */ }`.
+- [x] T025 [P] **Red** Criar `server/lib/whatsapp/rate-limiter.test.ts` com testes T-S-001..005. Usar `Bun.test`'s fake timers (`mock.useFakeTimers()` ou equivalente Bun). Todos MUST fail.
+- [x] T026 **Green** Implementar `server/lib/whatsapp/rate-limiter.ts` — token-bucket com dois níveis (20/min, 1000/24h) por `tenantId`. Export `consume(tenantId): { ok: true } | { ok: false, retryAfterSeconds }`. Testes T-S-001..005 ⇒ green.
+- [x] T027 [P] **Red** Criar `server/lib/whatsapp/uazapi-client.test.ts` com testes T-S-010..017. Usar `vi.stubGlobal('fetch', …)` ou o helper nativo de Bun para mock de `fetch`. Cada teste verifica URL, headers, body.
+- [x] T028 **Green** Implementar `server/lib/whatsapp/uazapi-client.ts` — funções `createInstance`, `connect`, `disconnect`, `sendText`, `configureWebhook`. Errors tipados (`UazapiUnauthorizedError`, `UazapiRateLimitedError`, `UazapiTransientError`). Lê `UAZAPI_BASE_URL` + `UAZAPI_ADMIN_TOKEN` do env. Testes T-S-010..017 ⇒ green.
+- [x] T029 [P] Criar `server/lib/whatsapp/index.ts` — interface pública do adapter: `export { createInstance, connect, disconnect, sendText, configureWebhook, consume as rateLimit, handleWebhookEvent /* stub, preenchido em US1..US3 */ }`.
 
 ### Client — infra transversal
 
