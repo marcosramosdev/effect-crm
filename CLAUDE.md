@@ -1,55 +1,102 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este ficheiro orienta o Claude Code (claude.ai/code) quando trabalhar neste repositório.
 
-## Repository shape
+## Contexto do produto (o que estamos a construir)
 
-Two **independent** workspaces with their own `package.json` and `bun.lock` — there is no monorepo tool (no pnpm workspaces, no Turbo). `bun install` at the repo root only installs server deps; to work on the frontend you must `cd client && bun install` separately.
+CRM multi-tenant para uma empresa de marketing digital oferecer aos seus clientes.
 
-- **Root** (`server/`, root `package.json`) — a [Hono](https://hono.dev/) server. Root `tsconfig.json` sets `jsxImportSource: "hono/jsx"`, so any JSX in `server/` is Hono JSX (NOT React). Entry point: `server/index.ts`.
-- **`client/`** — a React 19 SPA using [TanStack Router](https://tanstack.com/router) (file-based routing) + Vite 8 + Tailwind 4. Entry: `client/src/main.tsx` → `RouterProvider` with a generated `routeTree.gen.ts`.
+Funcionalidades core (manter o foco; não inventar outras):
 
-Bun is the package manager **and** the server runtime. The client uses Vite/Node tooling but is still installed with `bun install`.
+- Inbox WhatsApp: listar conversas/leads que entram via WhatsApp e o estado do atendimento
+- Resposta pelo app: enviar mensagens WhatsApp a partir do CRM
+- Pipeline(s) personalizáveis: cada cliente define colunas/etapas e evolui leads entre etapas
+- Ligação WhatsApp no app: fluxo de conexão (ex.: QR code) e gestão de sessão
 
-## Commands
+## Stack e decisões
 
-Run root-level commands from the repo root; client commands from `client/`.
+- Backend: Bun + Hono (TypeScript). Em produção, o backend serve a API **e** o frontend (SPA React).
+- Frontend: React 19 + TanStack Router (file-based) + React Query, Vite 8, Tailwind 4 + DaisyUI.
+- Auth/DB: Supabase (Auth + Postgres + RLS). Supabase é a fonte de verdade para auth e dados.
+- Deploy: Docker numa VPS (um container final a correr o server).
+
+## Estrutura do repositório
+
+Este repo tem 2 workspaces independentes (não há pnpm workspaces/turbo):
+
+- `server/` (root `package.json`): Hono/Bun
+- `client/` (`client/package.json`): React/Vite
+
+⚠️ `bun install` no root instala só deps do server. Para o frontend: `cd client && bun install`.
+
+## Comandos (desenvolvimento)
+
+Executar comandos do server no root; comandos do frontend dentro de `client/`.
 
 **Server (root):**
+
 ```sh
 bun install
-bun run dev            # bun --hot server/index.ts, listens on :3000
+bun run dev
 ```
 
 **Client (`cd client`):**
+
 ```sh
 bun install
-bun --bun run dev      # vite dev on :3000 (conflicts with server — don't run both)
-bun --bun run build    # vite build
-bun --bun run test     # vitest run (jsdom env, one-shot)
-bun --bun run lint     # eslint
-bun --bun run format   # prettier --check .
-bun --bun run check    # prettier --write . && eslint --fix
+bun --bun run dev      # Vite em http://localhost:5173
+bun --bun run build
+bun --bun run test
+bun --bun run lint
+bun --bun run format
+bun --bun run check
 ```
 
-Both `dev` scripts bind port 3000. If you need them running concurrently, change one port (`vite dev --port <N>` or edit the root script).
+## Full-stack: como ligar client ↔ server
 
-**Single test:** `bun --bun run test -- <file-or-pattern>` (Vitest pattern matching), or `bun --bun run test -- -t "<test name>"`.
+- Em desenvolvimento, o client corre em Vite (5173) e o server corre separado (porta via `PORT`, normalmente 3000).
+- As rotas do server devem viver sob `/api/*`.
+- Quando o client começar a chamar a API, configurar proxy em `client/vite.config.ts` para encaminhar `/api` para o server.
 
-## Client architecture notes
+## Produção (server a servir o SPA)
 
-- **Routing is file-based.** Adding a file under `client/src/routes/` produces a route; the TanStack router plugin regenerates `client/src/routeTree.gen.ts` automatically on `vite dev`/`vite build`. Do **not** hand-edit `routeTree.gen.ts`. The root layout is `routes/__root.tsx`.
-- **Two routers exist:** `src/main.tsx` instantiates one via `createRouter`, and `src/router.tsx` exports `getRouter()` (TanStack Start convention). Only `main.tsx` is wired in the SPA entry; `router.tsx` is scaffolding that can be used if/when server rendering is added.
-- **Path aliases:** tsconfig declares `#/*` and `@/*` → `./src/*`. `vite.config.ts` additionally declares `@components/*`, `@features/*`, `@hooks/*`, `@routes/*` — these resolve at bundle time but are **not** in tsconfig paths, so TS won't know about them. Add them to `client/tsconfig.json` `paths` if you start using them (the `components/`, `features/`, `hooks/` dirs are currently empty scaffolding).
-- **Styling:** Tailwind 4 via `@tailwindcss/vite`. Global CSS is `src/styles.css` (imported once from `__root.tsx`).
-- **Devtools** (`TanStackDevtools` in `__root.tsx`) render in dev; leave them in unless explicitly removing.
+Objetivo: um único processo/porta em runtime.
 
-## Conventions
+- `bun --bun run build` em `client/` gera `client/dist`.
+- O server deve servir `client/dist` como estáticos e fazer fallback para `index.html` (SPA) para rotas não-API.
+- Rotas `/api/*` continuam a responder normalmente.
 
-- **Prettier** (from `client/prettier.config.js`): no semicolons, single quotes, trailing commas everywhere. Applies to the client workspace; match this style if touching server code too.
-- **ESLint** extends `@tanstack/eslint-config` with these overrides turned off: `import/no-cycle`, `import/order`, `sort-imports`, `@typescript-eslint/array-type`, `@typescript-eslint/require-await`, `pnpm/json-enforce-catalog`. Don't re-enable them without reason.
-- **TS is strict** in both workspaces. Client additionally sets `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, `verbatimModuleSyntax` — so type-only imports must use `import type`, and unused symbols are hard errors.
+## Supabase (segurança e multi-tenant)
 
-## Not yet wired
+- **Nunca** colocar `SUPABASE_SERVICE_ROLE_KEY` no frontend.
+- Frontend: usar apenas `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+- Backend: pode usar `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` para ingest de mensagens WhatsApp e tarefas internas.
+- Isolamento por cliente deve ser garantido por RLS (ex.: coluna `org_id`/`account_id` em todas as tabelas).
+- Endpoints do server devem validar JWT do Supabase em `Authorization: Bearer <token>` (evitar sessões próprias no backend).
 
-As of this writing, the server (Hono) and client (TanStack Router SPA) are not connected — no proxy config, no shared types package, no API calls from client to server. The project is early scaffolding; when adding cross-workspace features, decide explicitly whether to add a Vite dev proxy, co-locate via TanStack Start server functions, or keep them fully separate.
+## WhatsApp (integração não-oficial)
+
+- Atenção: integrações “não-oficiais” podem violar Termos do WhatsApp e quebrar sem aviso. Não assumir estabilidade.
+- Encapsular a integração atrás de um “provider/adaptor” (não espalhar chamadas da lib WhatsApp pela app).
+- Fluxo mínimo esperado:
+  1.  iniciar ligação e disponibilizar QR (ou equivalente) ao frontend
+  2.  receber mensagens → persistir no Supabase → actualizar dashboard/inbox
+  3.  enviar mensagens a partir do CRM → passar pelo server → persistir resultado
+
+## Notas importantes do client
+
+- O router é file-based: criar ficheiros em `client/src/routes/` cria rotas.
+- Não editar manualmente `client/src/routeTree.gen.ts` (gerado automaticamente).
+
+## Convenções
+
+- TypeScript strict; respeitar `noUnusedLocals/Parameters` no client.
+- Prettier: sem `;`, aspas simples, trailing commas (ver `client/prettier.config.js`).
+- Não introduzir novas dependências sem necessidade; se introduzir, justificar e actualizar o `package.json` correcto (root vs `client/`).
+
+<!-- SPECKIT START -->
+
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+
+<!-- SPECKIT END -->
