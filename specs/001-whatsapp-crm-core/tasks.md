@@ -72,12 +72,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Server — DB client + middlewares + skeleton
 
-- [ ] T019 [P] Criar `server/db/client.ts` — export `createUserSupabase(jwt: string)` (usa `SUPABASE_ANON_KEY` + header `Authorization: Bearer`) e `createServiceSupabase()` (usa `SUPABASE_SERVICE_ROLE_KEY`, singleton). Ambos chamam `createClient` de `@supabase/supabase-js`. Ler env vars directamente.
-- [ ] T020 [P] Criar `server/middlewares/error.ts` — middleware Hono que faz `try/catch` e converte erros tipados (classes `ApiError`, `UazapiUnauthorizedError`, etc.) em JSON `{ error: { code, message, details } }` com o status HTTP correcto.
-- [ ] T021 **Red** Criar `server/middlewares/auth.test.ts` com testes T-S-040..043 (ver `contracts/test-strategy.md`): JWT ausente → 401; JWT inválido → 401; JWT válido mas sem membership → 403; JWT válido + membership → handler recebe `c.var.userId/tenantId/role`. Correr `bun test server/middlewares/auth.test.ts`, todos MUST fail.
-- [ ] T022 **Green** Implementar `server/middlewares/auth.ts` — valida JWT HS256 contra `SUPABASE_JWT_SECRET`; extrai `sub`; procura em `tenant_members` via `createServiceSupabase()` para resolver `tenant_id` + `role`; anexa a `c.var`. Correr os testes T-S-040..043 ⇒ todos green.
-- [ ] T023 [P] Criar `server/middlewares/tenant-guard.ts` — pequeno middleware que assert `c.var.tenantId` está presente; 500 se não. Wrapper trivial a seguir ao auth.
-- [ ] T024 Modificar `server/index.ts` para montar Hono app com middlewares globais (logger, error handler), grupo `/api/*` com `auth + tenantGuard`, e endpoint público `GET /health` (sem auth). Deixar comentários `// TODO: mount routes` onde as routes das user stories serão adicionadas.
+- [x] T019 [P] Criar `server/db/client.ts` — export `createUserSupabase(jwt: string)` (usa `SUPABASE_ANON_KEY` + header `Authorization: Bearer`) e `createServiceSupabase()` (usa `SUPABASE_SERVICE_ROLE_KEY`, singleton). Ambos chamam `createClient` de `@supabase/supabase-js`. Ler env vars directamente.
+- [x] T020 [P] Criar `server/middlewares/error.ts` — middleware Hono que faz `try/catch` e converte erros tipados (classes `ApiError`, `UazapiUnauthorizedError`, etc.) em JSON `{ error: { code, message, details } }` com o status HTTP correcto.
+- [x] T021 **Red** Criar `server/middlewares/auth.test.ts` com testes T-S-040..043 (ver `contracts/test-strategy.md`): JWT ausente → 401; JWT inválido → 401; JWT válido mas sem membership → 403; JWT válido + membership → handler recebe `c.var.userId/tenantId/role`. Correr `bun test server/middlewares/auth.test.ts`, todos MUST fail.
+- [x] T022 **Green** Implementar `server/middlewares/auth.ts` — valida JWT HS256 contra `SUPABASE_JWT_SECRET`; extrai `sub`; procura em `tenant_members` via `createServiceSupabase()` para resolver `tenant_id` + `role`; anexa a `c.var`. Correr os testes T-S-040..043 ⇒ todos green.
+- [x] T023 [P] Criar `server/middlewares/tenant-guard.ts` — pequeno middleware que assert `c.var.tenantId` está presente; 500 se não. Wrapper trivial a seguir ao auth.
+- [x] T024 Modificar `server/index.ts` para montar Hono app com middlewares globais (logger, error handler), grupo `/api/*` com `auth + tenantGuard`, e endpoint público `GET /health` (sem auth). Deixar comentários `// TODO: mount routes` onde as routes das user stories serão adicionadas.
 
 ### Server — utilitários de domínio partilhados
 
