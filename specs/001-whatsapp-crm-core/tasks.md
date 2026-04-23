@@ -67,8 +67,8 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Shared types
 
-- [ ] T017 [P] Criar `server/types/common.ts` — `TenantIdSchema = z.string().uuid()`, `UserIdSchema`, `LeadIdSchema`, `ConversationIdSchema`, `MessageIdSchema`, `StageIdSchema`, `RoleSchema = z.enum(['owner','agent'])`, `ErrorCodeSchema = z.enum([...])`, `ErrorResponseSchema = z.object({ error: z.object({ code, message, details: z.unknown().optional() }) })`. Exportar tipos via `z.infer`.
-- [ ] T018 [P] Criar `server/types/index.ts` — re-export de todos os submódulos (`common`, futuro `auth`, `whatsapp`, `inbox`, `pipeline`). Começa só com `common`.
+- [x] T017 [P] Criar `server/types/common.ts` — `TenantIdSchema = z.string().uuid()`, `UserIdSchema`, `LeadIdSchema`, `ConversationIdSchema`, `MessageIdSchema`, `StageIdSchema`, `RoleSchema = z.enum(['owner','agent'])`, `ErrorCodeSchema = z.enum([...])`, `ErrorResponseSchema = z.object({ error: z.object({ code, message, details: z.unknown().optional() }) })`. Exportar tipos via `z.infer`.
+- [x] T018 [P] Criar `server/types/index.ts` — re-export de todos os submódulos (`common`, futuro `auth`, `whatsapp`, `inbox`, `pipeline`). Começa só com `common`.
 
 ### Server — DB client + middlewares + skeleton
 
