@@ -35,16 +35,16 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 **Purpose**: preparar o terreno de desenvolvimento. Nada específico de user story; nada executável até Phase 2 terminar.
 
-- [ ] T001 Instalar dependências do server (`bun add @supabase/supabase-js zod @hono/zod-validator` na root do repo). Confirmar `package.json` actualizado e `bun.lock` consistente.
-- [ ] T002 [P] Instalar dependências novas do client (`cd client && bun add @supabase/supabase-js @hookform/resolvers msw`). Confirmar `client/package.json` + lockfile.
-- [ ] T003 Configurar shared types alias no client: adicionar `"@shared/*": ["../server/types/*"]` em `client/tsconfig.json` → `compilerOptions.paths`; estender `include` para incluir `"../server/types/**/*.ts"`; adicionar `'@shared': path.resolve(__dirname, '../server/types')` em `client/vite.config.ts` → `resolve.alias`. Validar que `import type {} from '@shared/...'` resolve em `bun --bun tsc --noEmit`.
-- [ ] T004 [P] Configurar Vite dev proxy `/api` → `http://localhost:3000` em `client/vite.config.ts` → `server.proxy`.
-- [ ] T005 [P] Criar `server/test/fixtures/jwts.ts` — helper `makeTestJwt({ userId, tenantId, role })` que assina HS256 com `SUPABASE_JWT_SECRET=test-secret` (via `jose` nativo ou `bun.crypto`).
-- [ ] T006 [P] Criar `server/test/fixtures/supabase.ts` — factory `makeSupabaseMock({ rows, role })` que devolve um objecto encadeável imitando `from().select().eq().single()` e `insert`/`update`/`delete`. Sem dependências externas (implementação inline).
-- [ ] T007 [P] Criar `client/src/test/setup.ts` — Vitest global setup: `import '@testing-library/jest-dom'`; mock de `window.matchMedia`; inicializa MSW server. Referenciar em `client/vitest.config` ou `client/vite.config.ts` (`test.setupFiles`).
-- [ ] T008 [P] Criar `client/src/test/msw/server.ts` + `client/src/test/msw/handlers.ts` — handler MSW base para `GET /api/auth/me`, com utility `overrideHandler()` para testes individuais.
-- [ ] T009 [P] Criar `server/lib/whatsapp/__fixtures__/uazapi-events.ts` — exportar payloads fixture para eventos `messages` (texto), `messages` (unsupported), `messages_update` (cada status), `connection` (cada estado). Basear em exemplos do `uazapi-openapi-spec.yaml`.
-- [ ] T010 [P] Adicionar scripts de teste ao `package.json` root: `"test": "bun test"`, `"test:watch": "bun test --watch"`. Cliente já tem Vitest configurado.
+- [x] T001 Instalar dependências do server (`bun add @supabase/supabase-js zod @hono/zod-validator` na root do repo). Confirmar `package.json` actualizado e `bun.lock` consistente.
+- [x] T002 [P] Instalar dependências novas do client (`cd client && bun add @supabase/supabase-js @hookform/resolvers msw`). Confirmar `client/package.json` + lockfile.
+- [x] T003 Configurar shared types alias no client: adicionar `"@shared/*": ["../server/types/*"]` em `client/tsconfig.json` → `compilerOptions.paths`; estender `include` para incluir `"../server/types/**/*.ts"`; adicionar `'@shared': path.resolve(__dirname, '../server/types')` em `client/vite.config.ts` → `resolve.alias`. Validar que `import type {} from '@shared/...'` resolve em `bun --bun tsc --noEmit`.
+- [x] T004 [P] Configurar Vite dev proxy `/api` → `http://localhost:3000` em `client/vite.config.ts` → `server.proxy`.
+- [x] T005 [P] Criar `server/test/fixtures/jwts.ts` — helper `makeTestJwt({ userId, tenantId, role })` que assina HS256 com `SUPABASE_JWT_SECRET=test-secret` (via `jose` nativo ou `bun.crypto`).
+- [x] T006 [P] Criar `server/test/fixtures/supabase.ts` — factory `makeSupabaseMock({ rows, role })` que devolve um objecto encadeável imitando `from().select().eq().single()` e `insert`/`update`/`delete`. Sem dependências externas (implementação inline).
+- [x] T007 [P] Criar `client/src/test/setup.ts` — Vitest global setup: `import '@testing-library/jest-dom'`; mock de `window.matchMedia`; inicializa MSW server. Referenciar em `client/vitest.config` ou `client/vite.config.ts` (`test.setupFiles`).
+- [x] T008 [P] Criar `client/src/test/msw/server.ts` + `client/src/test/msw/handlers.ts` — handler MSW base para `GET /api/auth/me`, com utility `overrideHandler()` para testes individuais.
+- [x] T009 [P] Criar `server/lib/whatsapp/__fixtures__/uazapi-events.ts` — exportar payloads fixture para eventos `messages` (texto), `messages` (unsupported), `messages_update` (cada status), `connection` (cada estado). Basear em exemplos do `uazapi-openapi-spec.yaml`.
+- [x] T010 [P] Adicionar scripts de teste ao `package.json` root: `"test": "bun test"`, `"test:watch": "bun test --watch"`. Cliente já tem Vitest configurado.
 
 **Checkpoint 1**: `bun test` e `cd client && bun --bun run test` correm (sem testes ainda) sem erro.
 
@@ -152,7 +152,7 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
   - upsert `lead` via `(tenant_id, phone_number)` — se novo, `stage_id` = default entry;
   - upsert `conversation` via `(tenant_id, lead_id)`;
   - insert `messages` com `direction='inbound'`, `content_type='text'` ou `'unsupported'`, `ON CONFLICT (tenant_id, whatsapp_message_id) DO NOTHING`.
-  Testes T-S-020..023 ⇒ green.
+    Testes T-S-020..023 ⇒ green.
 
 ### Inbox routes
 
@@ -190,7 +190,7 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
   4. Insert `messages` com `status='pending'`, `direction='outbound'`, `sent_by_user_id = c.var.userId`.
   5. Dispatch `await uazapi.sendText({ token, number, text })`. Se retornar 429 uazapi → propagar 429 (não consumir novo token). Guardar `whatsapp_message_id` devolvido.
   6. Responder 202 com `{ message: {...} }`.
-  Testes T-S-050..053 ⇒ green.
+     Testes T-S-050..053 ⇒ green.
 - [ ] T062 [US3] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-024..026 (messages_update: SERVER_ACK/READ/mensagem-inexistente). Fail.
 - [ ] T063 [US3] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages_update'`: mapeia status uazapi → nosso (`SERVER_ACK`→`sent`, `DELIVERY_ACK`→`delivered`, `READ`→`read`+`read_at=now()`, `FAILED`→`failed`); `UPDATE messages` por `(tenant_id, whatsapp_message_id)`. Se a mensagem não existir, retornar sem erro. Testes T-S-024..026 ⇒ green.
 
