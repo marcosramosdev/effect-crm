@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { handleWebhookEvent } from './webhook-handler'
-import { inboundTextMessage, inboundUnsupportedMessage } from './__fixtures__/uazapi-events'
+import {
+  inboundTextMessage,
+  inboundUnsupportedMessage,
+  messageUpdateServerAck,
+  messageUpdateRead,
+  messageUpdatePending,
+} from './__fixtures__/uazapi-events'
 
 const TENANT_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 
@@ -200,5 +206,106 @@ describe('handleWebhookEvent — messages', () => {
     await handleWebhookEvent(TENANT_ID, groupMessage, () => client as never)
 
     expect(ops).toHaveLength(0)
+  })
+})
+
+// ── T-S-024..026 ─────────────────────────────────────────────────────────────
+
+interface MultiEqUpdate {
+  table: string
+  op: 'update'
+  data: Record<string, unknown>
+  filters: Array<{ col: string; val: unknown }>
+}
+
+function makeMessagesUpdateClient() {
+  const calls: MultiEqUpdate[] = []
+
+  return {
+    calls,
+    client: {
+      from: (table: string) => {
+        const filters: Array<{ col: string; val: unknown }> = []
+        let pending: MultiEqUpdate | null = null
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const chain: any = {
+          update: (data: Record<string, unknown>) => {
+            pending = { table, op: 'update', data, filters }
+            return chain
+          },
+          eq: (col: string, val: unknown) => {
+            filters.push({ col, val })
+            return chain
+          },
+          then: <R>(
+            ok: (v: { data: unknown; error: null }) => R,
+            rej?: (e: unknown) => R,
+          ) => {
+            if (pending) {
+              calls.push(pending)
+              pending = null
+            }
+            return Promise.resolve({ data: null, error: null }).then(ok, rej)
+          },
+        }
+        return chain
+      },
+    },
+  }
+}
+
+describe('handleWebhookEvent — messages_update', () => {
+  // T-S-024
+  it('updates messages.status to "sent" for SERVER_ACK', async () => {
+    const { calls, client } = makeMessagesUpdateClient()
+
+    await handleWebhookEvent(TENANT_ID, messageUpdateServerAck, () => client as never)
+
+    expect(calls).toHaveLength(1)
+    const call = calls[0]
+    expect(call.table).toBe('messages')
+    expect(call.op).toBe('update')
+    expect(call.data).toEqual({ status: 'sent' })
+    expect(call.filters).toContainEqual({ col: 'tenant_id', val: TENANT_ID })
+    expect(call.filters).toContainEqual({
+      col: 'whatsapp_message_id',
+      val: messageUpdateServerAck.data.id,
+    })
+  })
+
+  // T-S-025
+  it('updates messages.status to "read" and sets read_at for READ', async () => {
+    const { calls, client } = makeMessagesUpdateClient()
+
+    await handleWebhookEvent(TENANT_ID, messageUpdateRead, () => client as never)
+
+    expect(calls).toHaveLength(1)
+    const call = calls[0]
+    expect(call.table).toBe('messages')
+    expect(call.data.status).toBe('read')
+    expect(typeof call.data.read_at).toBe('string')
+    expect(call.filters).toContainEqual({ col: 'tenant_id', val: TENANT_ID })
+    expect(call.filters).toContainEqual({
+      col: 'whatsapp_message_id',
+      val: messageUpdateRead.data.id,
+    })
+  })
+
+  // T-S-026
+  it('does not throw when message does not exist (silent pass on 0 rows affected)', async () => {
+    const { client } = makeMessagesUpdateClient()
+
+    await expect(
+      handleWebhookEvent(TENANT_ID, messageUpdateServerAck, () => client as never),
+    ).resolves.toBeUndefined()
+  })
+
+  it('ignores PENDING status (only mapped statuses trigger an update)', async () => {
+    const { calls, client } = makeMessagesUpdateClient()
+
+    await handleWebhookEvent(TENANT_ID, messageUpdatePending, () => client as never)
+
+    expect(calls).toHaveLength(0)
   })
 })

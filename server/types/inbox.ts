@@ -70,3 +70,13 @@ export const MarkReadResponseSchema = z.object({
   unreadCount: z.literal(0),
 })
 export type MarkReadResponse = z.infer<typeof MarkReadResponseSchema>
+
+export const SendMessageRequestSchema = z.object({
+  text: z.string().trim().min(1).max(4096),
+})
+export type SendMessageRequest = z.infer<typeof SendMessageRequestSchema>
+
+export const SendMessageResponseSchema = z.object({
+  message: MessageSchema,
+})
+export type SendMessageResponse = z.infer<typeof SendMessageResponseSchema>

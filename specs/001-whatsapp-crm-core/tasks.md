@@ -178,12 +178,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Types
 
-- [ ] T059 [P] [US3] Adicionar a `server/types/inbox.ts` — `SendMessageRequestSchema = z.object({ text: z.string().trim().min(1).max(4096) })`, `SendMessageResponseSchema`.
+- [x] T059 [P] [US3] Adicionar a `server/types/inbox.ts` — `SendMessageRequestSchema = z.object({ text: z.string().trim().min(1).max(4096) })`, `SendMessageResponseSchema`.
 
 ### Server — send endpoint + messages_update webhook
 
-- [ ] T060 [US3] **Red** Expandir `server/routes/inbox.test.ts` com T-S-050..053 (disconnected / rate-limited / happy path / cross-tenant 404). Fail.
-- [ ] T061 [US3] **Green** Implementar `POST /api/inbox/conversations/:id/messages` em `server/routes/inbox.ts`:
+- [x] T060 [US3] **Red** Expandir `server/routes/inbox.test.ts` com T-S-050..053 (disconnected / rate-limited / happy path / cross-tenant 404). Fail.
+- [x] T061 [US3] **Green** Implementar `POST /api/inbox/conversations/:id/messages` em `server/routes/inbox.ts`:
   1. Validar body Zod.
   2. Verificar `rateLimit.consume(tenantId)` → 429 com `Retry-After` se falhar.
   3. Ler `whatsapp_sessions.status` via service-role → 409 `WHATSAPP_DISCONNECTED` se não `connected`.
@@ -191,8 +191,8 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
   5. Dispatch `await uazapi.sendText({ token, number, text })`. Se retornar 429 uazapi → propagar 429 (não consumir novo token). Guardar `whatsapp_message_id` devolvido.
   6. Responder 202 com `{ message: {...} }`.
      Testes T-S-050..053 ⇒ green.
-- [ ] T062 [US3] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-024..026 (messages_update: SERVER_ACK/READ/mensagem-inexistente). Fail.
-- [ ] T063 [US3] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages_update'`: mapeia status uazapi → nosso (`SERVER_ACK`→`sent`, `DELIVERY_ACK`→`delivered`, `READ`→`read`+`read_at=now()`, `FAILED`→`failed`); `UPDATE messages` por `(tenant_id, whatsapp_message_id)`. Se a mensagem não existir, retornar sem erro. Testes T-S-024..026 ⇒ green.
+- [x] T062 [US3] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-024..026 (messages_update: SERVER_ACK/READ/mensagem-inexistente). Fail.
+- [x] T063 [US3] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages_update'`: mapeia status uazapi → nosso (`SERVER_ACK`→`sent`, `DELIVERY_ACK`→`delivered`, `READ`→`read`+`read_at=now()`, `FAILED`→`failed`); `UPDATE messages` por `(tenant_id, whatsapp_message_id)`. Se a mensagem não existir, retornar sem erro. Testes T-S-024..026 ⇒ green.
 
 ### Client — Send form + status display
 

@@ -112,6 +112,39 @@ async function handleMessagesEvent(
   if (msgError) throw new Error(`Failed to insert message: ${msgError.message}`)
 }
 
+const MessageUpdateSchema = z.object({
+  id: z.string(),
+  status: z.enum(['PENDING', 'SERVER_ACK', 'DELIVERY_ACK', 'READ', 'FAILED']),
+})
+
+const STATUS_MAP: Record<string, 'sent' | 'delivered' | 'read' | 'failed'> = {
+  SERVER_ACK: 'sent',
+  DELIVERY_ACK: 'delivered',
+  READ: 'read',
+  FAILED: 'failed',
+}
+
+async function handleMessagesUpdateEvent(
+  tenantId: string,
+  data: unknown,
+  db: ServiceClient,
+): Promise<void> {
+  const result = MessageUpdateSchema.safeParse(data)
+  if (!result.success) return
+
+  const { id: whatsappMessageId, status } = result.data
+  const mapped = STATUS_MAP[status]
+  if (!mapped) return
+
+  const update: Record<string, unknown> = { status: mapped }
+  if (mapped === 'read') update.read_at = new Date().toISOString()
+
+  await q(db, 'messages')
+    .update(update)
+    .eq('tenant_id', tenantId)
+    .eq('whatsapp_message_id', whatsappMessageId)
+}
+
 export async function handleWebhookEvent(
   tenantId: string,
   payload: { event: string; instance: string; data: unknown },
@@ -123,5 +156,7 @@ export async function handleWebhookEvent(
     await handleConnectionEvent(tenantId, payload.data, db)
   } else if (payload.event === 'messages') {
     await handleMessagesEvent(tenantId, payload.data, db)
+  } else if (payload.event === 'messages_update') {
+    await handleMessagesUpdateEvent(tenantId, payload.data, db)
   }
 }
