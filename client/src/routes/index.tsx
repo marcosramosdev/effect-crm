@@ -1,15 +1,22 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { authQueryOptions } from '../hooks/useAuth'
+import { connectionQueryOptions } from '../features/whatsapp/ConnectScreen'
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute('/')({
+  beforeLoad: async ({ context }) => {
+    const auth = await context.queryClient.ensureQueryData(authQueryOptions)
 
-function Home() {
-  return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-      <p className="mt-4 text-lg">
-        Edit <code>src/routes/index.tsx</code> to get started.
-      </p>
-      <button className="btn btn-primary">Button</button>
-    </div>
-  )
-}
+    if (auth?.role !== 'owner') {
+      throw redirect({ to: '/inbox' })
+    }
+
+    const connection = await context.queryClient.ensureQueryData(connectionQueryOptions)
+
+    if (connection?.status === 'connected') {
+      throw redirect({ to: '/inbox' })
+    }
+
+    throw redirect({ to: '/connect' })
+  },
+  component: () => null,
+})

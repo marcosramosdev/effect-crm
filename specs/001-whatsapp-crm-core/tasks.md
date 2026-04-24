@@ -124,10 +124,10 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — Connect screen
 
-- [ ] T046 [P] [US1] **Red** Criar `client/src/features/whatsapp/__tests__/ConnectScreen.test.tsx` com T-C-010..013. MSW intercepta `/api/whatsapp/connection`; mock de `supabase.channel(...).on(...).subscribe()` para Realtime update. Fail.
-- [ ] T047 [US1] **Green** Implementar `client/src/features/whatsapp/ConnectScreen.tsx` — React Query carrega estado; botão "conectar" (só owner) dispara mutation `POST /api/whatsapp/connection`; mostra QR quando `status='qr_pending'`; subscreve `whatsapp_sessions_public` para transições. Ver T-C-010..013. Green.
-- [ ] T048 [P] [US1] Criar `client/src/routes/connect.tsx` — TanStack Router route que renderiza `ConnectScreen`. Proteger como owner (redireccionar agent para `/inbox`).
-- [ ] T049 [US1] Criar `client/src/routes/index.tsx` — redirect condicional: se `status==='connected'` vai para `/inbox`; caso contrário `/connect`. (Role-gated: agents vão sempre para `/inbox`.)
+- [x] T046 [P] [US1] **Red** Criar `client/src/features/whatsapp/__tests__/ConnectScreen.test.tsx` com T-C-010..013. MSW intercepta `/api/whatsapp/connection`; mock de `supabase.channel(...).on(...).subscribe()` para Realtime update. Fail.
+- [x] T047 [US1] **Green** Implementar `client/src/features/whatsapp/ConnectScreen.tsx` — React Query carrega estado; botão "conectar" (só owner) dispara mutation `POST /api/whatsapp/connection`; mostra QR quando `status='qr_pending'`; subscreve `whatsapp_sessions_public` para transições. Ver T-C-010..013. Green.
+- [x] T048 [P] [US1] Criar `client/src/routes/connect.tsx` — TanStack Router route que renderiza `ConnectScreen`. Proteger como owner (redireccionar agent para `/inbox`).
+- [x] T049 [US1] Criar `client/src/routes/index.tsx` — redirect condicional: se `status==='connected'` vai para `/inbox`; caso contrário `/connect`. (Role-gated: agents vão sempre para `/inbox`.)
 
 **Checkpoint US1**: um tenant em dev consegue fazer o fluxo completo login → connect → QR → estado "conectado". Testes T-S-070..074, T-S-030..033, T-S-027, T-C-010..013 passam. MVP bloco 1 completo — demonstrável isoladamente.
 
@@ -135,7 +135,7 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ## Phase 4: User Story 2 (P1) — Inbox unificado
 
-**Goal**: conversas que chegam pela uazapi aparecem em tempo quasi-real num inbox centralizado com pesquisa, filtro de não-lidas, e marcação de leitura.
+**Goal**: conversas que chegam pela uazapi aparecem em tempo quase-real num inbox centralizado com pesquisa, filtro de não-lidas, e marcação de leitura.
 
 **Independent Test**: com WhatsApp conectado (US1), enviar mensagens de diferentes números; confirmar que o inbox em `/inbox` mostra N conversas em <5s, ordenadas por última actividade; clicar abre o histórico e zera o contador de não-lidas.
 
