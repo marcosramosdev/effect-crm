@@ -115,12 +115,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### uazapi session provisioning + webhook base
 
-- [ ] T040 [P] [US1] **Red** Criar `server/routes/whatsapp.test.ts` com T-S-070..074. Fail.
-- [ ] T041 [US1] **Green** Implementar `server/routes/whatsapp.ts` — `GET /connection`, `POST /connection` (provisiona instância na primeira vez via `uazapi.createInstance` + `configureWebhook` + `connect`), `POST /disconnect`. Guardar `uazapi_instance_id`, `uazapi_instance_token`, `uazapi_webhook_secret` (`crypto.randomUUID()`) em `whatsapp_sessions` via service-role. Montar em `/api/whatsapp/*`. Testes T-S-070..074 ⇒ green.
-- [ ] T042 [P] [US1] **Red** Criar `server/routes/webhooks.test.ts` com T-S-030..033 — segredo inválido, segredo válido com mismatch de instance, segredo válido completo, log sanitization. Fail.
-- [ ] T043 [US1] **Green** Implementar `server/routes/webhooks.ts` — `POST /api/webhooks/uazapi/:webhookSecret` público (sem middleware `auth`); parse do envelope com Zod; lookup do segredo em `whatsapp_sessions` via service-role (comparação timing-safe com `crypto.timingSafeEqual`); validação de `instance`; dispatch para `handleWebhookEvent` (stub por agora). Testes T-S-030..033 ⇒ green.
-- [ ] T044 [P] [US1] **Red** Criar `server/lib/whatsapp/webhook-handler.test.ts` com T-S-027 (connection event). Fail.
-- [ ] T045 [US1] **Green** Em `server/lib/whatsapp/webhook-handler.ts`, implementar dispatcher com ramo `event === 'connection'`: actualiza `whatsapp_sessions.status`, `phone_number`, `last_heartbeat_at` (quando `connected`), `last_error` (quando `disconnected`) via service-role. T-S-027 ⇒ green.
+- [x] T040 [P] [US1] **Red** Criar `server/routes/whatsapp.test.ts` com T-S-070..074. Fail.
+- [x] T041 [US1] **Green** Implementar `server/routes/whatsapp.ts` — `GET /connection`, `POST /connection` (provisiona instância na primeira vez via `uazapi.createInstance` + `configureWebhook` + `connect`), `POST /disconnect`. Guardar `uazapi_instance_id`, `uazapi_instance_token`, `uazapi_webhook_secret` (`crypto.randomUUID()`) em `whatsapp_sessions` via service-role. Montar em `/api/whatsapp/*`. Testes T-S-070..074 ⇒ green.
+- [x] T042 [P] [US1] **Red** Criar `server/routes/webhooks.test.ts` com T-S-030..033 — segredo inválido, segredo válido com mismatch de instance, segredo válido completo, log sanitization. Fail.
+- [x] T043 [US1] **Green** Implementar `server/routes/webhooks.ts` — `POST /api/webhooks/uazapi/:webhookSecret` público (sem middleware `auth`); parse do envelope com Zod; lookup do segredo em `whatsapp_sessions` via service-role (comparação timing-safe com `crypto.timingSafeEqual`); validação de `instance`; dispatch para `handleWebhookEvent` (stub por agora). Testes T-S-030..033 ⇒ green.
+- [x] T044 [P] [US1] **Red** Criar `server/lib/whatsapp/webhook-handler.test.ts` com T-S-027 (connection event). Fail.
+- [x] T045 [US1] **Green** Em `server/lib/whatsapp/webhook-handler.ts`, implementar dispatcher com ramo `event === 'connection'`: actualiza `whatsapp_sessions.status`, `phone_number`, `last_heartbeat_at` (quando `connected`), `last_error` (quando `disconnected`) via service-role. T-S-027 ⇒ green.
 
 ### Client — Connect screen
 
