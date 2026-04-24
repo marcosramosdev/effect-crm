@@ -161,10 +161,10 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — Inbox UI
 
-- [ ] T055 [P] [US2] **Red** Criar `client/src/features/inbox/__tests__/InboxList.test.tsx` com T-C-020, T-C-021, T-C-025. MSW + mock Realtime. Fail.
-- [ ] T056 [US2] **Green** Implementar `client/src/features/inbox/InboxList.tsx` — lista com React Query (`/api/inbox/conversations`), click activa `POST /read`, subscreve Realtime em `conversations` e `messages` filtrado por `tenant_id` para actualização incremental. Testes T-C-020, T-C-021, T-C-025 ⇒ green.
-- [ ] T057 [P] [US2] Implementar `client/src/features/inbox/ConversationView.tsx` — carrega histórico com `GET /conversations/:id`, usa React Query infinite query para paginação (`beforeCursor`). Scroll para a mensagem mais recente. Realtime para novas mensagens.
-- [ ] T058 [P] [US2] Criar rotas TanStack: `client/src/routes/inbox/index.tsx` (layout + InboxList) e `client/src/routes/inbox/$conversationId.tsx` (ConversationView).
+- [x] T055 [P] [US2] **Red** Criar `client/src/features/inbox/__tests__/InboxList.test.tsx` com T-C-020, T-C-021, T-C-025. MSW + mock Realtime. Fail.
+- [x] T056 [US2] **Green** Implementar `client/src/features/inbox/InboxList.tsx` — lista com React Query (`/api/inbox/conversations`), click activa `POST /read`, subscreve Realtime em `conversations` e `messages` filtrado por `tenant_id` para actualização incremental. Testes T-C-020, T-C-021, T-C-025 ⇒ green.
+- [x] T057 [P] [US2] Implementar `client/src/features/inbox/ConversationView.tsx` — carrega histórico com `GET /conversations/:id`, usa React Query infinite query para paginação (`beforeCursor`). Scroll para a mensagem mais recente. Realtime para novas mensagens.
+- [x] T058 [P] [US2] Criar rotas TanStack: `client/src/routes/inbox/index.tsx` (layout + InboxList) e `client/src/routes/inbox/$conversationId.tsx` (ConversationView).
 
 **Checkpoint US2**: uma mensagem externa entregue por webhook aparece no `/inbox` do agente em <5s. Testes US2 passam. MVP bloco 2 completo.
 
