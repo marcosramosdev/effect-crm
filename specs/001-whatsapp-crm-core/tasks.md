@@ -141,12 +141,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Shared types
 
-- [ ] T050 [P] [US2] Expandir `server/types/inbox.ts` — `ConversationSummarySchema`, `ConversationListResponseSchema` (com `nextCursor`), `ConversationDetailSchema`, `MessageSchema`, `ListConversationsQuerySchema`, `ListMessagesQuerySchema`, `MarkReadResponseSchema`. Re-export em `server/types/index.ts`.
+- [x] T050 [P] [US2] Expandir `server/types/inbox.ts` — `ConversationSummarySchema`, `ConversationListResponseSchema` (com `nextCursor`), `ConversationDetailSchema`, `MessageSchema`, `ListConversationsQuerySchema`, `ListMessagesQuerySchema`, `MarkReadResponseSchema`. Re-export em `server/types/index.ts`.
 
 ### Webhook handler — messages event
 
-- [ ] T051 [US2] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-020..023 (messages / duplicate / unsupported / group ignored). Fail.
-- [ ] T052 [US2] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages'`:
+- [x] T051 [US2] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-020..023 (messages / duplicate / unsupported / group ignored). Fail.
+- [x] T052 [US2] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages'`:
   - extrair `phoneNumber` (strip `@s.whatsapp.net`);
   - `chatid` com `@g.us` → return silenciosamente;
   - upsert `lead` via `(tenant_id, phone_number)` — se novo, `stage_id` = default entry;
