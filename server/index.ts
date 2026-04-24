@@ -5,6 +5,8 @@ import { authMiddleware } from './middlewares/auth'
 import { tenantGuard } from './middlewares/tenant-guard'
 import type { AuthVariables } from './middlewares/auth'
 import { authRouter } from './routes/auth'
+import { whatsappRouter } from './routes/whatsapp'
+import { webhooksRouter } from './routes/webhooks'
 
 const app = new Hono()
 
@@ -18,11 +20,12 @@ api.use('*', authMiddleware)
 api.use('*', tenantGuard)
 
 api.route('/auth', authRouter)
-// TODO: mount routes — whatsapp
-// TODO: mount routes — webhooks (public, mounted on app directly)
+api.route('/whatsapp', whatsappRouter)
+// webhooks is public — mounted on app directly below
 // TODO: mount routes — inbox
 // TODO: mount routes — pipeline
 
 app.route('/api', api)
+app.route('/', webhooksRouter)
 
 export default app
