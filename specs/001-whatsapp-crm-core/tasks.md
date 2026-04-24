@@ -89,12 +89,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — infra transversal
 
-- [ ] T030 [P] Criar `client/src/lib/supabase.ts` — `createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)`; export singleton `supabase`. Configurar `auth.persistSession = true`.
-- [ ] T031 [P] Criar `client/src/lib/api.ts` — `async function apiFetch<T>(path, init?)` que: (a) obtém token via `supabase.auth.getSession()`; (b) adiciona `Authorization: Bearer`; (c) faz `fetch(`/api${path}`, …)`; (d) valida response com schema Zod opcional; (e) mapeia 401 → logout, 429 → erro tipado `RateLimitedError` com `retryAfter`.
-- [ ] T032 [P] **Red** Criar `client/src/hooks/__tests__/useAuth.test.tsx` (T-C-001). MSW intercepta `GET /api/auth/me` devolvendo user válido. Fail.
-- [ ] T033 **Green** Implementar `client/src/hooks/useAuth.ts` — hook com React Query que chama `apiFetch('/auth/me')`. Teste ⇒ green.
-- [ ] T034 [P] **Red** Criar `client/src/routes/__tests__/guard.test.tsx` (T-C-002) — simula route a `/settings/pipeline` como agent, verifica redirect. Fail.
-- [ ] T035 **Green** Implementar guard de rota `beforeLoad` em `/settings/pipeline` que redirecciona quando `role !== 'owner'`. Aplicar padrão a outras rotas depois.
+- [x] T030 [P] Criar `client/src/lib/supabase.ts` — `createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)`; export singleton `supabase`. Configurar `auth.persistSession = true`.
+- [x] T031 [P] Criar `client/src/lib/api.ts` — `async function apiFetch<T>(path, init?)` que: (a) obtém token via `supabase.auth.getSession()`; (b) adiciona `Authorization: Bearer`; (c) faz `fetch(`/api${path}`, …)`; (d) valida response com schema Zod opcional; (e) mapeia 401 → logout, 429 → erro tipado `RateLimitedError` com `retryAfter`.
+- [x] T032 [P] **Red** Criar `client/src/hooks/__tests__/useAuth.test.tsx` (T-C-001). MSW intercepta `GET /api/auth/me` devolvendo user válido. Fail.
+- [x] T033 **Green** Implementar `client/src/hooks/useAuth.ts` — hook com React Query que chama `apiFetch('/auth/me')`. Teste ⇒ green.
+- [x] T034 [P] **Red** Criar `client/src/routes/__tests__/guard.test.tsx` (T-C-002) — simula route a `/settings/pipeline` como agent, verifica redirect. Fail.
+- [x] T035 **Green** Implementar guard de rota `beforeLoad` em `/settings/pipeline` que redirecciona quando `role !== 'owner'`. Aplicar padrão a outras rotas depois.
 
 **Checkpoint 2**: Foundational ready. `bun test` e `cd client && bun --bun run test` correm verdes com os testes acima. Server arranca via `bun run server`, devolve 200 em `/health`.
 
