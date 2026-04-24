@@ -108,10 +108,10 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Types e auth endpoint
 
-- [ ] T036 [P] [US1] Criar `server/types/auth.ts` — `MeResponseSchema = z.object({ userId, email, tenantId, tenantName, role })`. Exportar tipo.
-- [ ] T037 [P] [US1] Criar `server/types/whatsapp.ts` — `ConnectionStatusSchema`, `ConnectionResponseSchema`, `StartConnectionResponseSchema`, `WebhookEventEnvelopeSchema`. Ver `contracts/whatsapp.md` + `contracts/webhooks.md`.
-- [ ] T038 [US1] **Red** Criar `server/routes/auth.test.ts` — `GET /api/auth/me` com JWT válido → shape correcta; sem JWT → 401. Fail.
-- [ ] T039 [US1] **Green** Implementar `server/routes/auth.ts` (`GET /me`) e montar em `/api/auth/*` em `server/index.ts`. Testes ⇒ green.
+- [x] T036 [P] [US1] Criar `server/types/auth.ts` — `MeResponseSchema = z.object({ userId, email, tenantId, tenantName, role })`. Exportar tipo.
+- [x] T037 [P] [US1] Criar `server/types/whatsapp.ts` — `ConnectionStatusSchema`, `ConnectionResponseSchema`, `StartConnectionResponseSchema`, `WebhookEventEnvelopeSchema`. Ver `contracts/whatsapp.md` + `contracts/webhooks.md`.
+- [x] T038 [US1] **Red** Criar `server/routes/auth.test.ts` — `GET /api/auth/me` com JWT válido → shape correcta; sem JWT → 401. Fail.
+- [x] T039 [US1] **Green** Implementar `server/routes/auth.ts` (`GET /me`) e montar em `/api/auth/*` em `server/index.ts`. Testes ⇒ green.
 
 ### uazapi session provisioning + webhook base
 

@@ -46,7 +46,7 @@ bun run dev
 bun install
 bun --bun run dev      # Vite em http://localhost:5173
 bun --bun run build
-bun --bun run test
+bun run test
 bun --bun run lint
 bun --bun run format
 bun --bun run check
