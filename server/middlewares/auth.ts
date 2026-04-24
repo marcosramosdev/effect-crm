@@ -3,6 +3,7 @@ import { createServiceSupabase } from '../db/client'
 
 export type AuthVariables = {
   userId: string
+  email: string
   tenantId: string
   role: 'owner' | 'agent'
   jwt: string
@@ -59,6 +60,7 @@ export function createAuthMiddleware(
     }
 
     const userId = payload.sub as string
+    const email = (payload.email as string | undefined) ?? ''
     const supabase = getServiceClient()
 
     const { data, error } = await supabase
@@ -72,6 +74,7 @@ export function createAuthMiddleware(
     }
 
     c.set('userId', userId)
+    c.set('email', email)
     c.set('tenantId', (data as Record<string, unknown>).tenant_id as string)
     c.set('role', (data as Record<string, unknown>).role as 'owner' | 'agent')
     c.set('jwt', jwt)

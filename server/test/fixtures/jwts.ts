@@ -8,10 +8,12 @@ export async function makeTestJwt({
   userId = crypto.randomUUID(),
   tenantId = crypto.randomUUID(),
   role = 'authenticated',
+  email = 'test@example.com',
 }: {
   userId?: string
   tenantId?: string
   role?: string
+  email?: string
 } = {}): Promise<string> {
   const secret = process.env.SUPABASE_JWT_SECRET ?? DEFAULT_SECRET
 
@@ -20,6 +22,7 @@ export async function makeTestJwt({
   const payload = Buffer.from(
     JSON.stringify({
       sub: userId,
+      email,
       role,
       iss: 'supabase',
       iat: now,
