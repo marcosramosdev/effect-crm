@@ -196,9 +196,9 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — Send form + status display
 
-- [ ] T064 [P] [US3] **Red** Criar `client/src/features/inbox/__tests__/SendMessageForm.test.tsx` com T-C-022..024 (empty rejected / disconnected toast / rate-limit hint). Fail.
-- [ ] T065 [US3] **Green** Implementar `client/src/features/inbox/SendMessageForm.tsx` — React Hook Form + `zodResolver(SendMessageRequestSchema)`; mutation React Query POST `/conversations/:id/messages`; 409 → toast "Reconecte o WhatsApp" e preservar texto; 429 → mostrar `Retry-After`; optimistic insert da mensagem pending no cache. Testes T-C-022..024 ⇒ green.
-- [ ] T066 [US3] Integrar `SendMessageForm` em `ConversationView.tsx` (T057). Adicionar rendering do estado (`pending` → spinner, `delivered` → ✓✓, `read` → ✓✓ azul, `failed` → alerta + botão "tentar novamente").
+- [x] T064 [P] [US3] **Red** Criar `client/src/features/inbox/__tests__/SendMessageForm.test.tsx` com T-C-022..024 (empty rejected / disconnected toast / rate-limit hint). Fail.
+- [x] T065 [US3] **Green** Implementar `client/src/features/inbox/SendMessageForm.tsx` — React Hook Form + `zodResolver(SendMessageRequestSchema)`; mutation React Query POST `/conversations/:id/messages`; 409 → toast "Reconecte o WhatsApp" e preservar texto; 429 → mostrar `Retry-After`; optimistic insert da mensagem pending no cache. Testes T-C-022..024 ⇒ green.
+- [x] T066 [US3] Integrar `SendMessageForm` em `ConversationView.tsx` (T057). Adicionar rendering do estado (`pending` → spinner, `delivered` → ✓✓, `read` → ✓✓ azul, `failed` → alerta + botão "tentar novamente").
 
 **Checkpoint US3 / MVP completa**: fluxo completo de 2 vias funciona. US1+US2+US3 entregáveis como MVP. Testes T-S-050..053, T-S-024..026, T-C-022..024 passam.
 

@@ -1,9 +1,10 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { apiFetch } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import type { ConversationDetail, Message } from '@shared/inbox'
+import { SendMessageForm } from './SendMessageForm'
 
 interface ConversationViewProps {
   conversationId: string
@@ -29,10 +30,27 @@ function toMessage(row: Record<string, unknown>): Message {
   }
 }
 
+function OutboundStatus({ status }: { status: Message['status'] }) {
+  if (status === 'pending') {
+    return <span className="loading loading-spinner loading-xs ml-1 align-middle" />
+  }
+  if (status === 'delivered') {
+    return <span className="text-xs ml-1 opacity-60" aria-label="delivered">✓✓</span>
+  }
+  if (status === 'read') {
+    return <span className="text-xs ml-1 text-blue-400" aria-label="read">✓✓</span>
+  }
+  return null
+}
+
 export function ConversationView({ conversationId }: ConversationViewProps) {
   const queryClient = useQueryClient()
   const { data: auth } = useAuth()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [retryText, setRetryText] = useState('')
+
+  const handleRetry = useCallback((text: string) => setRetryText(text), [])
+  const clearRetryText = useCallback(() => setRetryText(''), [])
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: conversationQueryKey(conversationId),
@@ -141,12 +159,34 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
               ) : (
                 message.text
               )}
+              {message.direction === 'outbound' && (
+                <OutboundStatus status={message.status} />
+              )}
             </div>
+            {message.direction === 'outbound' && message.status === 'failed' && (
+              <div className="chat-footer mt-1">
+                <div role="alert" className="alert alert-error py-1 px-2 text-xs gap-1">
+                  <span>Falha no envio</span>
+                  <button
+                    className="btn btn-xs btn-ghost"
+                    onClick={() => handleRetry(message.text ?? '')}
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
         <div ref={messagesEndRef} />
       </div>
+
+      <SendMessageForm
+        conversationId={conversationId}
+        prefillText={retryText}
+        onPrefillConsumed={clearRetryText}
+      />
     </div>
   )
 }
