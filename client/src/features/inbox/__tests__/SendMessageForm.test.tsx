@@ -9,7 +9,8 @@ import { SendMessageForm } from '../SendMessageForm'
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
     channel: () => ({
@@ -22,7 +23,9 @@ vi.mock('../../../lib/supabase', () => ({
 const CONV_ID = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
 
 function makeWrapper() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
+  const qc = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
   return function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
   }
@@ -54,7 +57,9 @@ describe('SendMessageForm', () => {
 
   // T-C-022
   it('submit button is disabled when text is empty and enabled once text is entered', () => {
-    render(<SendMessageForm conversationId={CONV_ID} />, { wrapper: makeWrapper() })
+    render(<SendMessageForm conversationId={CONV_ID} />, {
+      wrapper: makeWrapper(),
+    })
 
     const button = screen.getByRole('button', { name: /enviar/i })
     expect(button).toBeDisabled()
@@ -75,13 +80,20 @@ describe('SendMessageForm', () => {
     overrideHandler(
       http.post(`/api/inbox/conversations/${CONV_ID}/messages`, () =>
         HttpResponse.json(
-          { error: { code: 'WHATSAPP_DISCONNECTED', message: 'WhatsApp não está conectado' } },
+          {
+            error: {
+              code: 'WHATSAPP_DISCONNECTED',
+              message: 'WhatsApp não está conectado',
+            },
+          },
           { status: 409 },
         ),
       ),
     )
 
-    render(<SendMessageForm conversationId={CONV_ID} />, { wrapper: makeWrapper() })
+    render(<SendMessageForm conversationId={CONV_ID} />, {
+      wrapper: makeWrapper(),
+    })
 
     const textarea = screen.getByRole('textbox')
     fireEvent.change(textarea, { target: { value: 'olá mundo' } })
@@ -95,15 +107,19 @@ describe('SendMessageForm', () => {
   // T-C-024
   it('shows retry hint with seconds count on 429 response using Retry-After header', async () => {
     overrideHandler(
-      http.post(`/api/inbox/conversations/${CONV_ID}/messages`, () =>
-        new HttpResponse(null, {
-          status: 429,
-          headers: { 'Retry-After': '45' },
-        }),
+      http.post(
+        `/api/inbox/conversations/${CONV_ID}/messages`,
+        () =>
+          new HttpResponse(null, {
+            status: 429,
+            headers: { 'Retry-After': '45' },
+          }),
       ),
     )
 
-    render(<SendMessageForm conversationId={CONV_ID} />, { wrapper: makeWrapper() })
+    render(<SendMessageForm conversationId={CONV_ID} />, {
+      wrapper: makeWrapper(),
+    })
 
     const textarea = screen.getByRole('textbox')
     fireEvent.change(textarea, { target: { value: 'test message' } })
@@ -111,7 +127,9 @@ describe('SendMessageForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /enviar/i }))
 
     await waitFor(() =>
-      expect(screen.getByText(/Tente novamente em 45 segundos/)).toBeInTheDocument(),
+      expect(
+        screen.getByText(/Tente novamente em 45 segundos/),
+      ).toBeInTheDocument(),
     )
   })
 })

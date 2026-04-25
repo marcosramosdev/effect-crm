@@ -282,8 +282,8 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Limpeza final
 
-- [ ] T089 [P] Correr `cd client && bun --bun run check` e `bun --bun tsc --noEmit -p tsconfig.json` na root. Zero errors.
-- [ ] T090 [P] Correr todos os testes uma última vez em verde: `bun test` + `cd client && bun --bun run test`.
+- [x] T089 [P] Correr `cd client && bun --bun run check` e `bun --bun tsc --noEmit -p tsconfig.json` na root. Zero errors.
+- [x] T090 [P] Correr todos os testes uma última vez em verde: `bun test` + `cd client && bun --bun run test`.
 
 ---
 

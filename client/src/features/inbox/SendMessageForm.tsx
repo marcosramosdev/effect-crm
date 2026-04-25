@@ -29,12 +29,13 @@ export function SendMessageForm({
   const [retryAfterSecs, setRetryAfterSecs] = useState<number | null>(null)
   const savedTextRef = useRef('')
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<FormValues>({
-    resolver: zodResolver(SendMessageRequestSchema),
-    defaultValues: { text: '' },
-  })
+  const { register, handleSubmit, reset, setValue, watch } =
+    useForm<FormValues>({
+      resolver: zodResolver(SendMessageRequestSchema),
+      defaultValues: { text: '' },
+    })
 
-  const textValue = watch('text') ?? ''
+  const textValue = watch('text')
 
   const stableOnPrefillConsumed = useCallback(() => {
     onPrefillConsumed?.()
@@ -49,11 +50,14 @@ export function SendMessageForm({
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) =>
-      apiFetch<{ message: Message }>(`/inbox/conversations/${conversationId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      }),
+      apiFetch<{ message: Message }>(
+        `/inbox/conversations/${conversationId}/messages`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values),
+        },
+      ),
     onMutate: (values) => {
       setErrorMsg(null)
       setRetryAfterSecs(null)
@@ -75,7 +79,11 @@ export function SendMessageForm({
 
       queryClient.setQueryData(
         conversationQueryKey(conversationId),
-        (old: { pages: ConversationDetail[]; pageParams: unknown[] } | undefined) => {
+        (
+          old:
+            | { pages: ConversationDetail[]; pageParams: unknown[] }
+            | undefined,
+        ) => {
           if (!old || old.pages.length === 0) return old
           const lastPage = old.pages[old.pages.length - 1]
           return {
@@ -103,14 +111,21 @@ export function SendMessageForm({
     },
   })
 
-  const isDisabled = !textValue || textValue.trim().length === 0 || mutation.isPending
+  const isDisabled =
+    !textValue || textValue.trim().length === 0 || mutation.isPending
 
   function submit() {
     void handleSubmit((values) => mutation.mutate(values))()
   }
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); submit() }} className="p-3 border-t border-base-200">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        submit()
+      }}
+      className="p-3 border-t border-base-200"
+    >
       {errorMsg && (
         <div role="alert" className="alert alert-warning py-2 mb-2 text-sm">
           {errorMsg}

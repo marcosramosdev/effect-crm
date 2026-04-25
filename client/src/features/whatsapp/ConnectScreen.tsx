@@ -21,7 +21,9 @@ export const connectionQueryOptions = {
 export function ConnectScreen() {
   const queryClient = useQueryClient()
   const { data: auth, isLoading: authLoading } = useAuth()
-  const { data: connection, isLoading: connectionLoading } = useQuery(connectionQueryOptions)
+  const { data: connection, isLoading: connectionLoading } = useQuery(
+    connectionQueryOptions,
+  )
 
   const connectMutation = useMutation({
     mutationFn: () =>
@@ -29,13 +31,16 @@ export function ConnectScreen() {
         method: 'POST',
       }),
     onSuccess: (data) => {
-      queryClient.setQueryData<ConnectionData>(connectionQueryOptions.queryKey, (old) => ({
-        status: data.status as ConnectionStatus,
-        qr: data.qr,
-        phoneNumber: old?.phoneNumber ?? null,
-        lastHeartbeatAt: old?.lastHeartbeatAt ?? null,
-        lastError: old?.lastError ?? null,
-      }))
+      queryClient.setQueryData<ConnectionData>(
+        connectionQueryOptions.queryKey,
+        (old) => ({
+          status: data.status as ConnectionStatus,
+          qr: data.qr,
+          phoneNumber: old?.phoneNumber ?? null,
+          lastHeartbeatAt: old?.lastHeartbeatAt ?? null,
+          lastError: old?.lastError ?? null,
+        }),
+      )
     },
   })
 
@@ -44,20 +49,39 @@ export function ConnectScreen() {
 
     const channel = supabase
       .channel('whatsapp-status')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .on('postgres_changes' as any, {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'whatsapp_sessions_public',
-        filter: `tenant_id=eq.${auth.tenantId}`,
-      }, (payload: { new: Record<string, unknown> }) => {
-        queryClient.setQueryData<ConnectionData>(connectionQueryOptions.queryKey, (old) => ({
-          status: (payload.new.status as ConnectionStatus) ?? old?.status ?? 'disconnected',
-          phoneNumber: (payload.new.phone_number as string | null) ?? old?.phoneNumber ?? null,
-          lastHeartbeatAt: (payload.new.last_heartbeat_at as string | null) ?? old?.lastHeartbeatAt ?? null,
-          lastError: (payload.new.last_error as string | null) ?? old?.lastError ?? null,
-        }))
-      })
+
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'whatsapp_sessions_public',
+          filter: `tenant_id=eq.${auth.tenantId}`,
+        },
+        (payload: { new: Record<string, unknown> }) => {
+          queryClient.setQueryData<ConnectionData>(
+            connectionQueryOptions.queryKey,
+            (old) => ({
+              status:
+                (payload.new.status as ConnectionStatus | undefined) ??
+                old?.status ??
+                'disconnected',
+              phoneNumber:
+                (payload.new.phone_number as string | null) ??
+                old?.phoneNumber ??
+                null,
+              lastHeartbeatAt:
+                (payload.new.last_heartbeat_at as string | null) ??
+                old?.lastHeartbeatAt ??
+                null,
+              lastError:
+                (payload.new.last_error as string | null) ??
+                old?.lastError ??
+                null,
+            }),
+          )
+        },
+      )
       .subscribe()
 
     return () => {
@@ -83,9 +107,13 @@ export function ConnectScreen() {
 
       {status === 'connected' && (
         <div className="text-center">
-          <div className="badge badge-success gap-2 p-4 text-base">Connected</div>
+          <div className="badge badge-success gap-2 p-4 text-base">
+            Connected
+          </div>
           {connection?.phoneNumber && (
-            <p className="mt-2 text-sm text-base-content/70">{connection.phoneNumber}</p>
+            <p className="mt-2 text-sm text-base-content/70">
+              {connection.phoneNumber}
+            </p>
           )}
         </div>
       )}
@@ -107,7 +135,9 @@ export function ConnectScreen() {
       {(status === 'disconnected' || status === 'error') && (
         <>
           <p className="text-base-content/70">
-            {status === 'error' ? 'Connection error' : 'WhatsApp is disconnected'}
+            {status === 'error'
+              ? 'Connection error'
+              : 'WhatsApp is disconnected'}
           </p>
           {status === 'error' && connection?.lastError && (
             <p className="text-sm text-error">{connection.lastError}</p>

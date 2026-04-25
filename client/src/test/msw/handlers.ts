@@ -1,4 +1,5 @@
-import { http, HttpResponse, type RequestHandler } from 'msw'
+import { http, HttpResponse } from 'msw'
+import type { RequestHandler } from 'msw'
 
 export const handlers: RequestHandler[] = [
   http.get('/api/auth/me', () => {

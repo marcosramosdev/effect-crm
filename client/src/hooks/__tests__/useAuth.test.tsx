@@ -7,7 +7,8 @@ import { useAuth } from '../useAuth'
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
   },
@@ -17,7 +18,9 @@ function wrapper({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
 }
 
 describe('useAuth', () => {

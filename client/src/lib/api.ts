@@ -45,11 +45,14 @@ export async function apiFetch<T = unknown>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    const err = (body as { error?: { code?: string; message?: string; details?: unknown } }).error
-    throw Object.assign(
-      new Error(err?.message ?? res.statusText),
-      { status: res.status, code: err?.code, details: err?.details },
-    )
+    const err = (
+      body as { error?: { code?: string; message?: string; details?: unknown } }
+    ).error
+    throw Object.assign(new Error(err?.message ?? res.statusText), {
+      status: res.status,
+      code: err?.code,
+      details: err?.details,
+    })
   }
 
   const json: unknown = await res.json()

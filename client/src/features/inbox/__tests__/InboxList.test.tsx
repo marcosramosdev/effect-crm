@@ -13,7 +13,8 @@ const realtimeState = vi.hoisted(() => ({
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
     channel: () => ({
@@ -136,7 +137,9 @@ describe('InboxList', () => {
     expect(initialItems[0]).toHaveTextContent('Bob')
     expect(initialItems[1]).toHaveTextContent('Alice')
 
-    await waitFor(() => expect(realtimeState.callbacks.length).toBeGreaterThan(0))
+    await waitFor(() =>
+      expect(realtimeState.callbacks.length).toBeGreaterThan(0),
+    )
 
     const newTimestamp = new Date(Date.now() + 5000).toISOString()
     act(() => {

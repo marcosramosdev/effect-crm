@@ -3,11 +3,15 @@ import { useEffect } from 'react'
 import { apiFetch } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import type { ConversationSummary, ConversationListResponse } from '@shared/inbox'
+import type {
+  ConversationSummary,
+  ConversationListResponse,
+} from '@shared/inbox'
 
 export const conversationsQueryOptions = {
   queryKey: ['inbox', 'conversations'] as const,
-  queryFn: (): Promise<ConversationListResponse> => apiFetch('/inbox/conversations'),
+  queryFn: (): Promise<ConversationListResponse> =>
+    apiFetch('/inbox/conversations'),
 }
 
 interface InboxListProps {
@@ -46,49 +50,59 @@ export function InboxList({ onSelect }: InboxListProps) {
 
     const channel = supabase
       .channel('inbox-conversations')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .on('postgres_changes' as any, {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'conversations',
-        filter: `tenant_id=eq.${auth.tenantId}`,
-      }, (payload: { new: Record<string, unknown> }) => {
-        queryClient.setQueryData(
-          conversationsQueryOptions.queryKey,
-          (old: ConversationListResponse | undefined) => {
-            if (!old) return old
 
-            const updatedId = payload.new.id as string
-            const exists = old.conversations.some((c) => c.id === updatedId)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `tenant_id=eq.${auth.tenantId}`,
+        },
+        (payload: { new: Record<string, unknown> }) => {
+          queryClient.setQueryData(
+            conversationsQueryOptions.queryKey,
+            (old: ConversationListResponse | undefined) => {
+              if (!old) return old
 
-            if (!exists) {
-              queryClient.invalidateQueries({ queryKey: conversationsQueryOptions.queryKey })
-              return old
-            }
+              const updatedId = payload.new.id as string
+              const exists = old.conversations.some((c) => c.id === updatedId)
 
-            const conversations = old.conversations
-              .map((c): ConversationSummary => {
-                if (c.id !== updatedId) return c
-                return {
-                  ...c,
-                  lastMessageAt:
-                    (payload.new.last_message_at as string | undefined) ?? c.lastMessageAt,
-                  unreadCount:
-                    (payload.new.unread_count as number | undefined) ?? c.unreadCount,
-                  lastMessagePreview:
-                    (payload.new.last_message_preview as string | undefined) ??
-                    c.lastMessagePreview,
-                }
-              })
-              .sort(
-                (a, b) =>
-                  new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
-              )
+              if (!exists) {
+                queryClient.invalidateQueries({
+                  queryKey: conversationsQueryOptions.queryKey,
+                })
+                return old
+              }
 
-            return { ...old, conversations }
-          },
-        )
-      })
+              const conversations = old.conversations
+                .map((c): ConversationSummary => {
+                  if (c.id !== updatedId) return c
+                  return {
+                    ...c,
+                    lastMessageAt:
+                      (payload.new.last_message_at as string | undefined) ??
+                      c.lastMessageAt,
+                    unreadCount:
+                      (payload.new.unread_count as number | undefined) ??
+                      c.unreadCount,
+                    lastMessagePreview:
+                      (payload.new.last_message_preview as
+                        | string
+                        | undefined) ?? c.lastMessagePreview,
+                  }
+                })
+                .sort(
+                  (a, b) =>
+                    new Date(b.lastMessageAt).getTime() -
+                    new Date(a.lastMessageAt).getTime(),
+                )
+
+              return { ...old, conversations }
+            },
+          )
+        },
+      )
       .subscribe()
 
     return () => {

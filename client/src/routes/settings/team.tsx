@@ -10,7 +10,7 @@ import { apiFetch } from '../../lib/api'
 export const Route = createFileRoute('/settings/team')({
   beforeLoad: async ({ context }) => {
     const auth = await context.queryClient.ensureQueryData(authQueryOptions)
-    if (auth?.role !== 'owner') {
+    if (auth.role !== 'owner') {
       throw redirect({ to: '/inbox' })
     }
   },
@@ -96,7 +96,9 @@ function TeamSettingsPage() {
                 <tr key={member.userId}>
                   <td className="font-mono text-sm">{member.userId}</td>
                   <td>
-                    <span className={`badge ${member.role === 'owner' ? 'badge-primary' : 'badge-ghost'}`}>
+                    <span
+                      className={`badge ${member.role === 'owner' ? 'badge-primary' : 'badge-ghost'}`}
+                    >
                       {member.role}
                     </span>
                   </td>
@@ -118,7 +120,7 @@ function TeamSettingsPage() {
         <div>
           <h2 className="text-base font-semibold mb-3">Convidar membro</h2>
           <form
-            onSubmit={handleSubmit((data) => inviteMutation.mutate(data))}
+            onSubmit={handleSubmit((values) => inviteMutation.mutate(values))}
             className="flex flex-col gap-3 sm:flex-row sm:items-start"
           >
             <div className="flex-1">
@@ -128,42 +130,64 @@ function TeamSettingsPage() {
                 className="input input-bordered w-full"
                 placeholder="email@exemplo.com"
               />
-              {errors.email && <p className="text-error text-sm mt-1">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-error text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
             <select {...register('role')} className="select select-bordered">
               <option value="agent">Agente</option>
               <option value="owner">Owner</option>
             </select>
-            <button type="submit" className="btn btn-primary" disabled={inviteMutation.isPending}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={inviteMutation.isPending}
+            >
               Convidar
             </button>
           </form>
           {inviteMutation.isError && (
-            <p className="text-error text-sm mt-2">Erro ao convidar utilizador.</p>
+            <p className="text-error text-sm mt-2">
+              Erro ao convidar utilizador.
+            </p>
           )}
           {inviteMutation.isSuccess && (
-            <p className="text-success text-sm mt-2">Convite enviado com sucesso.</p>
+            <p className="text-success text-sm mt-2">
+              Convite enviado com sucesso.
+            </p>
           )}
         </div>
       </div>
 
       {removeModal && (
-        <dialog open role="dialog" aria-modal="true" className="modal modal-open">
+        <dialog
+          open
+          role="dialog"
+          aria-modal="true"
+          className="modal modal-open"
+        >
           <div className="modal-box">
             <h3 className="font-bold text-lg">Remover membro</h3>
             <p className="py-2">
-              Tem a certeza que pretende remover este membro ({removeModal.role})?
+              Tem a certeza que pretende remover este membro ({removeModal.role}
+              )?
             </p>
             {removeMutation.isError && (
               <p className="text-error text-sm">
-                Não foi possível remover. Verifique se existe pelo menos um owner na equipa.
+                Não foi possível remover. Verifique se existe pelo menos um
+                owner na equipa.
               </p>
             )}
             <div className="modal-action">
               <button
                 type="button"
                 className="btn"
-                onClick={() => { setRemoveModal(null); removeMutation.reset() }}
+                onClick={() => {
+                  setRemoveModal(null)
+                  removeMutation.reset()
+                }}
               >
                 Cancelar
               </button>
