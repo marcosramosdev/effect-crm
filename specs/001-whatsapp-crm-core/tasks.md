@@ -221,9 +221,9 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — Kanban
 
-- [ ] T070 [P] [US4] **Red** Criar `client/src/features/pipeline/__tests__/PipelineBoard.test.tsx` com T-C-030..031 (drag dispara mutation, optimistic update). Fail.
-- [ ] T071 [US4] **Green** Implementar `client/src/features/pipeline/PipelineBoard.tsx` — fetch de stages + leads; DnD nativo HTML5 (sem lib extra, Princípio V); optimistic update na mutation PATCH com rollback em erro. Testes T-C-030..031 ⇒ green.
-- [ ] T072 [P] [US4] Criar rota `client/src/routes/pipeline/index.tsx` que renderiza `PipelineBoard`.
+- [x] T070 [P] [US4] **Red** Criar `client/src/features/pipeline/__tests__/PipelineBoard.test.tsx` com T-C-030..031 (drag dispara mutation, optimistic update). Fail.
+- [x] T071 [US4] **Green** Implementar `client/src/features/pipeline/PipelineBoard.tsx` — fetch de stages + leads; DnD nativo HTML5 (sem lib extra, Princípio V); optimistic update na mutation PATCH com rollback em erro. Testes T-C-030..031 ⇒ green.
+- [x] T072 [P] [US4] Criar rota `client/src/routes/pipeline/index.tsx` que renderiza `PipelineBoard`.
 
 **Checkpoint US4**: pipeline usável com etapas default. US4 entregue.
 
