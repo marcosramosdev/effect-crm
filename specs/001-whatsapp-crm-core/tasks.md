@@ -274,7 +274,7 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Observabilidade mínima
 
-- [ ] T087 [P] Adicionar logger estruturado (JSON) em `server/middlewares/error.ts` — log correlacionado com `requestId` (gerar com `crypto.randomUUID()`); sanitizar `webhookSecret` do path (regex). Princípio VI (nunca logar tokens).
+- [x] T087 [P] Adicionar logger estruturado (JSON) em `server/middlewares/error.ts` — log correlacionado com `requestId` (gerar com `crypto.randomUUID()`); sanitizar `webhookSecret` do path (regex). Princípio VI (nunca logar tokens).
 
 ### Smoke test manual
 

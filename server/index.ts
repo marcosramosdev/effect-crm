@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
-import { logger } from 'hono/logger'
 import { serveStatic } from 'hono/bun'
-import { errorHandler } from './middlewares/error'
+import { errorHandler, structuredLogger } from './middlewares/error'
 import { authMiddleware } from './middlewares/auth'
 import { tenantGuard } from './middlewares/tenant-guard'
 import type { AuthVariables } from './middlewares/auth'
@@ -14,7 +13,7 @@ import { teamRouter } from './routes/team'
 
 const app = new Hono()
 
-app.use('*', logger())
+app.use('*', structuredLogger())
 app.use('*', errorHandler())
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
