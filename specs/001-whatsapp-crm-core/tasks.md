@@ -267,10 +267,10 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Produção — static serving + Dockerfile
 
-- [ ] T083 Modificar `server/index.ts` — em produção (detectar por `NODE_ENV==='production'`), servir `client/dist` como estático via `serveStatic` do Hono e adicionar catch-all que devolve `client/dist/index.html` para rotas não-`/api/*`.
-- [ ] T084 Criar `Dockerfile` multi-stage conforme `quickstart.md` — stage 1 builda client (copia `server/types/` também), stage 2 é o runtime Bun com `server/` + `client/dist/`. Expor 3000.
-- [ ] T085 [P] Criar `.dockerignore` — `node_modules`, `client/node_modules`, `*.log`, `.env`, `.git`.
-- [ ] T086 [P] Criar `.env.example` na root com todas as env vars do quickstart — documenta sem expor segredos.
+- [x] T083 Modificar `server/index.ts` — em produção (detectar por `NODE_ENV==='production'`), servir `client/dist` como estático via `serveStatic` do Hono e adicionar catch-all que devolve `client/dist/index.html` para rotas não-`/api/*`.
+- [x] T084 Criar `Dockerfile` multi-stage conforme `quickstart.md` — stage 1 builda client (copia `server/types/` também), stage 2 é o runtime Bun com `server/` + `client/dist/`. Expor 3000.
+- [x] T085 [P] Criar `.dockerignore` — `node_modules`, `client/node_modules`, `*.log`, `.env`, `.git`.
+- [x] T086 [P] Criar `.env.example` na root com todas as env vars do quickstart — documenta sem expor segredos.
 
 ### Observabilidade mínima
 

@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
+import { serveStatic } from 'hono/bun'
 import { errorHandler } from './middlewares/error'
 import { authMiddleware } from './middlewares/auth'
 import { tenantGuard } from './middlewares/tenant-guard'
@@ -31,5 +32,13 @@ api.route('/team', teamRouter)
 
 app.route('/api', api)
 app.route('/', webhooksRouter)
+
+if (process.env.NODE_ENV === 'production') {
+  app.use('/*', serveStatic({ root: './client/dist' }))
+  app.get('/*', async (c) => {
+    const html = await Bun.file('./client/dist/index.html').text()
+    return c.html(html)
+  })
+}
 
 export default app
