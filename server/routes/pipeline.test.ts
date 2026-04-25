@@ -446,3 +446,70 @@ describe('DELETE /pipeline/stages/:id — only default entry', () => {
     expect(body.error.code).toBe('LAST_DEFAULT_STAGE')
   })
 })
+
+// T-S-066
+describe('DELETE /pipeline/leads/:id — owner-only guard', () => {
+  it('returns 403 when caller is agent', async () => {
+    const { app } = makeApp({ role: 'agent' })
+    const jwt = await makeTestJwt({ userId: USER_ID, tenantId: TENANT_ID })
+
+    const res = await app.request(`/pipeline/leads/${LEAD_ID}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(403)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('FORBIDDEN')
+  })
+})
+
+// T-S-067
+describe('DELETE /pipeline/leads/:id — owner deletes lead', () => {
+  it('returns 200 with deletedLeadId and issues DELETE on leads table', async () => {
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        leads: [
+          {
+            id: LEAD_ID,
+            tenant_id: TENANT_ID,
+            phone_number: PHONE,
+            display_name: null,
+            stage_id: STAGE1_ID,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/leads/${LEAD_ID}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { deletedLeadId: string }
+    expect(body.deletedLeadId).toBe(LEAD_ID)
+
+    const deleteOp = serviceDb.calls.find((c) => c.table === 'leads' && c.op === 'delete')
+    expect(deleteOp).toBeDefined()
+    expect(deleteOp?.filters).toContainEqual({ col: 'id', val: LEAD_ID, type: 'eq' })
+    expect(deleteOp?.filters).toContainEqual({ col: 'tenant_id', val: TENANT_ID, type: 'eq' })
+  })
+
+  it('returns 404 when lead does not belong to the tenant', async () => {
+    const { app } = makeApp({ serviceRows: { leads: [] } })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/leads/${LEAD_ID}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(404)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('NOT_FOUND')
+  })
+})

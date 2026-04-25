@@ -262,8 +262,8 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Deleção de lead (owner-only, GDPR baseline per R-007)
 
-- [ ] T081 [P] **Red** Adicionar a `server/routes/pipeline.test.ts` T-S-066..067 (agent 403, owner cascade apaga conversa+messages). Fail.
-- [ ] T082 **Green** Implementar `DELETE /api/pipeline/leads/:leadId` — owner-only; cascade automática via FKs `on delete cascade`; devolve `{ deletedLeadId }`. Testes ⇒ green.
+- [x] T081 [P] **Red** Adicionar a `server/routes/pipeline.test.ts` T-S-066..067 (agent 403, owner cascade apaga conversa+messages). Fail.
+- [x] T082 **Green** Implementar `DELETE /api/pipeline/leads/:leadId` — owner-only; cascade automática via FKs `on delete cascade`; devolve `{ deletedLeadId }`. Testes ⇒ green.
 
 ### Produção — static serving + Dockerfile
 
