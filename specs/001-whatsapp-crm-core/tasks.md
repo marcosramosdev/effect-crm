@@ -256,9 +256,9 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Team management (auxiliar de US5; necessário para produto real)
 
-- [ ] T078 [P] **Red** Criar `server/routes/team.test.ts` — `POST /team/invite` como owner (200 + `inviteUserByEmail` chamado + insert em `tenant_members`); como agent (403). Fail.
-- [ ] T079 **Green** Implementar endpoint de team em `server/routes/pipeline.ts` (sub-árvore `/team`): `GET /team`, `POST /team/invite`, `DELETE /team/:userId`. Usar `createServiceSupabase().auth.admin.inviteUserByEmail`. Bloquear delete do último owner. Testes ⇒ green.
-- [ ] T080 [P] Implementar `client/src/routes/settings/team.tsx` — lista membros, form de convite, botão remover com confirmação. Owner-only.
+- [x] T078 [P] **Red** Criar `server/routes/team.test.ts` — `POST /team/invite` como owner (200 + `inviteUserByEmail` chamado + insert em `tenant_members`); como agent (403). Fail.
+- [x] T079 **Green** Implementar endpoint de team em `server/routes/team.ts`: `GET /team`, `POST /team/invite`, `DELETE /team/:userId`. Usar `createServiceSupabase().auth.admin.inviteUserByEmail`. Bloquear delete do último owner. Testes ⇒ green.
+- [x] T080 [P] Implementar `client/src/routes/settings/team.tsx` — lista membros, form de convite, botão remover com confirmação. Owner-only.
 
 ### Deleção de lead (owner-only, GDPR baseline per R-007)
 

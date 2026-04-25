@@ -9,6 +9,7 @@ import { whatsappRouter } from './routes/whatsapp'
 import { webhooksRouter } from './routes/webhooks'
 import { inboxRouter } from './routes/inbox'
 import { pipelineRouter } from './routes/pipeline'
+import { teamRouter } from './routes/team'
 
 const app = new Hono()
 
@@ -25,6 +26,7 @@ api.route('/auth', authRouter)
 api.route('/whatsapp', whatsappRouter)
 api.route('/inbox', inboxRouter)
 api.route('/pipeline', pipelineRouter)
+api.route('/team', teamRouter)
 // webhooks is public — mounted on app directly below
 
 app.route('/api', api)
