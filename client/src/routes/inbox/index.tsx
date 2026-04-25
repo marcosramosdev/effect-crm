@@ -15,7 +15,10 @@ function InboxLayout() {
         </div>
         <InboxList
           onSelect={(id) =>
-            navigate({ to: '/inbox/$conversationId', params: { conversationId: id } })
+            navigate({
+              to: '/inbox/$conversationId',
+              params: { conversationId: id },
+            })
           }
         />
       </div>

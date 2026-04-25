@@ -8,7 +8,8 @@ import { overrideHandler } from '../../../test/msw/server'
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
   },
@@ -50,12 +51,17 @@ describe('StageSettings', () => {
     let patchedOrder: number | null = null
 
     overrideHandler(
-      http.patch('/api/pipeline/stages/:stageId', async ({ params, request }) => {
-        patchedStageId = params.stageId as string
-        const body = (await request.json()) as { order?: number }
-        patchedOrder = body.order ?? null
-        return HttpResponse.json({ stage: { ...stages[1], order: body.order } })
-      }),
+      http.patch(
+        '/api/pipeline/stages/:stageId',
+        async ({ params, request }) => {
+          patchedStageId = params.stageId as string
+          const body = (await request.json()) as { order?: number }
+          patchedOrder = body.order ?? null
+          return HttpResponse.json({
+            stage: { ...stages[1], order: body.order },
+          })
+        },
+      ),
     )
 
     const { StageSettings } = await import('../StageSettings')
@@ -64,8 +70,12 @@ describe('StageSettings', () => {
     await screen.findByText('Novo')
     await screen.findByText('Em conversa')
 
-    const stage2Item = screen.getByText('Em conversa').closest('[draggable]') as HTMLElement
-    const stage1Item = screen.getByText('Novo').closest('[draggable]') as HTMLElement
+    const stage2Item = screen
+      .getByText('Em conversa')
+      .closest('[draggable]') as HTMLElement
+    const stage1Item = screen
+      .getByText('Novo')
+      .closest('[draggable]') as HTMLElement
 
     fireEvent.dragStart(stage2Item)
     fireEvent.dragOver(stage1Item)
@@ -129,6 +139,8 @@ describe('NavMenu', () => {
 
     await screen.findByRole('link', { name: /inbox/i })
 
-    expect(screen.queryByRole('link', { name: /configurar pipeline/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /configurar pipeline/i }),
+    ).not.toBeInTheDocument()
   })
 })

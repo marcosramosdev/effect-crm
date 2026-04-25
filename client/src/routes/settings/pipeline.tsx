@@ -5,7 +5,7 @@ import { StageSettings } from '../../features/pipeline/StageSettings'
 export const Route = createFileRoute('/settings/pipeline')({
   beforeLoad: async ({ context }) => {
     const auth = await context.queryClient.ensureQueryData(authQueryOptions)
-    if (auth?.role !== 'owner') {
+    if (auth.role !== 'owner') {
       throw redirect({ to: '/inbox' })
     }
   },

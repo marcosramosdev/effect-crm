@@ -6,7 +6,8 @@ import { overrideHandler } from '../../test/msw/server'
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
   },
@@ -35,7 +36,7 @@ describe('route guards', () => {
 
     let thrown: unknown
     try {
-      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)?.({
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({
         context: { queryClient },
       })
     } catch (e) {

@@ -256,25 +256,25 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Team management (auxiliar de US5; necessário para produto real)
 
-- [ ] T078 [P] **Red** Criar `server/routes/team.test.ts` — `POST /team/invite` como owner (200 + `inviteUserByEmail` chamado + insert em `tenant_members`); como agent (403). Fail.
-- [ ] T079 **Green** Implementar endpoint de team em `server/routes/pipeline.ts` (sub-árvore `/team`): `GET /team`, `POST /team/invite`, `DELETE /team/:userId`. Usar `createServiceSupabase().auth.admin.inviteUserByEmail`. Bloquear delete do último owner. Testes ⇒ green.
-- [ ] T080 [P] Implementar `client/src/routes/settings/team.tsx` — lista membros, form de convite, botão remover com confirmação. Owner-only.
+- [x] T078 [P] **Red** Criar `server/routes/team.test.ts` — `POST /team/invite` como owner (200 + `inviteUserByEmail` chamado + insert em `tenant_members`); como agent (403). Fail.
+- [x] T079 **Green** Implementar endpoint de team em `server/routes/team.ts`: `GET /team`, `POST /team/invite`, `DELETE /team/:userId`. Usar `createServiceSupabase().auth.admin.inviteUserByEmail`. Bloquear delete do último owner. Testes ⇒ green.
+- [x] T080 [P] Implementar `client/src/routes/settings/team.tsx` — lista membros, form de convite, botão remover com confirmação. Owner-only.
 
 ### Deleção de lead (owner-only, GDPR baseline per R-007)
 
-- [ ] T081 [P] **Red** Adicionar a `server/routes/pipeline.test.ts` T-S-066..067 (agent 403, owner cascade apaga conversa+messages). Fail.
-- [ ] T082 **Green** Implementar `DELETE /api/pipeline/leads/:leadId` — owner-only; cascade automática via FKs `on delete cascade`; devolve `{ deletedLeadId }`. Testes ⇒ green.
+- [x] T081 [P] **Red** Adicionar a `server/routes/pipeline.test.ts` T-S-066..067 (agent 403, owner cascade apaga conversa+messages). Fail.
+- [x] T082 **Green** Implementar `DELETE /api/pipeline/leads/:leadId` — owner-only; cascade automática via FKs `on delete cascade`; devolve `{ deletedLeadId }`. Testes ⇒ green.
 
 ### Produção — static serving + Dockerfile
 
-- [ ] T083 Modificar `server/index.ts` — em produção (detectar por `NODE_ENV==='production'`), servir `client/dist` como estático via `serveStatic` do Hono e adicionar catch-all que devolve `client/dist/index.html` para rotas não-`/api/*`.
-- [ ] T084 Criar `Dockerfile` multi-stage conforme `quickstart.md` — stage 1 builda client (copia `server/types/` também), stage 2 é o runtime Bun com `server/` + `client/dist/`. Expor 3000.
-- [ ] T085 [P] Criar `.dockerignore` — `node_modules`, `client/node_modules`, `*.log`, `.env`, `.git`.
-- [ ] T086 [P] Criar `.env.example` na root com todas as env vars do quickstart — documenta sem expor segredos.
+- [x] T083 Modificar `server/index.ts` — em produção (detectar por `NODE_ENV==='production'`), servir `client/dist` como estático via `serveStatic` do Hono e adicionar catch-all que devolve `client/dist/index.html` para rotas não-`/api/*`.
+- [x] T084 Criar `Dockerfile` multi-stage conforme `quickstart.md` — stage 1 builda client (copia `server/types/` também), stage 2 é o runtime Bun com `server/` + `client/dist/`. Expor 3000.
+- [x] T085 [P] Criar `.dockerignore` — `node_modules`, `client/node_modules`, `*.log`, `.env`, `.git`.
+- [x] T086 [P] Criar `.env.example` na root com todas as env vars do quickstart — documenta sem expor segredos.
 
 ### Observabilidade mínima
 
-- [ ] T087 [P] Adicionar logger estruturado (JSON) em `server/middlewares/error.ts` — log correlacionado com `requestId` (gerar com `crypto.randomUUID()`); sanitizar `webhookSecret` do path (regex). Princípio VI (nunca logar tokens).
+- [x] T087 [P] Adicionar logger estruturado (JSON) em `server/middlewares/error.ts` — log correlacionado com `requestId` (gerar com `crypto.randomUUID()`); sanitizar `webhookSecret` do path (regex). Princípio VI (nunca logar tokens).
 
 ### Smoke test manual
 
@@ -282,8 +282,8 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Limpeza final
 
-- [ ] T089 [P] Correr `cd client && bun --bun run check` e `bun --bun tsc --noEmit -p tsconfig.json` na root. Zero errors.
-- [ ] T090 [P] Correr todos os testes uma última vez em verde: `bun test` + `cd client && bun --bun run test`.
+- [x] T089 [P] Correr `cd client && bun --bun run check` e `bun --bun tsc --noEmit -p tsconfig.json` na root. Zero errors.
+- [x] T090 [P] Correr todos os testes uma última vez em verde: `bun test` + `cd client && bun --bun run test`.
 
 ---
 

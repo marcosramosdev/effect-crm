@@ -68,7 +68,13 @@ export function StageSettings() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: ({ stageId, destinationId }: { stageId: string; destinationId?: string }) => {
+    mutationFn: ({
+      stageId,
+      destinationId,
+    }: {
+      stageId: string
+      destinationId?: string
+    }) => {
       const url = destinationId
         ? `/pipeline/stages/${stageId}?destinationStageId=${destinationId}`
         : `/pipeline/stages/${stageId}`
@@ -79,7 +85,10 @@ export function StageSettings() {
       setDeleteModal(null)
       setDestinationStageId('')
     },
-    onError: (error: unknown, variables: { stageId: string; destinationId?: string }) => {
+    onError: (
+      error: unknown,
+      variables: { stageId: string; destinationId?: string },
+    ) => {
       const apiError = error as ApiError
       if (apiError.code === 'STAGE_HAS_LEADS') {
         const stage = stages.find((s) => s.id === variables.stageId)
@@ -128,26 +137,43 @@ export function StageSettings() {
         ))}
       </ul>
 
-      <form onSubmit={handleSubmit((data) => createMutation.mutate(data))} className="flex gap-2">
+      <form
+        onSubmit={handleSubmit((values) => createMutation.mutate(values))}
+        className="flex gap-2"
+      >
         <div className="flex-1">
           <input
             {...register('name')}
             className="input input-bordered w-full"
             placeholder="Nova etapa..."
           />
-          {errors.name && <p className="text-error text-sm">{errors.name.message}</p>}
+          {errors.name && (
+            <p className="text-error text-sm">{errors.name.message}</p>
+          )}
         </div>
-        <button type="submit" className="btn btn-primary" disabled={createMutation.isPending}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={createMutation.isPending}
+        >
           Adicionar
         </button>
       </form>
 
       {deleteModal && (
-        <dialog open role="dialog" aria-modal="true" className="modal modal-open">
+        <dialog
+          open
+          role="dialog"
+          aria-modal="true"
+          className="modal modal-open"
+        >
           <div className="modal-box">
-            <h3 className="font-bold text-lg">Apagar etapa &ldquo;{deleteModal.stageName}&rdquo;</h3>
+            <h3 className="font-bold text-lg">
+              Apagar etapa &ldquo;{deleteModal.stageName}&rdquo;
+            </h3>
             <p className="py-2">
-              Existem {deleteModal.leadsAffected} leads nesta etapa. Escolha uma etapa de destino:
+              Existem {deleteModal.leadsAffected} leads nesta etapa. Escolha uma
+              etapa de destino:
             </p>
             <select
               className="select select-bordered w-full"

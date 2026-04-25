@@ -160,6 +160,32 @@ export function createPipelineRouter(
     },
   )
 
+  // DELETE /leads/:leadId — owner only; cascade via DB FKs
+  router.delete('/leads/:leadId', requireOwner, async (c) => {
+    const { tenantId } = c.var
+    const leadId = c.req.param('leadId')
+    const serviceDb = getServiceClient()
+
+    const { data: lead } = await serviceDb
+      .from('leads')
+      .select('id')
+      .eq('id', leadId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (!lead) {
+      return c.json({ error: { code: 'NOT_FOUND', message: 'Lead não encontrado' } }, 404)
+    }
+
+    await serviceDb
+      .from('leads')
+      .delete()
+      .eq('id', leadId)
+      .eq('tenant_id', tenantId)
+
+    return c.json({ deletedLeadId: leadId })
+  })
+
   // POST /stages — owner only
   router.post('/stages', requireOwner, zValidator('json', CreateStageRequestSchema), async (c) => {
     const { tenantId } = c.var

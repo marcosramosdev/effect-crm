@@ -17,8 +17,10 @@ export function PipelineBoard() {
   const queryClient = useQueryClient()
   const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null)
 
-  const { data: stagesData, isLoading: stagesLoading } = useQuery(stagesQueryOptions)
-  const { data: leadsData, isLoading: leadsLoading } = useQuery(leadsQueryOptions)
+  const { data: stagesData, isLoading: stagesLoading } =
+    useQuery(stagesQueryOptions)
+  const { data: leadsData, isLoading: leadsLoading } =
+    useQuery(leadsQueryOptions)
 
   const moveMutation = useMutation({
     mutationFn: ({ leadId, stageId }: { leadId: string; stageId: string }) =>
@@ -30,17 +32,25 @@ export function PipelineBoard() {
     onMutate: async ({ leadId, stageId }) => {
       await queryClient.cancelQueries({ queryKey: leadsQueryOptions.queryKey })
       const previousLeads = queryClient.getQueryData(leadsQueryOptions.queryKey)
-      queryClient.setQueryData(leadsQueryOptions.queryKey, (old: LeadListResponse | undefined) => {
-        if (!old) return old
-        return {
-          ...old,
-          leads: old.leads.map((l) => (l.id === leadId ? { ...l, stageId } : l)),
-        }
-      })
+      queryClient.setQueryData(
+        leadsQueryOptions.queryKey,
+        (old: LeadListResponse | undefined) => {
+          if (!old) return old
+          return {
+            ...old,
+            leads: old.leads.map((l) =>
+              l.id === leadId ? { ...l, stageId } : l,
+            ),
+          }
+        },
+      )
       return { previousLeads }
     },
     onError: (_err, _vars, context) => {
-      queryClient.setQueryData(leadsQueryOptions.queryKey, context?.previousLeads)
+      queryClient.setQueryData(
+        leadsQueryOptions.queryKey,
+        context?.previousLeads,
+      )
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: leadsQueryOptions.queryKey })
@@ -63,7 +73,10 @@ export function PipelineBoard() {
       {stages.map((stage) => {
         const stageLeads = leads.filter((l) => l.stageId === stage.id)
         return (
-          <div key={stage.id} className="flex flex-col w-64 shrink-0 bg-base-200 rounded-lg">
+          <div
+            key={stage.id}
+            className="flex flex-col w-64 shrink-0 bg-base-200 rounded-lg"
+          >
             <div className="px-3 py-2 font-semibold border-b border-base-300">
               {stage.name}
               <span className="ml-2 badge badge-sm">{stageLeads.length}</span>
@@ -76,7 +89,10 @@ export function PipelineBoard() {
               onDrop={(e) => {
                 e.preventDefault()
                 if (draggingLeadId) {
-                  moveMutation.mutate({ leadId: draggingLeadId, stageId: stage.id })
+                  moveMutation.mutate({
+                    leadId: draggingLeadId,
+                    stageId: stage.id,
+                  })
                   setDraggingLeadId(null)
                 }
               }}
@@ -92,7 +108,9 @@ export function PipelineBoard() {
                   <div className="font-medium text-sm truncate">
                     {lead.displayName ?? lead.phoneNumber}
                   </div>
-                  <div className="text-xs text-base-content/60">{lead.phoneNumber}</div>
+                  <div className="text-xs text-base-content/60">
+                    {lead.phoneNumber}
+                  </div>
                 </li>
               ))}
             </ul>

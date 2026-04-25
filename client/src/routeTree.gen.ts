@@ -65,10 +65,26 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/connect' | '/settings/pipeline' | '/inbox' | '/inbox/$conversationId'
+  fullPaths:
+    | '/'
+    | '/connect'
+    | '/settings/pipeline'
+    | '/inbox'
+    | '/inbox/$conversationId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/connect' | '/settings/pipeline' | '/inbox' | '/inbox/$conversationId'
-  id: '__root__' | '/' | '/connect' | '/settings/pipeline' | '/inbox/' | '/inbox/$conversationId'
+  to:
+    | '/'
+    | '/connect'
+    | '/settings/pipeline'
+    | '/inbox'
+    | '/inbox/$conversationId'
+  id:
+    | '__root__'
+    | '/'
+    | '/connect'
+    | '/settings/pipeline'
+    | '/inbox/'
+    | '/inbox/$conversationId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -126,7 +142,9 @@ const inboxIndexRouteChildren: InboxIndexRouteChildren = {
   InboxConversationIdRoute: InboxConversationIdRoute,
 }
 
-const InboxIndexRouteWithChildren = InboxIndexRoute._addFileChildren(inboxIndexRouteChildren)
+const InboxIndexRouteWithChildren = InboxIndexRoute._addFileChildren(
+  inboxIndexRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,

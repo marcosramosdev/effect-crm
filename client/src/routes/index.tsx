@@ -6,13 +6,15 @@ export const Route = createFileRoute('/')({
   beforeLoad: async ({ context }) => {
     const auth = await context.queryClient.ensureQueryData(authQueryOptions)
 
-    if (auth?.role !== 'owner') {
+    if (auth.role !== 'owner') {
       throw redirect({ to: '/inbox' })
     }
 
-    const connection = await context.queryClient.ensureQueryData(connectionQueryOptions)
+    const connection = await context.queryClient.ensureQueryData(
+      connectionQueryOptions,
+    )
 
-    if (connection?.status === 'connected') {
+    if (connection.status === 'connected') {
       throw redirect({ to: '/inbox' })
     }
 

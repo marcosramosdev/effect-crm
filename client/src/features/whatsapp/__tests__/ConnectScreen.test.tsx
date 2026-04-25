@@ -13,7 +13,8 @@ const realtimeState = vi.hoisted(() => ({
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
     channel: () => ({
@@ -88,7 +89,9 @@ describe('ConnectScreen', () => {
 
     render(<ConnectScreen />, { wrapper: makeWrapper() })
 
-    await waitFor(() => expect(realtimeState.callbacks.length).toBeGreaterThan(0))
+    await waitFor(() =>
+      expect(realtimeState.callbacks.length).toBeGreaterThan(0),
+    )
 
     act(() => {
       realtimeState.callbacks[0]({
@@ -131,7 +134,9 @@ describe('ConnectScreen', () => {
 
     render(<ConnectScreen />, { wrapper: makeWrapper() })
 
-    const connectButton = await screen.findByRole('button', { name: /connect/i })
+    const connectButton = await screen.findByRole('button', {
+      name: /connect/i,
+    })
     fireEvent.click(connectButton)
 
     await waitFor(() => expect(postCalled).toBe(true))
@@ -156,6 +161,8 @@ describe('ConnectScreen', () => {
 
     await screen.findByText(/whatsapp is disconnected/i)
 
-    expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /connect/i }),
+    ).not.toBeInTheDocument()
   })
 })

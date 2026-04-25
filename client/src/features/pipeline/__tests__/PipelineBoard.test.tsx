@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react'
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+  act,
+} from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
@@ -9,7 +16,8 @@ import { PipelineBoard } from '../PipelineBoard'
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
   },
@@ -48,7 +56,9 @@ describe('PipelineBoard', () => {
   beforeEach(() => {
     overrideHandler(
       http.get('/api/pipeline/stages', () => HttpResponse.json({ stages })),
-      http.get('/api/pipeline/leads', () => HttpResponse.json({ leads, nextCursor: null })),
+      http.get('/api/pipeline/leads', () =>
+        HttpResponse.json({ leads, nextCursor: null }),
+      ),
     )
   })
 
@@ -58,12 +68,15 @@ describe('PipelineBoard', () => {
     let patchedStageId: string | null = null
 
     overrideHandler(
-      http.patch('/api/pipeline/leads/:leadId/stage', async ({ params, request }) => {
-        patchedLeadId = params.leadId as string
-        const body = (await request.json()) as { stageId: string }
-        patchedStageId = body.stageId
-        return HttpResponse.json({})
-      }),
+      http.patch(
+        '/api/pipeline/leads/:leadId/stage',
+        async ({ params, request }) => {
+          patchedLeadId = params.leadId as string
+          const body = (await request.json()) as { stageId: string }
+          patchedStageId = body.stageId
+          return HttpResponse.json({})
+        },
+      ),
     )
 
     render(<PipelineBoard />, { wrapper: makeWrapper() })
@@ -72,7 +85,9 @@ describe('PipelineBoard', () => {
     await screen.findByText('Alice')
 
     const stage2List = screen.getByRole('list', { name: 'Em conversa' })
-    const aliceCard = screen.getByText('Alice').closest('[draggable]') as HTMLElement
+    const aliceCard = screen
+      .getByText('Alice')
+      .closest('[draggable]') as HTMLElement
 
     fireEvent.dragStart(aliceCard)
     fireEvent.dragOver(stage2List)
@@ -89,10 +104,12 @@ describe('PipelineBoard', () => {
     let patchResolve!: (r: Response) => void
 
     overrideHandler(
-      http.patch('/api/pipeline/leads/:leadId/stage', () =>
-        new Promise<Response>((resolve) => {
-          patchResolve = resolve
-        }),
+      http.patch(
+        '/api/pipeline/leads/:leadId/stage',
+        () =>
+          new Promise<Response>((resolve) => {
+            patchResolve = resolve
+          }),
       ),
     )
 
@@ -102,7 +119,9 @@ describe('PipelineBoard', () => {
 
     const stage1List = screen.getByRole('list', { name: 'Novo' })
     const stage2List = screen.getByRole('list', { name: 'Em conversa' })
-    const aliceCard = within(stage1List).getByText('Alice').closest('[draggable]') as HTMLElement
+    const aliceCard = within(stage1List)
+      .getByText('Alice')
+      .closest('[draggable]') as HTMLElement
 
     fireEvent.dragStart(aliceCard)
     fireEvent.dragOver(stage2List)
@@ -116,7 +135,9 @@ describe('PipelineBoard', () => {
 
     // Resolve with server error → triggers rollback
     act(() => {
-      patchResolve(HttpResponse.json({ error: 'Server error' }, { status: 500 }) as Response)
+      patchResolve(
+        HttpResponse.json({ error: 'Server error' }, { status: 500 }),
+      )
     })
 
     // After rollback, Alice should be back in stage 1
