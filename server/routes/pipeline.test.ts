@@ -19,8 +19,6 @@ beforeAll(() => {
   process.env.SUPABASE_JWT_SECRET = 'test-secret'
 })
 
-const memberRows = [{ user_id: USER_ID, tenant_id: TENANT_ID, role: 'owner' }]
-
 async function ownerJwt() {
   return makeTestJwt({ userId: USER_ID, tenantId: TENANT_ID })
 }
@@ -126,10 +124,13 @@ function makeDb(rowsByTable: RowsByTable = {}) {
 interface AppOpts {
   serviceRows?: RowsByTable
   userRows?: RowsByTable
+  role?: 'owner' | 'agent'
 }
 
 function makeApp(opts: AppOpts = {}) {
-  const authMock = makeSupabaseMock({ rows: memberRows })
+  const role = opts.role ?? 'owner'
+  const currentMemberRows = [{ user_id: USER_ID, tenant_id: TENANT_ID, role }]
+  const authMock = makeSupabaseMock({ rows: currentMemberRows })
   const serviceDb = makeDb(opts.serviceRows ?? {})
   const userDb = makeDb(opts.userRows ?? {})
 
@@ -295,5 +296,153 @@ describe('PATCH /pipeline/leads/:id/stage', () => {
     expect(res.status).toBe(404)
     const body = (await res.json()) as { error: { code: string } }
     expect(body.error.code).toBe('NOT_FOUND')
+  })
+})
+
+const LEAD_ID2 = 'dddddddd-dddd-dddd-dddd-dddddddddddd'
+
+// T-S-060
+describe('POST /pipeline/stages — owner-only guard', () => {
+  it('returns 403 when caller is agent', async () => {
+    const { app } = makeApp({ role: 'agent' })
+    const jwt = await makeTestJwt({ userId: USER_ID, tenantId: TENANT_ID })
+
+    const res = await app.request('/pipeline/stages', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Nova Etapa' }),
+    })
+
+    expect(res.status).toBe(403)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('FORBIDDEN')
+  })
+})
+
+// T-S-061
+describe('POST /pipeline/stages — owner creates', () => {
+  it('returns 201, inserts the stage with order = max + 1', async () => {
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Novo', order: 1, is_default_entry: true },
+          { id: STAGE2_ID, tenant_id: TENANT_ID, name: 'Em conversa', order: 2, is_default_entry: false },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request('/pipeline/stages', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Ganho' }),
+    })
+
+    expect(res.status).toBe(201)
+    const body = (await res.json()) as { stage: { name: string; order: number; isDefaultEntry: boolean } }
+    expect(body.stage.name).toBe('Ganho')
+    expect(body.stage.order).toBe(3)
+    expect(body.stage.isDefaultEntry).toBe(false)
+
+    const insertOp = serviceDb.calls.find((c) => c.table === 'pipeline_stages' && c.op === 'insert')
+    expect(insertOp).toBeDefined()
+    expect(insertOp?.data).toMatchObject({ name: 'Ganho', order: 3, is_default_entry: false })
+  })
+})
+
+// T-S-062
+describe('DELETE /pipeline/stages/:id — has leads, no destination', () => {
+  it('returns 409 with leadsAffected count when stage has leads and no destinationStageId', async () => {
+    const { app } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Em conversa', order: 2, is_default_entry: false },
+        ],
+        leads: [
+          { id: LEAD_ID, tenant_id: TENANT_ID, stage_id: STAGE1_ID, phone_number: PHONE },
+          { id: LEAD_ID2, tenant_id: TENANT_ID, stage_id: STAGE1_ID, phone_number: '5511888888888' },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/stages/${STAGE1_ID}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(409)
+    const body = (await res.json()) as { error: { code: string; details: { leadsAffected: number } } }
+    expect(body.error.code).toBe('STAGE_HAS_LEADS')
+    expect(body.error.details.leadsAffected).toBe(2)
+  })
+})
+
+// T-S-063
+describe('DELETE /pipeline/stages/:id — with destinationStageId', () => {
+  it('returns 204, moves leads, inserts stage_transitions', async () => {
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Em conversa', order: 2, is_default_entry: false },
+        ],
+        leads: [
+          {
+            id: LEAD_ID,
+            tenant_id: TENANT_ID,
+            stage_id: STAGE1_ID,
+            phone_number: PHONE,
+            display_name: null,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(
+      `/pipeline/stages/${STAGE1_ID}?destinationStageId=${STAGE2_ID}`,
+      { method: 'DELETE', headers: { Authorization: `Bearer ${jwt}` } },
+    )
+
+    expect(res.status).toBe(204)
+
+    const updateOp = serviceDb.calls.find((c) => c.table === 'leads' && c.op === 'update')
+    expect(updateOp).toBeDefined()
+    expect(updateOp?.data).toMatchObject({ stage_id: STAGE2_ID })
+
+    const insertOp = serviceDb.calls.find((c) => c.table === 'stage_transitions' && c.op === 'insert')
+    expect(insertOp).toBeDefined()
+    const transitions = insertOp?.data as Array<{ lead_id: string; to_stage_id: string }>
+    expect(Array.isArray(transitions)).toBe(true)
+    expect(transitions.some((t) => t.lead_id === LEAD_ID && t.to_stage_id === STAGE2_ID)).toBe(true)
+
+    const deleteOp = serviceDb.calls.find((c) => c.table === 'pipeline_stages' && c.op === 'delete')
+    expect(deleteOp).toBeDefined()
+  })
+})
+
+// T-S-064
+describe('DELETE /pipeline/stages/:id — only default entry', () => {
+  it('returns 409 when deleting the only default-entry stage', async () => {
+    const { app } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Novo', order: 1, is_default_entry: true },
+        ],
+        leads: [],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/stages/${STAGE1_ID}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(409)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('LAST_DEFAULT_STAGE')
   })
 })

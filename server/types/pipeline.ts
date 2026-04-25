@@ -41,3 +41,19 @@ export const MoveLeadRequestSchema = z.object({
   stageId: z.string().uuid(),
 })
 export type MoveLeadRequest = z.infer<typeof MoveLeadRequestSchema>
+
+export const CreateStageRequestSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+})
+export type CreateStageRequest = z.infer<typeof CreateStageRequestSchema>
+
+export const UpdateStageRequestSchema = z.object({
+  name: z.string().trim().min(1).max(255).optional(),
+  order: z.number().int().min(1).optional(),
+})
+export type UpdateStageRequest = z.infer<typeof UpdateStageRequestSchema>
+
+export const DeleteStageQuerySchema = z.object({
+  destinationStageId: z.string().uuid().optional(),
+})
+export type DeleteStageQuery = z.infer<typeof DeleteStageQuerySchema>

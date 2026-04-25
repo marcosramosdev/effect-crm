@@ -237,8 +237,8 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Server — stage mutations
 
-- [ ] T073 [US5] **Red** Expandir `server/routes/pipeline.test.ts` com T-S-060..064 (agent 403, owner cria, delete sem destino 409, delete com destino 204, delete da unica default 409). Fail.
-- [ ] T074 [US5] **Green** Implementar `POST /stages`, `PATCH /stages/:id`, `DELETE /stages/:id` em `server/routes/pipeline.ts`. Middleware interno `requireOwner` (reutilizado em US5 + polish). Recalcular `order` denso após mutações. Testes T-S-060..064 ⇒ green.
+- [x] T073 [US5] **Red** Expandir `server/routes/pipeline.test.ts` com T-S-060..064 (agent 403, owner cria, delete sem destino 409, delete com destino 204, delete da unica default 409). Fail.
+- [x] T074 [US5] **Green** Implementar `POST /stages`, `PATCH /stages/:id`, `DELETE /stages/:id` em `server/routes/pipeline.ts`. Middleware interno `requireOwner` (reutilizado em US5 + polish). Recalcular `order` denso após mutações. Testes T-S-060..064 ⇒ green.
 
 ### Client — Settings/pipeline
 
