@@ -242,9 +242,9 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — Settings/pipeline
 
-- [ ] T075 [P] [US5] **Red** Criar `client/src/features/pipeline/__tests__/StageSettings.test.tsx` com T-C-032..034 (reorder owner, remove com modal destino, agent não vê menu). Fail.
-- [ ] T076 [US5] **Green** Implementar `client/src/features/pipeline/StageSettings.tsx` — lista editável com DnD para reordenar; form React Hook Form + Zod para criar/renomear; modal para remover (escolher destino quando `leadsAffected > 0`). Testes ⇒ green.
-- [ ] T077 [P] [US5] Criar rota `client/src/routes/settings/pipeline.tsx` (owner-only via guard de T035).
+- [x] T075 [P] [US5] **Red** Criar `client/src/features/pipeline/__tests__/StageSettings.test.tsx` com T-C-032..034 (reorder owner, remove com modal destino, agent não vê menu). Fail.
+- [x] T076 [US5] **Green** Implementar `client/src/features/pipeline/StageSettings.tsx` — lista editável com DnD para reordenar; form React Hook Form + Zod para criar/renomear; modal para remover (escolher destino quando `leadsAffected > 0`). Testes ⇒ green.
+- [x] T077 [P] [US5] Criar rota `client/src/routes/settings/pipeline.tsx` (owner-only via guard de T035).
 
 **Checkpoint US5**: produto 100% do scope. Todos os testes verdes.
 
