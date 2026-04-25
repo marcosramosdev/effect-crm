@@ -8,6 +8,7 @@ import { authRouter } from './routes/auth'
 import { whatsappRouter } from './routes/whatsapp'
 import { webhooksRouter } from './routes/webhooks'
 import { inboxRouter } from './routes/inbox'
+import { pipelineRouter } from './routes/pipeline'
 
 const app = new Hono()
 
@@ -23,8 +24,8 @@ api.use('*', tenantGuard)
 api.route('/auth', authRouter)
 api.route('/whatsapp', whatsappRouter)
 api.route('/inbox', inboxRouter)
+api.route('/pipeline', pipelineRouter)
 // webhooks is public — mounted on app directly below
-// TODO: mount routes — pipeline
 
 app.route('/api', api)
 app.route('/', webhooksRouter)

@@ -212,12 +212,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Types
 
-- [ ] T067 [P] [US4] Criar `server/types/pipeline.ts` — `PipelineStageSchema`, `StageListResponseSchema`, `LeadSchema`, `LeadListResponseSchema`, `ListLeadsQuerySchema`, `MoveLeadRequestSchema`.
+- [x] T067 [P] [US4] Criar `server/types/pipeline.ts` — `PipelineStageSchema`, `StageListResponseSchema`, `LeadSchema`, `LeadListResponseSchema`, `ListLeadsQuerySchema`, `MoveLeadRequestSchema`.
 
 ### Server — pipeline read + move
 
-- [ ] T068 [US4] **Red** Criar `server/routes/pipeline.test.ts` com T-S-065 + variantes (list stages returns default, list leads filter by stage, move lead cria transition). Fail.
-- [ ] T069 [US4] **Green** Implementar `server/routes/pipeline.ts` (parcial, só P2): `GET /stages`, `GET /leads`, `PATCH /leads/:leadId/stage`. Em `PATCH`, actualizar `leads.stage_id` e inserir `stage_transitions` na mesma transacção via service-role. Montar em `/api/pipeline/*`. Testes ⇒ green.
+- [x] T068 [US4] **Red** Criar `server/routes/pipeline.test.ts` com T-S-065 + variantes (list stages returns default, list leads filter by stage, move lead cria transition). Fail.
+- [x] T069 [US4] **Green** Implementar `server/routes/pipeline.ts` (parcial, só P2): `GET /stages`, `GET /leads`, `PATCH /leads/:leadId/stage`. Em `PATCH`, actualizar `leads.stage_id` e inserir `stage_transitions` na mesma transacção via service-role. Montar em `/api/pipeline/*`. Testes ⇒ green.
 
 ### Client — Kanban
 
