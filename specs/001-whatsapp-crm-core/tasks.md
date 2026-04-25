@@ -124,10 +124,10 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — Connect screen
 
-- [ ] T046 [P] [US1] **Red** Criar `client/src/features/whatsapp/__tests__/ConnectScreen.test.tsx` com T-C-010..013. MSW intercepta `/api/whatsapp/connection`; mock de `supabase.channel(...).on(...).subscribe()` para Realtime update. Fail.
-- [ ] T047 [US1] **Green** Implementar `client/src/features/whatsapp/ConnectScreen.tsx` — React Query carrega estado; botão "conectar" (só owner) dispara mutation `POST /api/whatsapp/connection`; mostra QR quando `status='qr_pending'`; subscreve `whatsapp_sessions_public` para transições. Ver T-C-010..013. Green.
-- [ ] T048 [P] [US1] Criar `client/src/routes/connect.tsx` — TanStack Router route que renderiza `ConnectScreen`. Proteger como owner (redireccionar agent para `/inbox`).
-- [ ] T049 [US1] Criar `client/src/routes/index.tsx` — redirect condicional: se `status==='connected'` vai para `/inbox`; caso contrário `/connect`. (Role-gated: agents vão sempre para `/inbox`.)
+- [x] T046 [P] [US1] **Red** Criar `client/src/features/whatsapp/__tests__/ConnectScreen.test.tsx` com T-C-010..013. MSW intercepta `/api/whatsapp/connection`; mock de `supabase.channel(...).on(...).subscribe()` para Realtime update. Fail.
+- [x] T047 [US1] **Green** Implementar `client/src/features/whatsapp/ConnectScreen.tsx` — React Query carrega estado; botão "conectar" (só owner) dispara mutation `POST /api/whatsapp/connection`; mostra QR quando `status='qr_pending'`; subscreve `whatsapp_sessions_public` para transições. Ver T-C-010..013. Green.
+- [x] T048 [P] [US1] Criar `client/src/routes/connect.tsx` — TanStack Router route que renderiza `ConnectScreen`. Proteger como owner (redireccionar agent para `/inbox`).
+- [x] T049 [US1] Criar `client/src/routes/index.tsx` — redirect condicional: se `status==='connected'` vai para `/inbox`; caso contrário `/connect`. (Role-gated: agents vão sempre para `/inbox`.)
 
 **Checkpoint US1**: um tenant em dev consegue fazer o fluxo completo login → connect → QR → estado "conectado". Testes T-S-070..074, T-S-030..033, T-S-027, T-C-010..013 passam. MVP bloco 1 completo — demonstrável isoladamente.
 
@@ -135,18 +135,18 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ## Phase 4: User Story 2 (P1) — Inbox unificado
 
-**Goal**: conversas que chegam pela uazapi aparecem em tempo quasi-real num inbox centralizado com pesquisa, filtro de não-lidas, e marcação de leitura.
+**Goal**: conversas que chegam pela uazapi aparecem em tempo quase-real num inbox centralizado com pesquisa, filtro de não-lidas, e marcação de leitura.
 
 **Independent Test**: com WhatsApp conectado (US1), enviar mensagens de diferentes números; confirmar que o inbox em `/inbox` mostra N conversas em <5s, ordenadas por última actividade; clicar abre o histórico e zera o contador de não-lidas.
 
 ### Shared types
 
-- [ ] T050 [P] [US2] Expandir `server/types/inbox.ts` — `ConversationSummarySchema`, `ConversationListResponseSchema` (com `nextCursor`), `ConversationDetailSchema`, `MessageSchema`, `ListConversationsQuerySchema`, `ListMessagesQuerySchema`, `MarkReadResponseSchema`. Re-export em `server/types/index.ts`.
+- [x] T050 [P] [US2] Expandir `server/types/inbox.ts` — `ConversationSummarySchema`, `ConversationListResponseSchema` (com `nextCursor`), `ConversationDetailSchema`, `MessageSchema`, `ListConversationsQuerySchema`, `ListMessagesQuerySchema`, `MarkReadResponseSchema`. Re-export em `server/types/index.ts`.
 
 ### Webhook handler — messages event
 
-- [ ] T051 [US2] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-020..023 (messages / duplicate / unsupported / group ignored). Fail.
-- [ ] T052 [US2] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages'`:
+- [x] T051 [US2] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-020..023 (messages / duplicate / unsupported / group ignored). Fail.
+- [x] T052 [US2] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages'`:
   - extrair `phoneNumber` (strip `@s.whatsapp.net`);
   - `chatid` com `@g.us` → return silenciosamente;
   - upsert `lead` via `(tenant_id, phone_number)` — se novo, `stage_id` = default entry;
@@ -161,10 +161,10 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Client — Inbox UI
 
-- [ ] T055 [P] [US2] **Red** Criar `client/src/features/inbox/__tests__/InboxList.test.tsx` com T-C-020, T-C-021, T-C-025. MSW + mock Realtime. Fail.
-- [ ] T056 [US2] **Green** Implementar `client/src/features/inbox/InboxList.tsx` — lista com React Query (`/api/inbox/conversations`), click activa `POST /read`, subscreve Realtime em `conversations` e `messages` filtrado por `tenant_id` para actualização incremental. Testes T-C-020, T-C-021, T-C-025 ⇒ green.
-- [ ] T057 [P] [US2] Implementar `client/src/features/inbox/ConversationView.tsx` — carrega histórico com `GET /conversations/:id`, usa React Query infinite query para paginação (`beforeCursor`). Scroll para a mensagem mais recente. Realtime para novas mensagens.
-- [ ] T058 [P] [US2] Criar rotas TanStack: `client/src/routes/inbox/index.tsx` (layout + InboxList) e `client/src/routes/inbox/$conversationId.tsx` (ConversationView).
+- [x] T055 [P] [US2] **Red** Criar `client/src/features/inbox/__tests__/InboxList.test.tsx` com T-C-020, T-C-021, T-C-025. MSW + mock Realtime. Fail.
+- [x] T056 [US2] **Green** Implementar `client/src/features/inbox/InboxList.tsx` — lista com React Query (`/api/inbox/conversations`), click activa `POST /read`, subscreve Realtime em `conversations` e `messages` filtrado por `tenant_id` para actualização incremental. Testes T-C-020, T-C-021, T-C-025 ⇒ green.
+- [x] T057 [P] [US2] Implementar `client/src/features/inbox/ConversationView.tsx` — carrega histórico com `GET /conversations/:id`, usa React Query infinite query para paginação (`beforeCursor`). Scroll para a mensagem mais recente. Realtime para novas mensagens.
+- [x] T058 [P] [US2] Criar rotas TanStack: `client/src/routes/inbox/index.tsx` (layout + InboxList) e `client/src/routes/inbox/$conversationId.tsx` (ConversationView).
 
 **Checkpoint US2**: uma mensagem externa entregue por webhook aparece no `/inbox` do agente em <5s. Testes US2 passam. MVP bloco 2 completo.
 
@@ -178,12 +178,12 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Types
 
-- [ ] T059 [P] [US3] Adicionar a `server/types/inbox.ts` — `SendMessageRequestSchema = z.object({ text: z.string().trim().min(1).max(4096) })`, `SendMessageResponseSchema`.
+- [x] T059 [P] [US3] Adicionar a `server/types/inbox.ts` — `SendMessageRequestSchema = z.object({ text: z.string().trim().min(1).max(4096) })`, `SendMessageResponseSchema`.
 
 ### Server — send endpoint + messages_update webhook
 
-- [ ] T060 [US3] **Red** Expandir `server/routes/inbox.test.ts` com T-S-050..053 (disconnected / rate-limited / happy path / cross-tenant 404). Fail.
-- [ ] T061 [US3] **Green** Implementar `POST /api/inbox/conversations/:id/messages` em `server/routes/inbox.ts`:
+- [x] T060 [US3] **Red** Expandir `server/routes/inbox.test.ts` com T-S-050..053 (disconnected / rate-limited / happy path / cross-tenant 404). Fail.
+- [x] T061 [US3] **Green** Implementar `POST /api/inbox/conversations/:id/messages` em `server/routes/inbox.ts`:
   1. Validar body Zod.
   2. Verificar `rateLimit.consume(tenantId)` → 429 com `Retry-After` se falhar.
   3. Ler `whatsapp_sessions.status` via service-role → 409 `WHATSAPP_DISCONNECTED` se não `connected`.
@@ -191,14 +191,14 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
   5. Dispatch `await uazapi.sendText({ token, number, text })`. Se retornar 429 uazapi → propagar 429 (não consumir novo token). Guardar `whatsapp_message_id` devolvido.
   6. Responder 202 com `{ message: {...} }`.
      Testes T-S-050..053 ⇒ green.
-- [ ] T062 [US3] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-024..026 (messages_update: SERVER_ACK/READ/mensagem-inexistente). Fail.
-- [ ] T063 [US3] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages_update'`: mapeia status uazapi → nosso (`SERVER_ACK`→`sent`, `DELIVERY_ACK`→`delivered`, `READ`→`read`+`read_at=now()`, `FAILED`→`failed`); `UPDATE messages` por `(tenant_id, whatsapp_message_id)`. Se a mensagem não existir, retornar sem erro. Testes T-S-024..026 ⇒ green.
+- [x] T062 [US3] **Red** Expandir `server/lib/whatsapp/webhook-handler.test.ts` com T-S-024..026 (messages_update: SERVER_ACK/READ/mensagem-inexistente). Fail.
+- [x] T063 [US3] **Green** Em `webhook-handler.ts`, implementar ramo `event === 'messages_update'`: mapeia status uazapi → nosso (`SERVER_ACK`→`sent`, `DELIVERY_ACK`→`delivered`, `READ`→`read`+`read_at=now()`, `FAILED`→`failed`); `UPDATE messages` por `(tenant_id, whatsapp_message_id)`. Se a mensagem não existir, retornar sem erro. Testes T-S-024..026 ⇒ green.
 
 ### Client — Send form + status display
 
-- [ ] T064 [P] [US3] **Red** Criar `client/src/features/inbox/__tests__/SendMessageForm.test.tsx` com T-C-022..024 (empty rejected / disconnected toast / rate-limit hint). Fail.
-- [ ] T065 [US3] **Green** Implementar `client/src/features/inbox/SendMessageForm.tsx` — React Hook Form + `zodResolver(SendMessageRequestSchema)`; mutation React Query POST `/conversations/:id/messages`; 409 → toast "Reconecte o WhatsApp" e preservar texto; 429 → mostrar `Retry-After`; optimistic insert da mensagem pending no cache. Testes T-C-022..024 ⇒ green.
-- [ ] T066 [US3] Integrar `SendMessageForm` em `ConversationView.tsx` (T057). Adicionar rendering do estado (`pending` → spinner, `delivered` → ✓✓, `read` → ✓✓ azul, `failed` → alerta + botão "tentar novamente").
+- [x] T064 [P] [US3] **Red** Criar `client/src/features/inbox/__tests__/SendMessageForm.test.tsx` com T-C-022..024 (empty rejected / disconnected toast / rate-limit hint). Fail.
+- [x] T065 [US3] **Green** Implementar `client/src/features/inbox/SendMessageForm.tsx` — React Hook Form + `zodResolver(SendMessageRequestSchema)`; mutation React Query POST `/conversations/:id/messages`; 409 → toast "Reconecte o WhatsApp" e preservar texto; 429 → mostrar `Retry-After`; optimistic insert da mensagem pending no cache. Testes T-C-022..024 ⇒ green.
+- [x] T066 [US3] Integrar `SendMessageForm` em `ConversationView.tsx` (T057). Adicionar rendering do estado (`pending` → spinner, `delivered` → ✓✓, `read` → ✓✓ azul, `failed` → alerta + botão "tentar novamente").
 
 **Checkpoint US3 / MVP completa**: fluxo completo de 2 vias funciona. US1+US2+US3 entregáveis como MVP. Testes T-S-050..053, T-S-024..026, T-C-022..024 passam.
 
@@ -212,18 +212,18 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Types
 
-- [ ] T067 [P] [US4] Criar `server/types/pipeline.ts` — `PipelineStageSchema`, `StageListResponseSchema`, `LeadSchema`, `LeadListResponseSchema`, `ListLeadsQuerySchema`, `MoveLeadRequestSchema`.
+- [x] T067 [P] [US4] Criar `server/types/pipeline.ts` — `PipelineStageSchema`, `StageListResponseSchema`, `LeadSchema`, `LeadListResponseSchema`, `ListLeadsQuerySchema`, `MoveLeadRequestSchema`.
 
 ### Server — pipeline read + move
 
-- [ ] T068 [US4] **Red** Criar `server/routes/pipeline.test.ts` com T-S-065 + variantes (list stages returns default, list leads filter by stage, move lead cria transition). Fail.
-- [ ] T069 [US4] **Green** Implementar `server/routes/pipeline.ts` (parcial, só P2): `GET /stages`, `GET /leads`, `PATCH /leads/:leadId/stage`. Em `PATCH`, actualizar `leads.stage_id` e inserir `stage_transitions` na mesma transacção via service-role. Montar em `/api/pipeline/*`. Testes ⇒ green.
+- [x] T068 [US4] **Red** Criar `server/routes/pipeline.test.ts` com T-S-065 + variantes (list stages returns default, list leads filter by stage, move lead cria transition). Fail.
+- [x] T069 [US4] **Green** Implementar `server/routes/pipeline.ts` (parcial, só P2): `GET /stages`, `GET /leads`, `PATCH /leads/:leadId/stage`. Em `PATCH`, actualizar `leads.stage_id` e inserir `stage_transitions` na mesma transacção via service-role. Montar em `/api/pipeline/*`. Testes ⇒ green.
 
 ### Client — Kanban
 
-- [ ] T070 [P] [US4] **Red** Criar `client/src/features/pipeline/__tests__/PipelineBoard.test.tsx` com T-C-030..031 (drag dispara mutation, optimistic update). Fail.
-- [ ] T071 [US4] **Green** Implementar `client/src/features/pipeline/PipelineBoard.tsx` — fetch de stages + leads; DnD nativo HTML5 (sem lib extra, Princípio V); optimistic update na mutation PATCH com rollback em erro. Testes T-C-030..031 ⇒ green.
-- [ ] T072 [P] [US4] Criar rota `client/src/routes/pipeline/index.tsx` que renderiza `PipelineBoard`.
+- [x] T070 [P] [US4] **Red** Criar `client/src/features/pipeline/__tests__/PipelineBoard.test.tsx` com T-C-030..031 (drag dispara mutation, optimistic update). Fail.
+- [x] T071 [US4] **Green** Implementar `client/src/features/pipeline/PipelineBoard.tsx` — fetch de stages + leads; DnD nativo HTML5 (sem lib extra, Princípio V); optimistic update na mutation PATCH com rollback em erro. Testes T-C-030..031 ⇒ green.
+- [x] T072 [P] [US4] Criar rota `client/src/routes/pipeline/index.tsx` que renderiza `PipelineBoard`.
 
 **Checkpoint US4**: pipeline usável com etapas default. US4 entregue.
 
@@ -237,14 +237,14 @@ description: "Task list for WhatsApp CRM Core (feature 001)"
 
 ### Server — stage mutations
 
-- [ ] T073 [US5] **Red** Expandir `server/routes/pipeline.test.ts` com T-S-060..064 (agent 403, owner cria, delete sem destino 409, delete com destino 204, delete da unica default 409). Fail.
-- [ ] T074 [US5] **Green** Implementar `POST /stages`, `PATCH /stages/:id`, `DELETE /stages/:id` em `server/routes/pipeline.ts`. Middleware interno `requireOwner` (reutilizado em US5 + polish). Recalcular `order` denso após mutações. Testes T-S-060..064 ⇒ green.
+- [x] T073 [US5] **Red** Expandir `server/routes/pipeline.test.ts` com T-S-060..064 (agent 403, owner cria, delete sem destino 409, delete com destino 204, delete da unica default 409). Fail.
+- [x] T074 [US5] **Green** Implementar `POST /stages`, `PATCH /stages/:id`, `DELETE /stages/:id` em `server/routes/pipeline.ts`. Middleware interno `requireOwner` (reutilizado em US5 + polish). Recalcular `order` denso após mutações. Testes T-S-060..064 ⇒ green.
 
 ### Client — Settings/pipeline
 
-- [ ] T075 [P] [US5] **Red** Criar `client/src/features/pipeline/__tests__/StageSettings.test.tsx` com T-C-032..034 (reorder owner, remove com modal destino, agent não vê menu). Fail.
-- [ ] T076 [US5] **Green** Implementar `client/src/features/pipeline/StageSettings.tsx` — lista editável com DnD para reordenar; form React Hook Form + Zod para criar/renomear; modal para remover (escolher destino quando `leadsAffected > 0`). Testes ⇒ green.
-- [ ] T077 [P] [US5] Criar rota `client/src/routes/settings/pipeline.tsx` (owner-only via guard de T035).
+- [x] T075 [P] [US5] **Red** Criar `client/src/features/pipeline/__tests__/StageSettings.test.tsx` com T-C-032..034 (reorder owner, remove com modal destino, agent não vê menu). Fail.
+- [x] T076 [US5] **Green** Implementar `client/src/features/pipeline/StageSettings.tsx` — lista editável com DnD para reordenar; form React Hook Form + Zod para criar/renomear; modal para remover (escolher destino quando `leadsAffected > 0`). Testes ⇒ green.
+- [x] T077 [P] [US5] Criar rota `client/src/routes/settings/pipeline.tsx` (owner-only via guard de T035).
 
 **Checkpoint US5**: produto 100% do scope. Todos os testes verdes.
 

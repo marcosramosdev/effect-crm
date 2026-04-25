@@ -39,11 +39,16 @@ export async function apiFetch<T = unknown>(
     throw new RateLimitedError(after ? Number(after) : undefined)
   }
 
+  if (res.status === 204) {
+    return undefined as T
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
+    const err = (body as { error?: { code?: string; message?: string; details?: unknown } }).error
     throw Object.assign(
-      new Error((body as { message?: string }).message ?? res.statusText),
-      { status: res.status },
+      new Error(err?.message ?? res.statusText),
+      { status: res.status, code: err?.code, details: err?.details },
     )
   }
 
