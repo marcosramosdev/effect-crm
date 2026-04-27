@@ -1,5 +1,4 @@
 ---
-
 description: "Tasks for implementing User Authentication & Routing /app/* /auth/* /"
 ---
 
