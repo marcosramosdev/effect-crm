@@ -48,13 +48,13 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Schemas Zod partilhados
 
-- [ ] T007 Criar `server/types/auth.ts` com `RegisterRequestSchema`, `LoginRequestSchema`, `LogoutRequestSchema`, `AuthSessionSchema`, `MeResponseSchema`, `AuthErrorCodeSchema`, `AuthErrorBodySchema` + tipos derivados (cf. data-model.md §"Schemas Zod")
-- [ ] T008 [P] Confirmar alias `@server/types/*` em `client/tsconfig.json` resolve para `../server/types/*`; se não, adicionar (Princípio Tech Constraints — paths em tsconfig é a fonte de verdade)
+- [X] T007 Criar `server/types/auth.ts` com `RegisterRequestSchema`, `LoginRequestSchema`, `LogoutRequestSchema`, `AuthSessionSchema`, `MeResponseSchema`, `AuthErrorCodeSchema`, `AuthErrorBodySchema` + tipos derivados (cf. data-model.md §"Schemas Zod")
+- [X] T008 [P] Confirmar alias `@server/types/*` em `client/tsconfig.json` resolve para `../server/types/*`; se não, adicionar (Princípio Tech Constraints — paths em tsconfig é a fonte de verdade)
 
 ### Error mapping (TDD)
 
-- [ ] T009 Criar `server/lib/auth/error-mapping.test.ts` com casos para cada linha da tabela em research.md §R6: `invalid_grant`, `user_not_found`, `email_exists`, `weak_password`, `tenant_name_invalid`, 429, `unknown` — verificar status, code e mensagem PT (RED)
-- [ ] T010 Implementar `server/lib/auth/error-mapping.ts` — função `mapSupabaseError(err: unknown): { httpStatus: number; code: AuthErrorCode; message: string }` para fazer T009 passar (GREEN)
+- [X] T009 Criar `server/lib/auth/error-mapping.test.ts` com casos para cada linha da tabela em research.md §R6: `invalid_grant`, `user_not_found`, `email_exists`, `weak_password`, `tenant_name_invalid`, 429, `unknown` — verificar status, code e mensagem PT (RED)
+- [X] T010 Implementar `server/lib/auth/error-mapping.ts` — função `mapSupabaseError(err: unknown): { httpStatus: number; code: AuthErrorCode; message: string }` para fazer T009 passar (GREEN)
 
 ### Skeletons de routing (sem implementação completa de guard ainda)
 
