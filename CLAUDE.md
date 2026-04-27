@@ -101,6 +101,6 @@ Current plan: [specs/002-user-auth-routing/plan.md](./specs/002-user-auth-routin
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read that plan first,
 followed by its siblings (`research.md`, `data-model.md`, `contracts/*`,
-`quickstart.md`) as needed.
+`quickstart.md`) as needed. Update the `task.md` when you have a clear plan for how to implement the feature.
 
 <!-- SPECKIT END -->

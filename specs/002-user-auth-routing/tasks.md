@@ -29,12 +29,12 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 **Purpose**: mover rotas da feature 001 para sob `/app/*` antes de qualquer trabalho novo. Sem mudanças de comportamento — só relocação.
 
-- [ ] T001 Mover `client/src/routes/connect.tsx` → `client/src/routes/app/connect.tsx`; ajustar `Route = createFileRoute('/connect')` para `'/app/connect'`
-- [ ] T002 Mover `client/src/routes/inbox/index.tsx` e `client/src/routes/inbox/$conversationId.tsx` → `client/src/routes/app/inbox/index.tsx` e `client/src/routes/app/inbox/$conversationId.tsx`; ajustar paths em `createFileRoute`
-- [ ] T003 Mover `client/src/routes/pipeline/index.tsx` → `client/src/routes/app/pipeline/index.tsx`; ajustar path
-- [ ] T004 Mover `client/src/routes/settings/pipeline.tsx` e `client/src/routes/settings/team.tsx` → `client/src/routes/app/settings/pipeline.tsx` e `client/src/routes/app/settings/team.tsx`; ajustar paths
-- [ ] T005 Procurar e substituir todas as referências a `to: '/inbox'`, `to: '/pipeline'`, `to: '/connect'`, `to: '/settings/...'` em `client/src/` por `'/app/inbox'`, `'/app/pipeline'`, `'/app/connect'`, `'/app/settings/...'` (busca global em `.tsx`/`.ts`)
-- [ ] T006 [P] Verificar `client/src/routeTree.gen.ts` regenera após mudanças (correr `bun --bun run dev` uma vez para deixar plugin actualizar) e confirmar que não há paths órfãos
+- [X] T001 Mover `client/src/routes/connect.tsx` → `client/src/routes/app/connect.tsx`; ajustar `Route = createFileRoute('/connect')` para `'/app/connect'`
+- [X] T002 Mover `client/src/routes/inbox/index.tsx` e `client/src/routes/inbox/$conversationId.tsx` → `client/src/routes/app/inbox/index.tsx` e `client/src/routes/app/inbox/$conversationId.tsx`; ajustar paths em `createFileRoute`
+- [X] T003 Mover `client/src/routes/pipeline/index.tsx` → `client/src/routes/app/pipeline/index.tsx`; ajustar path
+- [X] T004 Mover `client/src/routes/settings/pipeline.tsx` e `client/src/routes/settings/team.tsx` → `client/src/routes/app/settings/pipeline.tsx` e `client/src/routes/app/settings/team.tsx`; ajustar paths
+- [X] T005 Procurar e substituir todas as referências a `to: '/inbox'`, `to: '/pipeline'`, `to: '/connect'`, `to: '/settings/...'` em `client/src/` por `'/app/inbox'`, `'/app/pipeline'`, `'/app/connect'`, `'/app/settings/...'` (busca global em `.tsx`/`.ts`)
+- [X] T006 [P] Verificar `client/src/routeTree.gen.ts` regenera após mudanças (correr `bun --bun run dev` uma vez para deixar plugin actualizar) e confirmar que não há paths órfãos
 
 **Checkpoint**: `bun --bun run dev` em `client/` arranca sem erro. `bun --bun run build` passa. Suite de testes existente continua a passar (com paths actualizados nos testes — cobertos em US1–US5).
 

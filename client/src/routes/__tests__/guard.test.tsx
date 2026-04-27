@@ -15,7 +15,7 @@ vi.mock('../../lib/supabase', () => ({
 
 describe('route guards', () => {
   // T-C-002
-  it('/settings/pipeline redirects agent to /inbox', async () => {
+  it('/app/settings/pipeline redirects agent to /app/inbox', async () => {
     overrideHandler(
       http.get('/api/auth/me', () =>
         HttpResponse.json({
@@ -28,7 +28,7 @@ describe('route guards', () => {
       ),
     )
 
-    const { Route } = await import('../settings/pipeline')
+    const { Route } = await import('../app/settings/pipeline')
 
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -45,6 +45,6 @@ describe('route guards', () => {
 
     expect(thrown).toBeDefined()
     const redirectOpts = (thrown as { options?: { to?: string } }).options
-    expect(redirectOpts?.to).toBe('/inbox')
+    expect(redirectOpts?.to).toBe('/app/inbox')
   })
 })

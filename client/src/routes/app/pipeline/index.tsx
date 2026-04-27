@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PipelineBoard } from '../../features/pipeline/PipelineBoard'
+import { PipelineBoard } from '../../../features/pipeline/PipelineBoard'
 
-export const Route = createFileRoute('/pipeline/')({
+export const Route = createFileRoute('/app/pipeline/')({
   component: PipelinePage,
 })
 
