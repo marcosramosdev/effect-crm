@@ -79,13 +79,13 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Tests for User Story 1 (TDD)
 
-- [ ] T016 [P] [US1] Estender `client/src/routes/__tests__/guard.test.tsx`: cenários "/ sem sessão renderiza HomePage" e "/ com sessão redireciona para /app" (RED)
+- [X] T016 [P] [US1] Estender `client/src/routes/__tests__/guard.test.tsx`: cenários "/ sem sessão renderiza HomePage" e "/ com sessão redireciona para /app" (RED)
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Criar `client/src/features/auth/HomePage.tsx` — componente DaisyUI com hero (nome do produto + tagline), dois botões `<Link to="/auth/login">` e `<Link to="/auth/register">` (FR-005); sem `useQuery` autenticado (FR-006)
-- [ ] T018 [US1] Reescrever `client/src/routes/index.tsx` — `createFileRoute('/')` com `beforeLoad` que tenta `ensureQueryData(authQueryOptions)`; em sucesso `throw redirect({ to: '/app' })`; em catch deixa renderizar `HomePage`. Importar `HomePage` de `@/features/auth/HomePage`
-- [ ] T019 [US1] Correr `bun run test` em `client/` — confirmar T016 passa (GREEN)
+- [X] T017 [P] [US1] Criar `client/src/features/auth/HomePage.tsx` — componente DaisyUI com hero (nome do produto + tagline), dois botões `<Link to="/auth/login">` e `<Link to="/auth/register">` (FR-005); sem `useQuery` autenticado (FR-006)
+- [X] T018 [US1] Reescrever `client/src/routes/index.tsx` — `createFileRoute('/')` com `beforeLoad` que tenta `ensureQueryData(authQueryOptions)`; em sucesso `throw redirect({ to: '/app' })`; em catch deixa renderizar `HomePage`. Importar `HomePage` de `@/features/auth/HomePage`
+- [X] T019 [US1] Correr `bun run test` em `client/` — confirmar T016 passa (GREEN)
 
 **Checkpoint**: US1 funcional e independentemente testável. SC-007 verificável manualmente (`/` carrega <3s sem cache, sem chamadas autenticadas).
 

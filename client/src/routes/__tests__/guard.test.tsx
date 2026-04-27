@@ -47,4 +47,63 @@ describe('route guards', () => {
     const redirectOpts = (thrown as { options?: { to?: string } }).options
     expect(redirectOpts?.to).toBe('/app/inbox')
   })
+
+  // T016 — US1
+  it('/ sem sessão renderiza HomePage', async () => {
+    overrideHandler(
+      http.get('/api/auth/me', () =>
+        HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      ),
+    )
+
+    const { Route } = await import('../index')
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    let thrown: unknown
+    try {
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({
+        context: { queryClient },
+      })
+    } catch (e) {
+      thrown = e
+    }
+
+    expect(thrown).toBeUndefined()
+  })
+
+  it('/ com sessão redireciona para /app', async () => {
+    overrideHandler(
+      http.get('/api/auth/me', () =>
+        HttpResponse.json({
+          userId: '00000000-0000-0000-0000-000000000001',
+          email: 'user@test.example',
+          tenantId: '00000000-0000-0000-0000-000000000002',
+          tenantName: 'Test Tenant',
+          role: 'owner',
+        }),
+      ),
+    )
+
+    const { Route } = await import('../index')
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    let thrown: unknown
+    try {
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({
+        context: { queryClient },
+      })
+    } catch (e) {
+      thrown = e
+    }
+
+    expect(thrown).toBeDefined()
+    const redirectOpts = (thrown as { options?: { to?: string } }).options
+    expect(redirectOpts?.to).toBe('/app')
+  })
 })
