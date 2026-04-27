@@ -99,9 +99,9 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Tests for User Story 2 (TDD)
 
-- [ ] T020 [P] [US2] Criar `server/lib/auth/register.test.ts` — caminho feliz cria user+tenant+member; falha em insert tenants → user removido; falha em insert tenant_members → user e tenant removidos; email duplicado → 409 sem side-effects; tenantName inválido → 400 sem chamar Supabase (RED)
-- [ ] T021 [P] [US2] Criar `server/routes/__tests__/auth.register.test.ts` (ou estender `server/routes/auth.test.ts`) — wiring HTTP: 201 retorna `AuthSessionSchema`; 400 `WEAK_PASSWORD`; 400 `TENANT_NAME_INVALID`; 409 `EMAIL_EXISTS_OR_INVALID`; 429 `RATE_LIMITED`; bodies de erro batem em `AuthErrorBodySchema` (RED)
-- [ ] T022 [P] [US2] Criar `client/src/features/auth/__tests__/useRegisterMutation.test.ts` — mutation envia `{email, password, tenantName}` no body; onSuccess invoca `supabase.auth.setSession(...)` + `queryClient.invalidateQueries(['auth','me'])` + `router.navigate({ to: '/app' })`; onError preserva form values (RED)
+- [X] T020 [P] [US2] Criar `server/lib/auth/register.test.ts` — caminho feliz cria user+tenant+member; falha em insert tenants → user removido; falha em insert tenant_members → user e tenant removidos; email duplicado → 409 sem side-effects; tenantName inválido → 400 sem chamar Supabase (RED)
+- [X] T021 [P] [US2] Criar `server/routes/__tests__/auth.register.test.ts` (ou estender `server/routes/auth.test.ts`) — wiring HTTP: 201 retorna `AuthSessionSchema`; 400 `WEAK_PASSWORD`; 400 `TENANT_NAME_INVALID`; 409 `EMAIL_EXISTS_OR_INVALID`; 429 `RATE_LIMITED`; bodies de erro batem em `AuthErrorBodySchema` (RED)
+- [X] T022 [P] [US2] Criar `client/src/features/auth/__tests__/useRegisterMutation.test.ts` — mutation envia `{email, password, tenantName}` no body; onSuccess invoca `supabase.auth.setSession(...)` + `queryClient.invalidateQueries(['auth','me'])` + `router.navigate({ to: '/app' })`; onError preserva form values (RED)
 
 ### Implementation for User Story 2
 
