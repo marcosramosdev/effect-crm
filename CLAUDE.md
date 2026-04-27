@@ -96,7 +96,7 @@ Objetivo: um único processo/porta em runtime.
 
 <!-- SPECKIT START -->
 
-Current plan: [specs/001-whatsapp-crm-core/plan.md](./specs/001-whatsapp-crm-core/plan.md)
+Current plan: [specs/002-user-auth-routing/plan.md](./specs/002-user-auth-routing/plan.md)
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read that plan first,
