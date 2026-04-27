@@ -105,11 +105,11 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Implementar `server/lib/auth/register.ts` — função `registerOwner({ email, password, tenantName }, deps)` que executa: `admin.createUser` → insert `tenants` → insert `tenant_members(role='owner')` → `auth.admin.signInWithEmail` para gerar tokens. Rollback compensatório em falha (cf. research R3). Retorna `AuthSession`. Fazer T020 passar (GREEN)
-- [ ] T024 [US2] Adicionar handler `POST /register` em `server/routes/auth.ts`: `app.post('/register', zValidator('json', RegisterRequestSchema), async (c) => { ... })`. Chama `registerOwner`; em sucesso 201; em erro mapeia via `mapSupabaseError`. Fazer T021 passar (GREEN)
-- [ ] T025 [P] [US2] Criar `client/src/features/auth/useRegisterMutation.ts` — `useMutation` que chama `apiFetch('/auth/register', { method: 'POST', body, schema: AuthSessionSchema })`; `onSuccess` segue contracts/auth.md §"Registo". Fazer T022 passar (GREEN)
-- [ ] T026 [US2] Criar `client/src/features/auth/RegisterScreen.tsx` — form RHF + Zod resolver com `RegisterRequestSchema`; campos email/password/tenantName; submete via `useRegisterMutation`; mostra erros field-level (FR-007); link para `/auth/login`
-- [ ] T027 [US2] Criar `client/src/routes/auth/register.tsx` — `createFileRoute('/auth/register')`; componente = `RegisterScreen`. (Guard de "se sessão → /app" herdado de `auth.tsx`)
+- [X] T023 [US2] Implementar `server/lib/auth/register.ts` — função `registerOwner({ email, password, tenantName }, deps)` que executa: `admin.createUser` → insert `tenants` → insert `tenant_members(role='owner')` → `auth.admin.signInWithEmail` para gerar tokens. Rollback compensatório em falha (cf. research R3). Retorna `AuthSession`. Fazer T020 passar (GREEN)
+- [X] T024 [US2] Adicionar handler `POST /register` em `server/routes/auth.ts`: `app.post('/register', zValidator('json', RegisterRequestSchema), async (c) => { ... })`. Chama `registerOwner`; em sucesso 201; em erro mapeia via `mapSupabaseError`. Fazer T021 passar (GREEN)
+- [X] T025 [P] [US2] Criar `client/src/features/auth/useRegisterMutation.ts` — `useMutation` que chama `apiFetch('/auth/register', { method: 'POST', body, schema: AuthSessionSchema })`; `onSuccess` segue contracts/auth.md §"Registo". Fazer T022 passar (GREEN)
+- [X] T026 [US2] Criar `client/src/features/auth/RegisterScreen.tsx` — form RHF + Zod resolver com `RegisterRequestSchema`; campos email/password/tenantName; submete via `useRegisterMutation`; mostra erros field-level (FR-007); link para `/auth/login`
+- [X] T027 [US2] Criar `client/src/routes/auth/register.tsx` — `createFileRoute('/auth/register')`; componente = `RegisterScreen`. (Guard de "se sessão → /app" herdado de `auth.tsx`)
 
 **Checkpoint**: registo end-to-end funciona. Validar com cenário 2 do quickstart.md.
 
