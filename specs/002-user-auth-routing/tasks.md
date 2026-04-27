@@ -58,14 +58,14 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Skeletons de routing (sem implementação completa de guard ainda)
 
-- [ ] T011 Criar `client/src/routes/app.tsx` — `createFileRoute('/app')` com `beforeLoad` que faz `await context.queryClient.ensureQueryData(authQueryOptions)`; em catch faz `throw redirect({ to: '/auth/login', search: { redirect: location.href } })` (cf. contracts/auth.md). Componente expõe `<Outlet/>` num layout simples (placeholder para `<UserMenu/>` em US4)
-- [ ] T012 [P] Criar `client/src/routes/auth.tsx` — `createFileRoute('/auth')` com `beforeLoad` inverso: ensureQueryData success → `throw redirect({ to: '/app' })`; em catch (sessão inválida) deixa cair para children. Componente layout centra cards
-- [ ] T013 [P] Criar `client/src/routes/app/index.tsx` — redirect default para `/app/inbox` (ou `/app/connect` se owner sem WhatsApp ligado, replicando lógica antiga de `routes/index.tsx`)
+- [X] T011 Criar `client/src/routes/app.tsx` — `createFileRoute('/app')` com `beforeLoad` que faz `await context.queryClient.ensureQueryData(authQueryOptions)`; em catch faz `throw redirect({ to: '/auth/login', search: { redirect: location.href } })` (cf. contracts/auth.md). Componente expõe `<Outlet/>` num layout simples (placeholder para `<UserMenu/>` em US4)
+- [X] T012 [P] Criar `client/src/routes/auth.tsx` — `createFileRoute('/auth')` com `beforeLoad` inverso: ensureQueryData success → `throw redirect({ to: '/app' })`; em catch (sessão inválida) deixa cair para children. Componente layout centra cards
+- [X] T013 [P] Criar `client/src/routes/app/index.tsx` — redirect default para `/app/inbox` (ou `/app/connect` se owner sem WhatsApp ligado, replicando lógica antiga de `routes/index.tsx`)
 
 ### apiFetch refactor (FR-022 + research R10)
 
-- [ ] T014 Criar `client/src/lib/__tests__/api.test.ts` com asserção: ao receber 401, `apiFetch` chama `supabase.auth.signOut({ scope: 'local' })` (não modo global) e lança `Error('Unauthorized')` (RED)
-- [ ] T015 Modificar `client/src/lib/api.ts` — substituir `supabase.auth.signOut()` (linha actual ~33) por `supabase.auth.signOut({ scope: 'local' })`; fazer T014 passar (GREEN)
+- [X] T014 Criar `client/src/lib/__tests__/api.test.ts` com asserção: ao receber 401, `apiFetch` chama `supabase.auth.signOut({ scope: 'local' })` (não modo global) e lança `Error('Unauthorized')` (RED)
+- [X] T015 Modificar `client/src/lib/api.ts` — substituir `supabase.auth.signOut()` (linha actual ~33) por `supabase.auth.signOut({ scope: 'local' })`; fazer T014 passar (GREEN)
 
 **Checkpoint**: `bun --bun run test` no client e server passa. `RegisterRequestSchema` importável tanto do server (`server/types/auth.ts`) como do client (via alias). `app.tsx` e `auth.tsx` existem mas ainda sem rotas filhas implementadas.
 

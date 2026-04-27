@@ -30,7 +30,7 @@ export async function apiFetch<T = unknown>(
   const res = await fetch(`/api${path}`, { ...init, headers })
 
   if (res.status === 401) {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
     throw new Error('Unauthorized')
   }
 
