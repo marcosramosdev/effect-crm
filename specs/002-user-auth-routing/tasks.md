@@ -145,15 +145,15 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Tests for User Story 4 (TDD)
 
-- [ ] T034 [P] [US4] Estender `server/routes/auth.test.ts` (ou `auth.logout.test.ts`) — handler `POST /logout`: 204 com Bearer válido; 204 idempotente quando token já revogado; 401 quando sem header (RED)
-- [ ] T035 [P] [US4] Criar `client/src/features/auth/__tests__/useLogoutMutation.test.ts` — mutation chama `apiFetch('/auth/logout', POST)`; onSuccess invoca `supabase.auth.signOut({ scope: 'local' })` + `queryClient.clear()` + `router.navigate({ to: '/' })`; onError com 401 ainda executa as três acções (idempotência client-side) (RED)
+- [X] T034 [P] [US4] Estender `server/routes/auth.test.ts` (ou `auth.logout.test.ts`) — handler `POST /logout`: 204 com Bearer válido; 204 idempotente quando token já revogado; 401 quando sem header (RED)
+- [X] T035 [P] [US4] Criar `client/src/features/auth/__tests__/useLogoutMutation.test.ts` — mutation chama `apiFetch('/auth/logout', POST)`; onSuccess invoca `supabase.auth.signOut({ scope: 'local' })` + `queryClient.clear()` + `router.navigate({ to: '/' })`; onError com 401 ainda executa as três acções (idempotência client-side) (RED)
 
 ### Implementation for User Story 4
 
-- [ ] T036 [US4] Adicionar handler `POST /logout` em `server/routes/auth.ts` (autenticado via middleware existente): chama `supabase.auth.admin.signOut(jwt)`; devolve 204 mesmo se Supabase responder erro de "already revoked". Fazer T034 passar (GREEN)
-- [ ] T037 [P] [US4] Criar `client/src/features/auth/useLogoutMutation.ts` — segue contracts/auth.md §"Logout". Fazer T035 passar (GREEN)
-- [ ] T038 [US4] Criar `client/src/features/shell/UserMenu.tsx` — dropdown DaisyUI mostrando email + role; botão "Sair" chama `useLogoutMutation`
-- [ ] T039 [US4] Modificar `client/src/routes/app.tsx` — montar `<UserMenu/>` no header do layout (visível em todas as rotas `/app/*`)
+- [X] T036 [US4] Adicionar handler `POST /logout` em `server/routes/auth.ts` (autenticado via middleware existente): chama `supabase.auth.admin.signOut(jwt)`; devolve 204 mesmo se Supabase responder erro de "already revoked". Fazer T034 passar (GREEN)
+- [X] T037 [P] [US4] Criar `client/src/features/auth/useLogoutMutation.ts` — segue contracts/auth.md §"Logout". Fazer T035 passar (GREEN)
+- [X] T038 [US4] Criar `client/src/features/shell/UserMenu.tsx` — dropdown DaisyUI mostrando email + role; botão "Sair" chama `useLogoutMutation`
+- [X] T039 [US4] Modificar `client/src/routes/app.tsx` — montar `<UserMenu/>` no header do layout (visível em todas as rotas `/app/*`)
 
 **Checkpoint**: logout funciona em qualquer ecrã do app. Browser-back após logout não permite continuar (cf. spec edge case).
 

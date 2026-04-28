@@ -10,6 +10,12 @@ import { mapSupabaseError } from '../lib/auth/error-mapping'
 
 type ServiceClient = Pick<ReturnType<typeof createServiceSupabase>, 'from'>
 
+async function defaultLogoutFn(jwt: string): Promise<void> {
+  const client = createServiceSupabase()
+  const { error } = await client.auth.admin.signOut(jwt)
+  if (error) throw new Error(error.message)
+}
+
 function defaultRegisterFn(input: RegisterRequest): Promise<AuthSession> {
   const serviceClient = createServiceSupabase()
   const anonClient = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
@@ -44,10 +50,12 @@ export function createAuthRouter(
   getServiceClient?: () => ServiceClient,
   registerFn?: (input: RegisterRequest) => Promise<AuthSession>,
   loginFn?: (input: LoginRequest) => Promise<AuthSession>,
+  logoutFn?: (jwt: string) => Promise<void>,
 ) {
   const getClient = getServiceClient ?? createServiceSupabase
   const doRegister = registerFn ?? defaultRegisterFn
   const doLogin = loginFn ?? defaultLoginFn
+  const doLogout = logoutFn ?? defaultLogoutFn
 
   const router = new Hono<{ Variables: AuthVariables }>()
 
@@ -134,6 +142,16 @@ export function createAuthRouter(
       }
     },
   )
+
+  router.post('/logout', async (c) => {
+    const jwt = c.var.jwt
+    try {
+      await doLogout(jwt)
+    } catch {
+      // idempotent — 204 regardless of revocation state
+    }
+    return c.body(null, 204)
+  })
 
   return router
 }
