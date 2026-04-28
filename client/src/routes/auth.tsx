@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, isRedirect, Outlet, redirect } from '@tanstack/react-router'
 import { authQueryOptions } from '../hooks/useAuth'
 
 export const Route = createFileRoute('/auth')({
@@ -7,7 +7,7 @@ export const Route = createFileRoute('/auth')({
       await context.queryClient.ensureQueryData(authQueryOptions)
       throw redirect({ to: '/app' })
     } catch (err) {
-      if (err != null && typeof err === 'object' && 'to' in err) throw err
+      if (isRedirect(err)) throw err
       // auth failure → fall through to children
     }
   },

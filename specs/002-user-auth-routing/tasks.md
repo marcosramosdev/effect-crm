@@ -167,14 +167,14 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Tests for User Story 5 (TDD)
 
-- [ ] T040 [P] [US5] Estender `client/src/routes/__tests__/guard.test.tsx` com a matriz completa: `/` ±sessão; `/auth/login` ±sessão; `/auth/register` ±sessão; `/app/inbox` ±sessão (verifica search.redirect preservado); `/app/foo-inexistente`; `/qualquer-coisa` (RED para os casos que ainda não passam)
+- [X] T040 [P] [US5] Estender `client/src/routes/__tests__/guard.test.tsx` com a matriz completa: `/` ±sessão; `/auth/login` ±sessão; `/auth/register` ±sessão; `/app/inbox` ±sessão (verifica search.redirect preservado); `/app/foo-inexistente`; `/qualquer-coisa` (RED para os casos que ainda não passam)
 
 ### Implementation for User Story 5
 
-- [ ] T041 [US5] Refinar `beforeLoad` em `client/src/routes/app.tsx`: garantir que `location.href` (não só `pathname`) é guardado em `search.redirect` para preservar query strings; tratar erro vs. redirect throw distintamente (cf. contracts/auth.md)
-- [ ] T042 [US5] Refinar `beforeLoad` em `client/src/routes/auth.tsx`: distinguir `redirect`-throw (propagar) de erro de auth (deixar cair); cobrir o caso de erro de rede
-- [ ] T043 [US5] Implementar `notFoundComponent` global em `client/src/routes/__root.tsx` (substituir `notFoundComponent` actual por algo coerente com o resto da UI; não revela se URL era sob `/app/*` ou outra)
-- [ ] T044 [US5] Correr `bun --bun run test` em `client/` — confirmar T040 passa por inteiro (GREEN)
+- [X] T041 [US5] Refinar `beforeLoad` em `client/src/routes/app.tsx`: garantir que `location.href` (não só `pathname`) é guardado em `search.redirect` para preservar query strings; tratar erro vs. redirect throw distintamente (cf. contracts/auth.md)
+- [X] T042 [US5] Refinar `beforeLoad` em `client/src/routes/auth.tsx`: distinguir `redirect`-throw (propagar) de erro de auth (deixar cair); cobrir o caso de erro de rede
+- [X] T043 [US5] Implementar `notFoundComponent` global em `client/src/routes/__root.tsx` (substituir `notFoundComponent` actual por algo coerente com o resto da UI; não revela se URL era sob `/app/*` ou outra)
+- [X] T044 [US5] Correr `bun --bun run test` em `client/` — confirmar T040 passa por inteiro (GREEN)
 
 **Checkpoint**: SC-003 e SC-004 verificáveis (100% das transições caem no esperado). Quickstart §Cenário 5 passa.
 
