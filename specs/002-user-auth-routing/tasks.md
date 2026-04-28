@@ -123,15 +123,15 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ### Tests for User Story 3 (TDD)
 
-- [ ] T028 [P] [US3] Estender `server/routes/auth.test.ts` (ou novo `auth.login.test.ts`) — handler `POST /login`: 200 `AuthSession` para credenciais válidas; 401 `INVALID_CREDENTIALS` para email inexistente; 401 `INVALID_CREDENTIALS` para senha errada (mesma resposta); 401 `INVALID_CREDENTIALS` para email mal-formado (NÃO 400 — uniformiza); 429 `RATE_LIMITED` (RED)
-- [ ] T029 [P] [US3] Criar `client/src/features/auth/__tests__/useLoginMutation.test.ts` — mutation envia `{email, password}`; onSuccess invoca `setSession`+`invalidate`+`router.navigate`; quando há `search.redirect` no router, navega para essa URL em vez de `/app`; onError preserva email no form mas limpa password (RED)
+- [X] T028 [P] [US3] Estender `server/routes/auth.test.ts` (ou novo `auth.login.test.ts`) — handler `POST /login`: 200 `AuthSession` para credenciais válidas; 401 `INVALID_CREDENTIALS` para email inexistente; 401 `INVALID_CREDENTIALS` para senha errada (mesma resposta); 401 `INVALID_CREDENTIALS` para email mal-formado (NÃO 400 — uniformiza); 429 `RATE_LIMITED` (RED)
+- [X] T029 [P] [US3] Criar `client/src/features/auth/__tests__/useLoginMutation.test.ts` — mutation envia `{email, password}`; onSuccess invoca `setSession`+`invalidate`+`router.navigate`; quando há `search.redirect` no router, navega para essa URL em vez de `/app`; onError preserva email no form mas limpa password (RED)
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Adicionar handler `POST /login` em `server/routes/auth.ts`: usa cliente Supabase com `SUPABASE_ANON_KEY` para `signInWithPassword`; em qualquer falha de credenciais devolve 401 `INVALID_CREDENTIALS` (uniforme); usa `mapSupabaseError` para 429/UNKNOWN. Fazer T028 passar (GREEN)
-- [ ] T031 [P] [US3] Criar `client/src/features/auth/useLoginMutation.ts` — `useMutation`; `onSuccess` lê `Route.useSearch().redirect` (passar via parâmetro do hook se necessário) e navega para essa URL ou `/app`. Fazer T029 passar (GREEN)
-- [ ] T032 [US3] Criar `client/src/features/auth/LoginScreen.tsx` — form RHF + Zod com `LoginRequestSchema`; mostra erro genérico ("Email ou senha inválidos.") sem field-level distinction em 401; link para `/auth/register`
-- [ ] T033 [US3] Criar `client/src/routes/auth/login.tsx` — `createFileRoute('/auth/login')` com `validateSearch: z.object({ redirect: z.string().optional() })`; componente lê search e passa a `LoginScreen` (que passa a `useLoginMutation`)
+- [X] T030 [US3] Adicionar handler `POST /login` em `server/routes/auth.ts`: usa cliente Supabase com `SUPABASE_ANON_KEY` para `signInWithPassword`; em qualquer falha de credenciais devolve 401 `INVALID_CREDENTIALS` (uniforme); usa `mapSupabaseError` para 429/UNKNOWN. Fazer T028 passar (GREEN)
+- [X] T031 [P] [US3] Criar `client/src/features/auth/useLoginMutation.ts` — `useMutation`; `onSuccess` lê `Route.useSearch().redirect` (passar via parâmetro do hook se necessário) e navega para essa URL ou `/app`. Fazer T029 passar (GREEN)
+- [X] T032 [US3] Criar `client/src/features/auth/LoginScreen.tsx` — form RHF + Zod com `LoginRequestSchema`; mostra erro genérico ("Email ou senha inválidos.") sem field-level distinction em 401; link para `/auth/register`
+- [X] T033 [US3] Criar `client/src/routes/auth/login.tsx` — `createFileRoute('/auth/login')` com `validateSearch: z.object({ redirect: z.string().optional() })`; componente lê search e passa a `LoginScreen` (que passa a `useLoginMutation`)
 
 **Checkpoint**: login com return-to funciona. Cenário 3 do quickstart valida.
 

@@ -2,9 +2,9 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { createClient } from '@supabase/supabase-js'
 import { createServiceSupabase } from '../db/client'
-import { RegisterRequestSchema } from '../types/auth'
+import { RegisterRequestSchema, LoginRequestSchema } from '../types/auth'
 import type { AuthVariables } from '../middlewares/auth'
-import type { RegisterRequest, AuthSession } from '../types/auth'
+import type { RegisterRequest, LoginRequest, AuthSession } from '../types/auth'
 import { registerOwner } from '../lib/auth/register'
 import { mapSupabaseError } from '../lib/auth/error-mapping'
 
@@ -22,12 +22,32 @@ function defaultRegisterFn(input: RegisterRequest): Promise<AuthSession> {
   })
 }
 
+async function defaultLoginFn(input: LoginRequest): Promise<AuthSession> {
+  const anonClient = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false },
+  })
+  const { data, error } = await anonClient.auth.signInWithPassword({
+    email: input.email,
+    password: input.password,
+  })
+  if (error || !data.session) {
+    throw new Error(error?.message ?? 'sign_in_failed')
+  }
+  return {
+    accessToken: data.session.access_token,
+    refreshToken: data.session.refresh_token,
+    expiresAt: data.session.expires_at,
+  }
+}
+
 export function createAuthRouter(
   getServiceClient?: () => ServiceClient,
   registerFn?: (input: RegisterRequest) => Promise<AuthSession>,
+  loginFn?: (input: LoginRequest) => Promise<AuthSession>,
 ) {
   const getClient = getServiceClient ?? createServiceSupabase
   const doRegister = registerFn ?? defaultRegisterFn
+  const doLogin = loginFn ?? defaultLoginFn
 
   const router = new Hono<{ Variables: AuthVariables }>()
 
@@ -80,6 +100,31 @@ export function createAuthRouter(
       try {
         const session = await doRegister(body)
         return c.json(session, 201)
+      } catch (err) {
+        const { httpStatus, code, message } = mapSupabaseError(err)
+        return c.json(
+          { error: { code, message } },
+          httpStatus as Parameters<typeof c.json>[1],
+        )
+      }
+    },
+  )
+
+  router.post(
+    '/login',
+    zValidator('json', LoginRequestSchema, (result, c) => {
+      if (!result.success) {
+        return c.json(
+          { error: { code: 'INVALID_CREDENTIALS', message: 'Email ou senha inválidos.' } },
+          401,
+        )
+      }
+    }),
+    async (c) => {
+      const body = c.req.valid('json')
+      try {
+        const session = await doLogin(body)
+        return c.json(session, 200)
       } catch (err) {
         const { httpStatus, code, message } = mapSupabaseError(err)
         return c.json(
