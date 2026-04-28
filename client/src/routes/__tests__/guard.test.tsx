@@ -298,7 +298,6 @@ describe('route guards', () => {
     const { Route } = await import('../__root')
     expect(Route.options.notFoundComponent).toBeDefined()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const NotFound = Route.options.notFoundComponent as React.ComponentType<any>
     render(<NotFound isNotFound={true} routeId="__root__" />)
 

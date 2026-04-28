@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
+import type * as TanstackRouter from '@tanstack/react-router'
 import { overrideHandler } from '../../../test/msw/server'
 import { supabase } from '../../../lib/supabase'
 import { useLoginMutation } from '../useLoginMutation'
@@ -10,14 +11,17 @@ import { useLoginMutation } from '../useLoginMutation'
 const mockNavigate = vi.fn()
 
 vi.mock('@tanstack/react-router', async () => {
-  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router')
+  const actual = await vi.importActual<typeof TanstackRouter>(
+    '@tanstack/react-router',
+  )
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       setSession: vi.fn().mockResolvedValue({ data: {}, error: null }),
       signOut: vi.fn(),
     },
@@ -25,7 +29,11 @@ vi.mock('../../../lib/supabase', () => ({
 }))
 
 const VALID_INPUT = { email: 'user@test.com', password: 'password123' }
-const MOCK_SESSION = { accessToken: 'tok_a', refreshToken: 'tok_r', expiresAt: 9999999999 }
+const MOCK_SESSION = {
+  accessToken: 'tok_a',
+  refreshToken: 'tok_r',
+  expiresAt: 9999999999,
+}
 
 function makeWrapper() {
   const qc = new QueryClient({
@@ -42,7 +50,9 @@ describe('useLoginMutation', () => {
     mockNavigate.mockReset()
     vi.mocked(supabase.auth.setSession).mockClear()
     overrideHandler(
-      http.post('/api/auth/login', () => HttpResponse.json(MOCK_SESSION, { status: 200 })),
+      http.post('/api/auth/login', () =>
+        HttpResponse.json(MOCK_SESSION, { status: 200 }),
+      ),
     )
   })
 
@@ -81,7 +91,9 @@ describe('useLoginMutation', () => {
 
   it('onSuccess com redirectTo: navega para a URL preservada', async () => {
     const { wrapper } = makeWrapper()
-    const { result } = renderHook(() => useLoginMutation('/app/inbox'), { wrapper })
+    const { result } = renderHook(() => useLoginMutation('/app/inbox'), {
+      wrapper,
+    })
 
     result.current.mutate(VALID_INPUT)
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -93,7 +105,12 @@ describe('useLoginMutation', () => {
     overrideHandler(
       http.post('/api/auth/login', () =>
         HttpResponse.json(
-          { error: { code: 'INVALID_CREDENTIALS', message: 'Email ou senha inválidos.' } },
+          {
+            error: {
+              code: 'INVALID_CREDENTIALS',
+              message: 'Email ou senha inválidos.',
+            },
+          },
           { status: 401 },
         ),
       ),

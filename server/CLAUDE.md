@@ -35,6 +35,10 @@ Nota: o `tsconfig.json` do root define `jsxImportSource: "hono/jsx"`. Se houver 
 - Cliente envia `Authorization: Bearer <supabase_access_token>`.
 - Server valida e usa `sub` (user id) + org/tenant (claim ou lookup) para autorizar.
 - Evitar criar um sistema de auth paralelo ao Supabase.
+- Endpoints de auth disponíveis: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`.
+  - `register`: cria utilizador no Supabase Auth + registo na tabela `tenants`/`profiles`.
+  - `login`: autentica via Supabase e devolve `access_token` + `refresh_token`.
+  - `logout`: invalida a sessão do utilizador no Supabase.
 
 ## WhatsApp (provider/adaptor)
 

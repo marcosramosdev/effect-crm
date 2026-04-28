@@ -1,4 +1,9 @@
-import { createFileRoute, isRedirect, Outlet, redirect } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  isRedirect,
+  Outlet,
+  redirect,
+} from '@tanstack/react-router'
 import { authQueryOptions } from '../hooks/useAuth'
 
 export const Route = createFileRoute('/auth')({

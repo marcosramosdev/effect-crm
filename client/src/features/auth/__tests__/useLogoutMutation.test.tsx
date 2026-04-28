@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
+import type * as TanstackRouter from '@tanstack/react-router'
 import { overrideHandler } from '../../../test/msw/server'
 import { supabase } from '../../../lib/supabase'
 import { useLogoutMutation } from '../useLogoutMutation'
@@ -10,14 +11,17 @@ import { useLogoutMutation } from '../useLogoutMutation'
 const mockNavigate = vi.fn()
 
 vi.mock('@tanstack/react-router', async () => {
-  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router')
+  const actual = await vi.importActual<typeof TanstackRouter>(
+    '@tanstack/react-router',
+  )
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn().mockResolvedValue({ error: null }),
     },
   },
@@ -38,7 +42,10 @@ describe('useLogoutMutation', () => {
     mockNavigate.mockReset()
     vi.mocked(supabase.auth.signOut).mockClear()
     overrideHandler(
-      http.post('/api/auth/logout', () => new HttpResponse(null, { status: 204 })),
+      http.post(
+        '/api/auth/logout',
+        () => new HttpResponse(null, { status: 204 }),
+      ),
     )
   })
 

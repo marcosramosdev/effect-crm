@@ -182,12 +182,12 @@ description: "Tasks for implementing User Authentication & Routing /app/* /auth/
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T045 [P] Actualizar `client/CLAUDE.md` — refletir novo prefixo `/app/*` e existência de `/auth/*` no parágrafo de Routing
-- [ ] T046 [P] Actualizar `server/CLAUDE.md` — adicionar nota sobre endpoints `/api/auth/{register,login,logout}` em "Autenticação"
-- [ ] T047 [P] Correr `bun --bun run check` em `client/` (lint + typecheck + format) — zero erros (Princípio IV)
-- [ ] T048 [P] Correr `bun run test` em ambos workspaces — toda a suite verde (Princípio III + user prompt 002)
+- [X] T045 [P] Actualizar `client/CLAUDE.md` — refletir novo prefixo `/app/*` e existência de `/auth/*` no parágrafo de Routing
+- [X] T046 [P] Actualizar `server/CLAUDE.md` — adicionar nota sobre endpoints `/api/auth/{register,login,logout}` em "Autenticação"
+- [X] T047 [P] Correr `bun --bun run check` em `client/` (lint + typecheck + format) — zero erros (Princípio IV)
+- [X] T048 [P] Correr `bun run test` em ambos workspaces — toda a suite verde (Princípio III + user prompt 002)
 - [ ] T049 Validar quickstart.md ponta-a-ponta em browser real (Cenários 1–5) — registar resultado em PR description
-- [ ] T050 [P] Refactor: simplificar duplicação entre `LoginScreen` e `RegisterScreen` em `client/src/features/auth/` — extrair `<AuthFormShell>` se útil (mas só se três linhas similares se justificarem — Princípio V)
+- [X] T050 [P] Refactor: simplificar duplicação entre `LoginScreen` e `RegisterScreen` em `client/src/features/auth/` — extrair `<AuthFormShell>` se útil (mas só se três linhas similares se justificarem — Princípio V)
 
 ---
 
