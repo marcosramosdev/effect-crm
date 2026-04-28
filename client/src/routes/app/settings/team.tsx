@@ -4,14 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { authQueryOptions } from '../../hooks/useAuth'
-import { apiFetch } from '../../lib/api'
+import { authQueryOptions } from '../../../hooks/useAuth'
+import { apiFetch } from '../../../lib/api'
 
-export const Route = createFileRoute('/settings/team')({
+export const Route = createFileRoute('/app/settings/team')({
   beforeLoad: async ({ context }) => {
     const auth = await context.queryClient.ensureQueryData(authQueryOptions)
     if (auth.role !== 'owner') {
-      throw redirect({ to: '/inbox' })
+      throw redirect({ to: '/app/inbox' })
     }
   },
   component: TeamSettingsPage,

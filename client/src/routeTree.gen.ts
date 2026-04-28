@@ -9,15 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ConnectRouteImport } from './routes/connect'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsPipelineRouteImport } from './routes/settings/pipeline'
-import { Route as InboxIndexRouteImport } from './routes/inbox/index'
-import { Route as InboxConversationIdRouteImport } from './routes/inbox/$conversationId'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppConnectRouteImport } from './routes/app/connect'
+import { Route as AppPipelineIndexRouteImport } from './routes/app/pipeline/index'
+import { Route as AppInboxIndexRouteImport } from './routes/app/inbox/index'
+import { Route as AppSettingsTeamRouteImport } from './routes/app/settings/team'
+import { Route as AppSettingsPipelineRouteImport } from './routes/app/settings/pipeline'
+import { Route as AppInboxConversationIdRouteImport } from './routes/app/inbox/$conversationId'
 
-const ConnectRoute = ConnectRouteImport.update({
-  id: '/connect',
-  path: '/connect',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,86 +35,136 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsPipelineRoute = SettingsPipelineRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConnectRoute = AppConnectRouteImport.update({
+  id: '/connect',
+  path: '/connect',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPipelineIndexRoute = AppPipelineIndexRouteImport.update({
+  id: '/pipeline/',
+  path: '/pipeline/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInboxIndexRoute = AppInboxIndexRouteImport.update({
+  id: '/inbox/',
+  path: '/inbox/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
+  id: '/settings/team',
+  path: '/settings/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsPipelineRoute = AppSettingsPipelineRouteImport.update({
   id: '/settings/pipeline',
   path: '/settings/pipeline',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const InboxIndexRoute = InboxIndexRouteImport.update({
-  id: '/inbox/',
-  path: '/inbox',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InboxConversationIdRoute = InboxConversationIdRouteImport.update({
+const AppInboxConversationIdRoute = AppInboxConversationIdRouteImport.update({
   id: '/inbox/$conversationId',
-  path: '$conversationId',
-  getParentRoute: () => InboxIndexRoute,
+  path: '/inbox/$conversationId',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/connect': typeof ConnectRoute
-  '/settings/pipeline': typeof SettingsPipelineRoute
-  '/inbox': typeof InboxIndexRoute
-  '/inbox/$conversationId': typeof InboxConversationIdRoute
+  '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/app/connect': typeof AppConnectRoute
+  '/app/': typeof AppIndexRoute
+  '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
+  '/app/settings/pipeline': typeof AppSettingsPipelineRoute
+  '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/inbox/': typeof AppInboxIndexRoute
+  '/app/pipeline/': typeof AppPipelineIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/connect': typeof ConnectRoute
-  '/settings/pipeline': typeof SettingsPipelineRoute
-  '/inbox': typeof InboxIndexRoute
-  '/inbox/$conversationId': typeof InboxConversationIdRoute
+  '/auth': typeof AuthRoute
+  '/app/connect': typeof AppConnectRoute
+  '/app': typeof AppIndexRoute
+  '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
+  '/app/settings/pipeline': typeof AppSettingsPipelineRoute
+  '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/inbox': typeof AppInboxIndexRoute
+  '/app/pipeline': typeof AppPipelineIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/connect': typeof ConnectRoute
-  '/settings/pipeline': typeof SettingsPipelineRoute
-  '/inbox/': typeof InboxIndexRoute
-  '/inbox/$conversationId': typeof InboxConversationIdRoute
+  '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/app/connect': typeof AppConnectRoute
+  '/app/': typeof AppIndexRoute
+  '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
+  '/app/settings/pipeline': typeof AppSettingsPipelineRoute
+  '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/inbox/': typeof AppInboxIndexRoute
+  '/app/pipeline/': typeof AppPipelineIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/connect'
-    | '/settings/pipeline'
-    | '/inbox'
-    | '/inbox/$conversationId'
+    | '/app'
+    | '/auth'
+    | '/app/connect'
+    | '/app/'
+    | '/app/inbox/$conversationId'
+    | '/app/settings/pipeline'
+    | '/app/settings/team'
+    | '/app/inbox/'
+    | '/app/pipeline/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/connect'
-    | '/settings/pipeline'
-    | '/inbox'
-    | '/inbox/$conversationId'
+    | '/auth'
+    | '/app/connect'
+    | '/app'
+    | '/app/inbox/$conversationId'
+    | '/app/settings/pipeline'
+    | '/app/settings/team'
+    | '/app/inbox'
+    | '/app/pipeline'
   id:
     | '__root__'
     | '/'
-    | '/connect'
-    | '/settings/pipeline'
-    | '/inbox/'
-    | '/inbox/$conversationId'
+    | '/app'
+    | '/auth'
+    | '/app/connect'
+    | '/app/'
+    | '/app/inbox/$conversationId'
+    | '/app/settings/pipeline'
+    | '/app/settings/team'
+    | '/app/inbox/'
+    | '/app/pipeline/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ConnectRoute: typeof ConnectRoute
-  SettingsPipelineRoute: typeof SettingsPipelineRoute
-  InboxIndexRoute: typeof InboxIndexRoute
-}
-
-export interface InboxIndexRouteChildren {
-  InboxConversationIdRoute: typeof InboxConversationIdRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/connect': {
-      id: '/connect'
-      path: '/connect'
-      fullPath: '/connect'
-      preLoaderRoute: typeof ConnectRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -114,43 +174,84 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/pipeline': {
-      id: '/settings/pipeline'
-      path: '/settings/pipeline'
-      fullPath: '/settings/pipeline'
-      preLoaderRoute: typeof SettingsPipelineRouteImport
-      parentRoute: typeof rootRouteImport
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/inbox/': {
-      id: '/inbox/'
+    '/app/connect': {
+      id: '/app/connect'
+      path: '/connect'
+      fullPath: '/app/connect'
+      preLoaderRoute: typeof AppConnectRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pipeline/': {
+      id: '/app/pipeline/'
+      path: '/pipeline'
+      fullPath: '/app/pipeline/'
+      preLoaderRoute: typeof AppPipelineIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inbox/': {
+      id: '/app/inbox/'
       path: '/inbox'
-      fullPath: '/inbox'
-      preLoaderRoute: typeof InboxIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/app/inbox/'
+      preLoaderRoute: typeof AppInboxIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/inbox/$conversationId': {
-      id: '/inbox/$conversationId'
-      path: '$conversationId'
-      fullPath: '/inbox/$conversationId'
-      preLoaderRoute: typeof InboxConversationIdRouteImport
-      parentRoute: typeof InboxIndexRouteImport
+    '/app/settings/team': {
+      id: '/app/settings/team'
+      path: '/settings/team'
+      fullPath: '/app/settings/team'
+      preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings/pipeline': {
+      id: '/app/settings/pipeline'
+      path: '/settings/pipeline'
+      fullPath: '/app/settings/pipeline'
+      preLoaderRoute: typeof AppSettingsPipelineRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inbox/$conversationId': {
+      id: '/app/inbox/$conversationId'
+      path: '/inbox/$conversationId'
+      fullPath: '/app/inbox/$conversationId'
+      preLoaderRoute: typeof AppInboxConversationIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-const inboxIndexRouteChildren: InboxIndexRouteChildren = {
-  InboxConversationIdRoute: InboxConversationIdRoute,
+interface AppRouteChildren {
+  AppConnectRoute: typeof AppConnectRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
+  AppSettingsPipelineRoute: typeof AppSettingsPipelineRoute
+  AppSettingsTeamRoute: typeof AppSettingsTeamRoute
+  AppInboxIndexRoute: typeof AppInboxIndexRoute
+  AppPipelineIndexRoute: typeof AppPipelineIndexRoute
 }
 
-const InboxIndexRouteWithChildren = InboxIndexRoute._addFileChildren(
-  inboxIndexRouteChildren,
-)
+const AppRouteChildren: AppRouteChildren = {
+  AppConnectRoute: AppConnectRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppInboxConversationIdRoute: AppInboxConversationIdRoute,
+  AppSettingsPipelineRoute: AppSettingsPipelineRoute,
+  AppSettingsTeamRoute: AppSettingsTeamRoute,
+  AppInboxIndexRoute: AppInboxIndexRoute,
+  AppPipelineIndexRoute: AppPipelineIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ConnectRoute: ConnectRoute,
-  SettingsPipelineRoute: SettingsPipelineRoute,
-  InboxIndexRoute: InboxIndexRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

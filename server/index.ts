@@ -18,9 +18,17 @@ app.use('*', errorHandler())
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
+const AUTH_PUBLIC = new Set(['/auth/register', '/auth/login'])
+
 const api = new Hono<{ Variables: AuthVariables }>()
-api.use('*', authMiddleware)
-api.use('*', tenantGuard)
+api.use('*', async (c, next) => {
+  if (AUTH_PUBLIC.has(c.req.path)) return next()
+  return authMiddleware(c, next)
+})
+api.use('*', async (c, next) => {
+  if (AUTH_PUBLIC.has(c.req.path)) return next()
+  return tenantGuard(c, next)
+})
 
 api.route('/auth', authRouter)
 api.route('/whatsapp', whatsappRouter)

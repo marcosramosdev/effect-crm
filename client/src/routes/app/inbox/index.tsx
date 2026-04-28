@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router'
-import { InboxList } from '../../features/inbox/InboxList'
+import { InboxList } from '../../../features/inbox/InboxList'
 
-export const Route = createFileRoute('/inbox/')({
+export const Route = createFileRoute('/app/inbox/')({
   component: InboxLayout,
 })
 
@@ -16,7 +16,7 @@ function InboxLayout() {
         <InboxList
           onSelect={(id) =>
             navigate({
-              to: '/inbox/$conversationId',
+              to: '/app/inbox/$conversationId',
               params: { conversationId: id },
             })
           }
