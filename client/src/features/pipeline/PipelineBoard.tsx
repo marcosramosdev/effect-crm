@@ -1,62 +1,72 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiFetch } from '../../lib/api'
-import type { StageListResponse, LeadListResponse } from '@shared/pipeline'
+import { useState, useRef, useCallback } from 'react'
+import { motion, LayoutGroup } from 'framer-motion'
+import { Plus, MoreVertical, GripVertical } from 'lucide-react'
+import { useStages, useLeads, useCustomFields, useMoveLead } from './api'
+import { LeadFormModal } from './LeadFormModal'
 import { Card } from '../../components/Card'
+import { EmptyState } from '../../components/EmptyState'
+import type { PipelineLead } from '@shared/pipeline'
 
-export const stagesQueryOptions = {
-  queryKey: ['pipeline', 'stages'] as const,
-  queryFn: (): Promise<StageListResponse> => apiFetch('/pipeline/stages'),
-}
-
-export const leadsQueryOptions = {
-  queryKey: ['pipeline', 'leads'] as const,
-  queryFn: (): Promise<LeadListResponse> => apiFetch('/pipeline/leads'),
+interface ModalState {
+  open: boolean
+  mode: 'create' | 'edit'
+  stageId?: string
+  lead?: PipelineLead
 }
 
 export function PipelineBoard() {
-  const queryClient = useQueryClient()
-  const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null)
+  const { data: stagesData, isLoading: stagesLoading } = useStages()
+  const { data: leadsData, isLoading: leadsLoading } = useLeads()
+  const { data: customFieldsData } = useCustomFields()
+  const moveMutation = useMoveLead()
 
-  const { data: stagesData, isLoading: stagesLoading } =
-    useQuery(stagesQueryOptions)
-  const { data: leadsData, isLoading: leadsLoading } =
-    useQuery(leadsQueryOptions)
-
-  const moveMutation = useMutation({
-    mutationFn: ({ leadId, stageId }: { leadId: string; stageId: string }) =>
-      apiFetch(`/pipeline/leads/${leadId}/stage`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stageId }),
-      }),
-    onMutate: async ({ leadId, stageId }) => {
-      await queryClient.cancelQueries({ queryKey: leadsQueryOptions.queryKey })
-      const previousLeads = queryClient.getQueryData(leadsQueryOptions.queryKey)
-      queryClient.setQueryData(
-        leadsQueryOptions.queryKey,
-        (old: LeadListResponse | undefined) => {
-          if (!old) return old
-          return {
-            ...old,
-            leads: old.leads.map((l) =>
-              l.id === leadId ? { ...l, stageId } : l,
-            ),
-          }
-        },
-      )
-      return { previousLeads }
-    },
-    onError: (_err, _vars, context) => {
-      queryClient.setQueryData(
-        leadsQueryOptions.queryKey,
-        context?.previousLeads,
-      )
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: leadsQueryOptions.queryKey })
-    },
+  const [modal, setModal] = useState<ModalState>({
+    open: false,
+    mode: 'create',
   })
+  const columnRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const stages = stagesData?.stages ?? []
+  const leads = leadsData?.leads ?? []
+  const customFields = customFieldsData?.fields ?? []
+
+  const handleDragEnd = useCallback(
+    (
+      _event: MouseEvent | TouchEvent | PointerEvent,
+      info: { point: { x: number; y: number } },
+      leadId: string,
+    ) => {
+      const pointerX = info.point.x
+      const pointerY = info.point.y
+
+      for (const stage of stages) {
+        const el = columnRefs.current[stage.id]
+        if (!el) continue
+        const rect = el.getBoundingClientRect()
+        if (
+          pointerX >= rect.left &&
+          pointerX <= rect.right &&
+          pointerY >= rect.top &&
+          pointerY <= rect.bottom
+        ) {
+          const lead = leads.find((l) => l.id === leadId)
+          if (lead && lead.stageId !== stage.id) {
+            moveMutation.mutate({ leadId, stageId: stage.id })
+          }
+          break
+        }
+      }
+    },
+    [stages, leads, moveMutation],
+  )
+
+  const openCreateModal = (stageId: string) => {
+    setModal({ open: true, mode: 'create', stageId })
+  }
+
+  const openEditModal = (lead: PipelineLead) => {
+    setModal({ open: true, mode: 'edit', lead })
+  }
 
   if (stagesLoading || leadsLoading) {
     return (
@@ -66,59 +76,144 @@ export function PipelineBoard() {
     )
   }
 
-  const stages = stagesData?.stages ?? []
-  const leads = leadsData?.leads ?? []
-
   return (
-    <div className="flex gap-4 p-4 overflow-x-auto h-full">
-      {stages.map((stage) => {
-        const stageLeads = leads.filter((l) => l.stageId === stage.id)
-        return (
-          <div
-            key={stage.id}
-            className="flex flex-col w-64 shrink-0 bg-base-200 rounded-lg"
-          >
-            <div className="px-3 py-2 font-semibold border-b border-base-300">
-              {stage.name}
-              <span className="ml-2 badge badge-sm">{stageLeads.length}</span>
-            </div>
-            <ul
-              role="list"
-              aria-label={stage.name}
-              className="flex flex-col gap-2 p-2 flex-1 min-h-16"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault()
-                if (draggingLeadId) {
-                  moveMutation.mutate({
-                    leadId: draggingLeadId,
-                    stageId: stage.id,
-                  })
-                  setDraggingLeadId(null)
-                }
+    <LayoutGroup>
+      <div className="flex gap-4 p-4 overflow-x-auto h-full">
+        {stages.map((stage) => {
+          const stageLeads = leads.filter((l) => l.stageId === stage.id)
+          return (
+            <motion.div
+              key={stage.id}
+              layout
+              className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg"
+              ref={(el) => {
+                columnRefs.current[stage.id] = el
               }}
             >
-              {stageLeads.map((lead) => (
-                <Card
-                  as="li"
-                  key={lead.id}
-                  className="cursor-grab active:cursor-grabbing p-2"
-                  draggable
-                  onDragStart={() => setDraggingLeadId(lead.id)}
-                  onDragEnd={() => setDraggingLeadId(null)}
-                >
-                  <div className="font-medium text-sm truncate">
-                    {lead.displayName ?? lead.phoneNumber}
+              {/* Column header */}
+              <div
+                className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg"
+                style={{ borderTopColor: stage.color }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="truncate"
+                      title={stage.description ?? undefined}
+                    >
+                      {stage.name}
+                    </span>
+                    <span className="badge badge-sm badge-ghost shrink-0">
+                      {stageLeads.length}
+                    </span>
                   </div>
-                  <div className="text-xs text-base-content/60">
-                    {lead.phoneNumber}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs btn-square"
+                      onClick={() => openCreateModal(stage.id)}
+                      aria-label={`Adicionar lead em ${stage.name}`}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs btn-square"
+                      aria-label={`Opções de ${stage.name}`}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
                   </div>
-                </Card>
-              ))}
-            </ul>
-          </div>
-        )
-      })}
-    </div>
+                </div>
+                {stage.description && (
+                  <p className="text-xs text-base-content/60 mt-1 truncate">
+                    {stage.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Leads list */}
+              <div className="flex flex-col gap-2 p-2 flex-1 min-h-16">
+                {stageLeads.length === 0 && (
+                  <EmptyState
+                    heading="Sem leads"
+                    body="Arraste um lead para aqui ou clique em + para criar um novo."
+                    className="py-8"
+                  />
+                )}
+                {stageLeads.map((lead) => (
+                  <motion.div
+                    key={lead.id}
+                    layoutId={lead.id}
+                    layout="position"
+                    drag
+                    dragSnapToOrigin
+                    onDragEnd={(event, info) =>
+                      handleDragEnd(event, info, lead.id)
+                    }
+                    className="cursor-grab active:cursor-grabbing"
+                  >
+                    <Card
+                      as="div"
+                      className="p-3 hover:shadow-md transition-shadow"
+                      onClick={() => openEditModal(lead)}
+                    >
+                      <div className="flex items-start gap-2">
+                        <GripVertical className="h-4 w-4 text-base-content/40 shrink-0 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-sm truncate">
+                            {lead.displayName ?? formatPhone(lead.phoneNumber)}
+                          </div>
+                          <div className="text-xs text-base-content/60 truncate">
+                            {formatPhone(lead.phoneNumber)}
+                          </div>
+                          {lead.customValues &&
+                            Object.keys(lead.customValues).length > 0 &&
+                            customFields.length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {Object.entries(lead.customValues)
+                                  .filter(([, v]) => v !== null)
+                                  .slice(0, 3)
+                                  .map(([fieldId, value]) => {
+                                    const field = customFields.find(
+                                      (f) => f.id === fieldId,
+                                    )
+                                    if (!field) return null
+                                    return (
+                                      <span
+                                        key={fieldId}
+                                        className="badge badge-xs badge-ghost"
+                                        title={`${field.label}: ${value}`}
+                                      >
+                                        {field.label}: {value}
+                                      </span>
+                                    )
+                                  })}
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+
+      <LeadFormModal
+        open={modal.open}
+        mode={modal.mode}
+        stageId={modal.stageId}
+        lead={modal.lead}
+        onClose={() => setModal({ open: false, mode: 'create' })}
+      />
+    </LayoutGroup>
   )
+}
+
+function formatPhone(phone: string): string {
+  if (phone.startsWith('manual:')) return '—'
+  return phone
 }

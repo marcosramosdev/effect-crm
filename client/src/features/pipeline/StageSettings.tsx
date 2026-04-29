@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { apiFetch } from '../../lib/api'
-import { stagesQueryOptions } from './PipelineBoard'
+import { stagesQueryOptions } from './api'
 import type { PipelineStage } from '@shared/pipeline'
 
 const CreateStageSchema = z.object({

@@ -35,22 +35,27 @@ type RowsByTable = Record<string, Record<string, unknown>[]>
 
 function makeDb(rowsByTable: RowsByTable = {}) {
   const calls: TrackedCall[] = []
+  const mutableRows: RowsByTable = JSON.parse(JSON.stringify(rowsByTable))
 
   function makeFrom(table: string) {
     const filters: TrackedCall['filters'] = []
     let pending: TrackedCall | null = null
+    let countMode = false
+
+    const getRows = () => mutableRows[table] ?? []
 
     const finalize = () => {
       if (pending) {
         calls.push(pending)
         pending = null
       }
-      return rowsByTable[table] ?? []
+      return getRows()
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chain: any = {
-      select: () => {
+      select: (columns?: string, opts?: { count?: string; head?: boolean }) => {
+        if (opts?.count) countMode = true
         if (!pending) pending = { table, op: 'select', filters }
         return chain
       },
@@ -62,7 +67,7 @@ function makeDb(rowsByTable: RowsByTable = {}) {
         pending = { table, op: 'update', data, filters }
         return chain
       },
-      upsert: (data: unknown) => {
+      upsert: (data: unknown, _opts?: unknown) => {
         pending = { table, op: 'upsert', data, filters }
         return chain
       },
@@ -101,10 +106,20 @@ function makeDb(rowsByTable: RowsByTable = {}) {
       order: () => chain,
       limit: () => chain,
       single: () => {
+        if (countMode) {
+          countMode = false
+          const rows = finalize()
+          return Promise.resolve({ data: rows.length, error: null })
+        }
         const rows = finalize()
         return Promise.resolve({ data: rows[0] ?? null, error: null })
       },
       maybeSingle: () => {
+        if (countMode) {
+          countMode = false
+          const rows = finalize()
+          return Promise.resolve({ data: rows.length, error: null })
+        }
         const rows = finalize()
         return Promise.resolve({ data: rows[0] ?? null, error: null })
       },
@@ -112,14 +127,55 @@ function makeDb(rowsByTable: RowsByTable = {}) {
         ok: (v: { data: unknown; error: null }) => R,
         rej?: (e: unknown) => R,
       ) => {
+        if (countMode) {
+          countMode = false
+          const rows = finalize()
+          return Promise.resolve({ data: rows.length, error: null }).then(ok, rej)
+        }
         const rows = finalize()
         return Promise.resolve({ data: rows, error: null }).then(ok, rej)
       },
     }
+
+    // Intercept then() for insert to simulate duplicate phone error on leads table
+    const originalThen = chain.then
+    chain.then = <R>(
+      ok: (v: { data: unknown; error: null }) => R,
+      rej?: (e: unknown) => R,
+    ) => {
+      if (pending?.op === 'insert' && table === 'leads') {
+        const data = pending.data as Record<string, unknown>
+        const phone = data.phone_number as string
+        const existing = mutableRows.leads?.find((r) => r.phone_number === phone && r.tenant_id === data.tenant_id)
+        if (existing) {
+          calls.push(pending)
+          pending = null
+          return Promise.resolve({ data: null, error: { message: 'duplicate key value violates unique constraint', code: '23505' } }).then(ok, rej)
+        }
+        mutableRows[table] = [...getRows(), data]
+      }
+      if (pending?.op === 'update') {
+        const data = pending.data as Record<string, unknown>
+        const idFilter = pending.filters.find((f) => f.col === 'id')
+        const rows = getRows()
+        const idx = rows.findIndex((r) => r.id === idFilter?.val)
+        if (idx >= 0) {
+          rows[idx] = { ...rows[idx], ...data }
+        }
+      }
+      return originalThen(ok, rej)
+    }
+
     return chain
   }
 
-  return { calls, client: { from: makeFrom } }
+  return {
+    calls,
+    client: {
+      from: makeFrom,
+      rpc: (_name: string, _params?: unknown) => Promise.resolve({ data: null, error: { message: 'rpc not available' } }),
+    },
+  }
 }
 
 interface AppOpts {
@@ -512,5 +568,354 @@ describe('DELETE /pipeline/leads/:id — owner deletes lead', () => {
     expect(res.status).toBe(404)
     const body = (await res.json()) as { error: { code: string } }
     expect(body.error.code).toBe('NOT_FOUND')
+  })
+})
+
+// T-S-068
+describe('POST /pipeline/leads — create lead', () => {
+  it('creates lead with manual uuid when phone is empty', async () => {
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Novo', order: 1, is_default_entry: true },
+        ],
+        lead_custom_fields: [],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request('/pipeline/leads', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayName: 'Cliente A', stageId: STAGE1_ID }),
+    })
+
+    expect(res.status).toBe(201)
+    const body = (await res.json()) as { lead: { phoneNumber: string; displayName: string } }
+    expect(body.lead.displayName).toBe('Cliente A')
+    expect(body.lead.phoneNumber).toMatch(/^manual:/)
+
+    const insertOp = serviceDb.calls.find((c) => c.table === 'leads' && c.op === 'insert')
+    expect(insertOp).toBeDefined()
+    expect((insertOp?.data as Record<string, unknown>)?.phone_number).toMatch(/^manual:/)
+  })
+
+  it('returns 409 LEAD_PHONE_EXISTS on duplicate phone', async () => {
+    const { app } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Novo', order: 1, is_default_entry: true },
+        ],
+        leads: [
+          { id: LEAD_ID, tenant_id: TENANT_ID, phone_number: PHONE, stage_id: STAGE1_ID },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request('/pipeline/leads', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayName: 'Cliente B', phoneNumber: PHONE, stageId: STAGE1_ID }),
+    })
+
+    expect(res.status).toBe(409)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('LEAD_PHONE_EXISTS')
+  })
+})
+
+// T-S-069
+describe('PATCH /pipeline/leads/:id — update lead', () => {
+  it('updates base fields and upserts custom values', async () => {
+    const FIELD_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        leads: [
+          {
+            id: LEAD_ID,
+            tenant_id: TENANT_ID,
+            phone_number: PHONE,
+            display_name: 'João',
+            stage_id: STAGE1_ID,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+        lead_custom_fields: [
+          { id: FIELD_ID, tenant_id: TENANT_ID, key: 'budget', label: 'Orçamento', type: 'number', order: 1, created_at: '2024-01-01T00:00:00.000Z' },
+        ],
+        lead_custom_values: [],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/leads/${LEAD_ID}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayName: 'João Silva', customValues: { [FIELD_ID]: 5000 } }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { lead: { displayName: string } }
+    expect(body.lead.displayName).toBe('João Silva')
+
+    const upsertOp = serviceDb.calls.find((c) => c.table === 'lead_custom_values' && c.op === 'upsert')
+    expect(upsertOp).toBeDefined()
+  })
+
+  it('deletes custom value when null is sent', async () => {
+    const FIELD_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        leads: [
+          {
+            id: LEAD_ID,
+            tenant_id: TENANT_ID,
+            phone_number: PHONE,
+            display_name: 'João',
+            stage_id: STAGE1_ID,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+        lead_custom_fields: [
+          { id: FIELD_ID, tenant_id: TENANT_ID, key: 'budget', label: 'Orçamento', type: 'number', order: 1, created_at: '2024-01-01T00:00:00.000Z' },
+        ],
+        lead_custom_values: [
+          { lead_id: LEAD_ID, field_id: FIELD_ID, value_number: 3000 },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/leads/${LEAD_ID}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customValues: { [FIELD_ID]: null } }),
+    })
+
+    expect(res.status).toBe(200)
+    const deleteOp = serviceDb.calls.find((c) => c.table === 'lead_custom_values' && c.op === 'delete')
+    expect(deleteOp).toBeDefined()
+  })
+})
+
+// T-S-070
+describe('GET /pipeline/custom-fields', () => {
+  it('returns ordered list of custom fields', async () => {
+    const { app } = makeApp({
+      userRows: {
+        lead_custom_fields: [
+          { id: 'f-1', tenant_id: TENANT_ID, key: 'company', label: 'Empresa', type: 'text', options: null, order: 1, created_at: '2024-01-01T00:00:00.000Z' },
+          { id: 'f-2', tenant_id: TENANT_ID, key: 'budget', label: 'Orçamento', type: 'number', options: null, order: 2, created_at: '2024-01-01T00:00:00.000Z' },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request('/pipeline/custom-fields', {
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { fields: Array<{ key: string; order: number }> }
+    expect(body.fields).toHaveLength(2)
+    expect(body.fields[0].order).toBe(1)
+    expect(body.fields[1].order).toBe(2)
+  })
+})
+
+// T-S-071
+describe('POST /pipeline/custom-fields — owner-only + 20 limit', () => {
+  it('returns 403 when agent tries to create', async () => {
+    const { app } = makeApp({ role: 'agent' })
+    const jwt = await makeTestJwt({ userId: USER_ID, tenantId: TENANT_ID })
+
+    const res = await app.request('/pipeline/custom-fields', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'company', label: 'Empresa', type: 'text' }),
+    })
+
+    expect(res.status).toBe(403)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('FORBIDDEN')
+  })
+
+  it('returns 409 CUSTOM_FIELDS_LIMIT when 20 fields exist', async () => {
+    const existingFields = Array.from({ length: 20 }, (_, i) => ({
+      id: `f-${i}`,
+      tenant_id: TENANT_ID,
+      key: `field${i}`,
+      label: `Field ${i}`,
+      type: 'text',
+      options: null,
+      order: i + 1,
+      created_at: '2024-01-01T00:00:00.000Z',
+    }))
+
+    const { app } = makeApp({
+      serviceRows: {
+        lead_custom_fields: existingFields,
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request('/pipeline/custom-fields', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'extra', label: 'Extra', type: 'text' }),
+    })
+
+    expect(res.status).toBe(409)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('CUSTOM_FIELDS_LIMIT')
+  })
+})
+
+// T-S-072
+describe('PATCH /pipeline/custom-fields/:id — owner updates field', () => {
+  it('renames field and updates options', async () => {
+    const FIELD_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        lead_custom_fields: [
+          { id: FIELD_ID, tenant_id: TENANT_ID, key: 'status', label: 'Estado', type: 'select', options: ['novo', 'velho'], order: 1, created_at: '2024-01-01T00:00:00.000Z' },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/custom-fields/${FIELD_ID}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: 'Novo Estado', options: ['novo', 'ativo', 'inativo'] }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { field: { label: string; options: string[] } }
+    expect(body.field.label).toBe('Novo Estado')
+    expect(body.field.options).toEqual(['novo', 'ativo', 'inativo'])
+
+    const updateOp = serviceDb.calls.find((c) => c.table === 'lead_custom_fields' && c.op === 'update')
+    expect(updateOp).toBeDefined()
+  })
+})
+
+// T-S-073
+describe('DELETE /pipeline/custom-fields/:id — owner deletes field', () => {
+  it('removes field and cascades values', async () => {
+    const FIELD_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        lead_custom_fields: [
+          { id: FIELD_ID, tenant_id: TENANT_ID, key: 'status', label: 'Estado', type: 'select', options: ['novo'], order: 1, created_at: '2024-01-01T00:00:00.000Z' },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/custom-fields/${FIELD_ID}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(204)
+
+    const deleteOp = serviceDb.calls.find((c) => c.table === 'lead_custom_fields' && c.op === 'delete')
+    expect(deleteOp).toBeDefined()
+    expect(deleteOp?.filters).toContainEqual({ col: 'id', val: FIELD_ID, type: 'eq' })
+  })
+})
+
+// T-S-074
+describe('PATCH /pipeline/stages/reorder — owner-only', () => {
+  it('reorders stages successfully', async () => {
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Novo', order: 1, is_default_entry: true, color: '#64748b', description: null },
+          { id: STAGE2_ID, tenant_id: TENANT_ID, name: 'Em conversa', order: 2, is_default_entry: false, color: '#64748b', description: null },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request('/pipeline/stages/reorder', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stages: [{ id: STAGE1_ID, order: 2 }, { id: STAGE2_ID, order: 1 }] }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { stages: Array<{ id: string; order: number }> }
+    const s1 = body.stages.find((s) => s.id === STAGE1_ID)
+    const s2 = body.stages.find((s) => s.id === STAGE2_ID)
+    expect(s1?.order).toBe(2)
+    expect(s2?.order).toBe(1)
+  })
+
+  it('returns 403 when agent tries to reorder', async () => {
+    const { app } = makeApp({ role: 'agent' })
+    const jwt = await makeTestJwt({ userId: USER_ID, tenantId: TENANT_ID })
+
+    const res = await app.request('/pipeline/stages/reorder', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stages: [{ id: STAGE1_ID, order: 2 }] }),
+    })
+
+    expect(res.status).toBe(403)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('FORBIDDEN')
+  })
+})
+
+// T-S-075
+describe('PATCH /pipeline/stages/:id — color and description', () => {
+  it('updates color and description', async () => {
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Novo', order: 1, is_default_entry: true, color: '#64748b', description: null },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/stages/${STAGE1_ID}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ color: '#22c55e', description: 'Leads aguardando follow-up' }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { stage: { color: string; description: string } }
+    expect(body.stage.color).toBe('#22c55e')
+    expect(body.stage.description).toBe('Leads aguardando follow-up')
+
+    const updateOp = serviceDb.calls.find((c) => c.table === 'pipeline_stages' && c.op === 'update')
+    expect(updateOp).toBeDefined()
+    expect((updateOp?.data as Record<string, unknown>)?.color).toBe('#22c55e')
+  })
+
+  it('returns 400 for invalid hex color', async () => {
+    const { app } = makeApp({
+      serviceRows: {
+        pipeline_stages: [
+          { id: STAGE1_ID, tenant_id: TENANT_ID, name: 'Novo', order: 1, is_default_entry: true, color: '#64748b', description: null },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/stages/${STAGE1_ID}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ color: 'green' }),
+    })
+
+    expect(res.status).toBe(400)
   })
 })

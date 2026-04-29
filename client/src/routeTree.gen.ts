@@ -21,6 +21,7 @@ import { Route as AppInboxIndexRouteImport } from './routes/app/inbox/index'
 import { Route as AppDashboardIndexRouteImport } from './routes/app/dashboard/index'
 import { Route as AppSettingsTeamRouteImport } from './routes/app/settings/team'
 import { Route as AppSettingsPipelineRouteImport } from './routes/app/settings/pipeline'
+import { Route as AppPipelineSettingsRouteImport } from './routes/app/pipeline/settings'
 import { Route as AppInboxConversationIdRouteImport } from './routes/app/inbox/$conversationId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -83,6 +84,11 @@ const AppSettingsPipelineRoute = AppSettingsPipelineRouteImport.update({
   path: '/settings/pipeline',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPipelineSettingsRoute = AppPipelineSettingsRouteImport.update({
+  id: '/pipeline/settings',
+  path: '/pipeline/settings',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInboxConversationIdRoute = AppInboxConversationIdRouteImport.update({
   id: '/inbox/$conversationId',
   path: '/inbox/$conversationId',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
+  '/app/pipeline/settings': typeof AppPipelineSettingsRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/dashboard/': typeof AppDashboardIndexRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/app': typeof AppIndexRoute
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
+  '/app/pipeline/settings': typeof AppPipelineSettingsRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/dashboard': typeof AppDashboardIndexRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
+  '/app/pipeline/settings': typeof AppPipelineSettingsRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/dashboard/': typeof AppDashboardIndexRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/app/'
     | '/app/inbox/$conversationId'
+    | '/app/pipeline/settings'
     | '/app/settings/pipeline'
     | '/app/settings/team'
     | '/app/dashboard/'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/app'
     | '/app/inbox/$conversationId'
+    | '/app/pipeline/settings'
     | '/app/settings/pipeline'
     | '/app/settings/team'
     | '/app/dashboard'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/app/'
     | '/app/inbox/$conversationId'
+    | '/app/pipeline/settings'
     | '/app/settings/pipeline'
     | '/app/settings/team'
     | '/app/dashboard/'
@@ -273,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsPipelineRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/pipeline/settings': {
+      id: '/app/pipeline/settings'
+      path: '/pipeline/settings'
+      fullPath: '/app/pipeline/settings'
+      preLoaderRoute: typeof AppPipelineSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/inbox/$conversationId': {
       id: '/app/inbox/$conversationId'
       path: '/inbox/$conversationId'
@@ -287,6 +306,7 @@ interface AppRouteChildren {
   AppConnectRoute: typeof AppConnectRoute
   AppIndexRoute: typeof AppIndexRoute
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
+  AppPipelineSettingsRoute: typeof AppPipelineSettingsRoute
   AppSettingsPipelineRoute: typeof AppSettingsPipelineRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppDashboardIndexRoute: typeof AppDashboardIndexRoute
@@ -298,6 +318,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppConnectRoute: AppConnectRoute,
   AppIndexRoute: AppIndexRoute,
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
+  AppPipelineSettingsRoute: AppPipelineSettingsRoute,
   AppSettingsPipelineRoute: AppSettingsPipelineRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppDashboardIndexRoute: AppDashboardIndexRoute,

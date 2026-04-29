@@ -52,6 +52,11 @@ Nota: o `tsconfig.json` do root define `jsxImportSource: "hono/jsx"`. Se houver 
 - Servir `client/dist` como assets. Usando bun serverStatic, apontar para `client/dist`.
 - Qualquer rota não-`/api/*` deve retornar `index.html` (SPA fallback).
 
+## Pipeline / Leads
+
+- Leads criados manualmente sem telefone usam placeholder `manual:<uuid>` para satisfazer a unique constraint `unique(tenant_id, phone_number)`.
+- Queries do inbox WhatsApp devem excluir leads com `phone_number like 'manual:%'` para não poluir a lista de conversas.
+
 ## Boas práticas
 
 - Validar payloads (Zod) e devolver erros consistentes.
