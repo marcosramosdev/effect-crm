@@ -30,7 +30,8 @@ export function useLoginMutation(redirectTo?: string) {
 
       await queryClient.fetchQuery({
         ...authQueryOptions,
-        queryFn: () => apiFetch('/auth/me', undefined, undefined, session.accessToken),
+        queryFn: () =>
+          apiFetch('/auth/me', undefined, undefined, session.accessToken),
       })
 
       navigate({ to: redirectTo ?? '/app' })

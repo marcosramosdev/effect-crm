@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router'
 import { InboxList } from '../../../features/inbox/InboxList'
+import { DashboardLayout } from '../../../features/shell/DashboardLayout'
 
 export const Route = createFileRoute('/app/inbox/')({
   component: InboxLayout,
@@ -8,11 +9,11 @@ export const Route = createFileRoute('/app/inbox/')({
 function InboxLayout() {
   const navigate = useNavigate()
   return (
-    <div className="flex h-screen">
+    <DashboardLayout
+      title="Inbox"
+      contentClassName="flex flex-1 overflow-hidden"
+    >
       <div className="w-80 shrink-0 border-r border-base-200 overflow-y-auto flex flex-col">
-        <div className="px-4 py-3 border-b border-base-200">
-          <h1 className="text-lg font-semibold">Inbox</h1>
-        </div>
         <InboxList
           onSelect={(id) =>
             navigate({
@@ -25,6 +26,6 @@ function InboxLayout() {
       <div className="flex-1 overflow-hidden">
         <Outlet />
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

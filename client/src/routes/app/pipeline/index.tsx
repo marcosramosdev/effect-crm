@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PipelineBoard } from '../../../features/pipeline/PipelineBoard'
+import { DashboardLayout } from '../../../features/shell/DashboardLayout'
 
 export const Route = createFileRoute('/app/pipeline/')({
   component: PipelinePage,
@@ -7,13 +8,8 @@ export const Route = createFileRoute('/app/pipeline/')({
 
 function PipelinePage() {
   return (
-    <div className="h-screen flex flex-col">
-      <div className="px-4 py-3 border-b border-base-200">
-        <h1 className="text-lg font-semibold">Pipeline</h1>
-      </div>
-      <div className="flex-1 overflow-auto">
-        <PipelineBoard />
-      </div>
-    </div>
+    <DashboardLayout title="Pipeline" contentClassName="flex-1 overflow-hidden">
+      <PipelineBoard />
+    </DashboardLayout>
   )
 }

@@ -15,7 +15,7 @@ export const Route = createFileRoute('/app/')({
     )
 
     if (connection.status === 'connected') {
-      throw redirect({ to: '/app/inbox' })
+      throw redirect({ to: '/app/dashboard' })
     }
 
     throw redirect({ to: '/app/connect' })

@@ -292,6 +292,115 @@ describe('route guards', () => {
     expect(redirectOpts?.search?.redirect).toBe('/app/inbox')
   })
 
+  // T040 — /app/ index redirect matrix
+
+  it('/app/ owner+connected redireciona para /app/dashboard', async () => {
+    overrideHandler(
+      http.get('/api/auth/me', () =>
+        HttpResponse.json({
+          userId: '00000000-0000-0000-0000-000000000001',
+          email: 'owner@test.example',
+          tenantId: '00000000-0000-0000-0000-000000000002',
+          tenantName: 'Test Tenant',
+          role: 'owner',
+        }),
+      ),
+      http.get('/api/whatsapp/connection', () =>
+        HttpResponse.json({
+          status: 'connected',
+          phoneNumber: '+351912345678',
+          lastHeartbeatAt: null,
+          lastError: null,
+          qr: null,
+        }),
+      ),
+    )
+
+    const { Route } = await import('../app/index')
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    let thrown: unknown
+    try {
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({
+        context: { queryClient },
+      })
+    } catch (e) {
+      thrown = e
+    }
+
+    expect(thrown).toBeDefined()
+    const redirectOpts = (thrown as { options?: { to?: string } }).options
+    expect(redirectOpts?.to).toBe('/app/dashboard')
+  })
+
+  it('/app/ owner+disconnected redireciona para /app/connect', async () => {
+    overrideHandler(
+      http.get('/api/auth/me', () =>
+        HttpResponse.json({
+          userId: '00000000-0000-0000-0000-000000000001',
+          email: 'owner@test.example',
+          tenantId: '00000000-0000-0000-0000-000000000002',
+          tenantName: 'Test Tenant',
+          role: 'owner',
+        }),
+      ),
+      http.get('/api/whatsapp/connection', () =>
+        HttpResponse.json({
+          status: 'disconnected',
+          phoneNumber: null,
+          lastHeartbeatAt: null,
+          lastError: null,
+          qr: null,
+        }),
+      ),
+    )
+
+    const { Route } = await import('../app/index')
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    let thrown: unknown
+    try {
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({
+        context: { queryClient },
+      })
+    } catch (e) {
+      thrown = e
+    }
+
+    expect(thrown).toBeDefined()
+    const redirectOpts = (thrown as { options?: { to?: string } }).options
+    expect(redirectOpts?.to).toBe('/app/connect')
+  })
+
+  it('/app/ agente redireciona para /app/inbox', async () => {
+    // default MSW handler returns role: 'agent'
+
+    const { Route } = await import('../app/index')
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    let thrown: unknown
+    try {
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({
+        context: { queryClient },
+      })
+    } catch (e) {
+      thrown = e
+    }
+
+    expect(thrown).toBeDefined()
+    const redirectOpts = (thrown as { options?: { to?: string } }).options
+    expect(redirectOpts?.to).toBe('/app/inbox')
+  })
+
   // T040 — 404 matrix
 
   it('/app/foo-inexistente e /qualquer-coisa: notFoundComponent mostra "Página não encontrada"', async () => {

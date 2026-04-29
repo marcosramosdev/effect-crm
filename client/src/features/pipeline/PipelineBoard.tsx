@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../../lib/api'
 import type { StageListResponse, LeadListResponse } from '@shared/pipeline'
+import { Card } from '../../components/Card'
 
 export const stagesQueryOptions = {
   queryKey: ['pipeline', 'stages'] as const,
@@ -98,9 +99,10 @@ export function PipelineBoard() {
               }}
             >
               {stageLeads.map((lead) => (
-                <li
+                <Card
+                  as="li"
                   key={lead.id}
-                  className="bg-base-100 rounded p-2 shadow-sm cursor-grab active:cursor-grabbing"
+                  className="cursor-grab active:cursor-grabbing p-2"
                   draggable
                   onDragStart={() => setDraggingLeadId(lead.id)}
                   onDragEnd={() => setDraggingLeadId(null)}
@@ -111,7 +113,7 @@ export function PipelineBoard() {
                   <div className="text-xs text-base-content/60">
                     {lead.phoneNumber}
                   </div>
-                </li>
+                </Card>
               ))}
             </ul>
           </div>
