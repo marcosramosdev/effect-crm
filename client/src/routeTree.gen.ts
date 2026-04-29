@@ -13,6 +13,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AppConnectRouteImport } from './routes/app/connect'
 import { Route as AppPipelineIndexRouteImport } from './routes/app/pipeline/index'
 import { Route as AppInboxIndexRouteImport } from './routes/app/inbox/index'
@@ -39,6 +41,16 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AppConnectRoute = AppConnectRouteImport.update({
   id: '/connect',
@@ -74,8 +86,10 @@ const AppInboxConversationIdRoute = AppInboxConversationIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app/connect': typeof AppConnectRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
@@ -85,8 +99,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app/connect': typeof AppConnectRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
   '/app': typeof AppIndexRoute
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
@@ -98,8 +114,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app/connect': typeof AppConnectRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
@@ -114,6 +132,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/connect'
+    | '/auth/login'
+    | '/auth/register'
     | '/app/'
     | '/app/inbox/$conversationId'
     | '/app/settings/pipeline'
@@ -125,6 +145,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app/connect'
+    | '/auth/login'
+    | '/auth/register'
     | '/app'
     | '/app/inbox/$conversationId'
     | '/app/settings/pipeline'
@@ -137,6 +159,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/connect'
+    | '/auth/login'
+    | '/auth/register'
     | '/app/'
     | '/app/inbox/$conversationId'
     | '/app/settings/pipeline'
@@ -148,7 +172,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -180,6 +204,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/app/connect': {
       id: '/app/connect'
@@ -248,10 +286,22 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface AuthRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

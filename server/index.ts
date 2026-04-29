@@ -18,7 +18,7 @@ app.use('*', errorHandler())
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
-const AUTH_PUBLIC = new Set(['/auth/register', '/auth/login'])
+const AUTH_PUBLIC = new Set(['/api/auth/register', '/api/auth/login'])
 
 const api = new Hono<{ Variables: AuthVariables }>()
 api.use('*', async (c, next) => {

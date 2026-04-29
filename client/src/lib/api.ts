@@ -13,15 +13,18 @@ export async function apiFetch<T = unknown>(
   path: string,
   init?: RequestInit,
   schema?: { parse: (data: unknown) => T },
+  explicitToken?: string,
 ): Promise<T> {
-  let token: string | undefined
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    token = session?.access_token ?? undefined
-  } catch {
-    // no session available — proceed without Authorization header
+  let token: string | undefined = explicitToken
+  if (!token) {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      token = session?.access_token ?? undefined
+    } catch {
+      // no session available — proceed without Authorization header
+    }
   }
 
   const headers = new Headers(init?.headers)

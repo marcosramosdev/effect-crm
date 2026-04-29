@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { makeTestJwt } from '../test/fixtures/jwts'
 import { makeSupabaseMock } from '../test/fixtures/supabase'
 import { createAuthMiddleware } from '../middlewares/auth'
+import { verifyTestJwt } from '../test/fixtures/jwts'
 import { tenantGuard } from '../middlewares/tenant-guard'
 import { errorHandler } from '../middlewares/error'
 import { createAuthRouter } from './auth'
@@ -22,7 +23,7 @@ function makeApp(memberRows: Record<string, unknown>[], tenantRows: Record<strin
 
   const app = new Hono()
   app.use('*', errorHandler())
-  app.use('*', createAuthMiddleware(() => authMock as never))
+  app.use('*', createAuthMiddleware(() => authMock as never, verifyTestJwt))
   app.use('*', tenantGuard)
 
   const router = createAuthRouter(() => routeMock as never)
