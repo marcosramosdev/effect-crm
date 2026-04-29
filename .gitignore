@@ -4,3 +4,6 @@ node_modules/
 .claude
 uazapi-openapi-spec.yaml
 .env
+.agents
+openspec/
+.opencode/
