@@ -1,7 +1,6 @@
-import { useState, useRef, useCallback } from 'react'
-import { motion, LayoutGroup } from 'framer-motion'
+import { useState } from 'react'
 import { Plus, MoreVertical, GripVertical } from 'lucide-react'
-import { useStages, useLeads, useCustomFields, useMoveLead } from './api'
+import { useStages, useLeads, useCustomFields } from './api'
 import { LeadFormModal } from './LeadFormModal'
 import { Card } from '../../components/Card'
 import { EmptyState } from '../../components/EmptyState'
@@ -18,47 +17,15 @@ export function PipelineBoard() {
   const { data: stagesData, isLoading: stagesLoading } = useStages()
   const { data: leadsData, isLoading: leadsLoading } = useLeads()
   const { data: customFieldsData } = useCustomFields()
-  const moveMutation = useMoveLead()
 
   const [modal, setModal] = useState<ModalState>({
     open: false,
     mode: 'create',
   })
-  const columnRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const stages = stagesData?.stages ?? []
   const leads = leadsData?.leads ?? []
   const customFields = customFieldsData?.fields ?? []
-
-  const handleDragEnd = useCallback(
-    (
-      _event: MouseEvent | TouchEvent | PointerEvent,
-      info: { point: { x: number; y: number } },
-      leadId: string,
-    ) => {
-      const pointerX = info.point.x
-      const pointerY = info.point.y
-
-      for (const stage of stages) {
-        const el = columnRefs.current[stage.id]
-        if (!el) continue
-        const rect = el.getBoundingClientRect()
-        if (
-          pointerX >= rect.left &&
-          pointerX <= rect.right &&
-          pointerY >= rect.top &&
-          pointerY <= rect.bottom
-        ) {
-          const lead = leads.find((l) => l.id === leadId)
-          if (lead && lead.stageId !== stage.id) {
-            moveMutation.mutate({ leadId, stageId: stage.id })
-          }
-          break
-        }
-      }
-    },
-    [stages, leads, moveMutation],
-  )
 
   const openCreateModal = (stageId: string) => {
     setModal({ open: true, mode: 'create', stageId })
@@ -77,18 +44,14 @@ export function PipelineBoard() {
   }
 
   return (
-    <LayoutGroup>
+    <>
       <div className="flex gap-4 p-4 overflow-x-auto h-full">
         {stages.map((stage) => {
           const stageLeads = leads.filter((l) => l.stageId === stage.id)
           return (
-            <motion.div
+            <div
               key={stage.id}
-              layout
               className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg"
-              ref={(el) => {
-                columnRefs.current[stage.id] = el
-              }}
             >
               {/* Column header */}
               <div
@@ -142,15 +105,8 @@ export function PipelineBoard() {
                   />
                 )}
                 {stageLeads.map((lead) => (
-                  <motion.div
+                  <div
                     key={lead.id}
-                    layoutId={lead.id}
-                    layout="position"
-                    drag
-                    dragSnapToOrigin
-                    onDragEnd={(event, info) =>
-                      handleDragEnd(event, info, lead.id)
-                    }
                     className="cursor-grab active:cursor-grabbing"
                   >
                     <Card
@@ -194,10 +150,10 @@ export function PipelineBoard() {
                         </div>
                       </div>
                     </Card>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )
         })}
       </div>
@@ -209,7 +165,7 @@ export function PipelineBoard() {
         lead={modal.lead}
         onClose={() => setModal({ open: false, mode: 'create' })}
       />
-    </LayoutGroup>
+    </>
   )
 }
 
