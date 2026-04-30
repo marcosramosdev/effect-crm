@@ -41,6 +41,7 @@ export const PipelineLeadSchema = z.object({
   displayName: z.string().nullable(),
   phoneNumber: z.string(),
   stageId: z.string().uuid(),
+  position: z.number().int(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   customValues: z.record(z.string(), z.string().nullable()).nullable(),
@@ -63,6 +64,7 @@ export type ListLeadsQuery = z.infer<typeof ListLeadsQuerySchema>
 
 export const MoveLeadRequestSchema = z.object({
   stageId: z.string().uuid(),
+  position: z.number().int().min(0).optional(),
 })
 export type MoveLeadRequest = z.infer<typeof MoveLeadRequestSchema>
 
