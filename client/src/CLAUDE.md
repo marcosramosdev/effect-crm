@@ -17,10 +17,12 @@ Notas de organização e padrões para o código dentro de `client/src/`.
 
 ## Pipeline / Board
 
-- Usar Framer Motion para animações de drag-and-drop entre colunas.
-- Cards usam `motion.div` com `layoutId` para transições fluidas entre colunas.
-- Cross-column drag: `onDragEnd` usa hit-test (`getBoundingClientRect`) sobre as colunas alvo.
-- Mockar `framer-motion` em testes (Vitest) para simplificar assertions de DOM.
+- Usar `@dnd-kit/core` + `@dnd-kit/sortable` para drag-and-drop entre colunas.
+- Cards usam `useSortable` com `activationConstraint: { distance: 5 }` para evitar cliques acidentais.
+- `PipelineBoard` gere `DndContext` com `onDragOver` (optimistic cross-column move) e `onDragEnd` (commit ao server com `position`).
+- `SortableLeadCard` e `DroppableColumn` vivem em `features/pipeline/dnd/`.
+- `framer-motion` mantido apenas para `Reorder.Group` nos painéis de settings (etapas/campos).
+- Mockar `@dnd-kit/*` em testes (Vitest) para simplificar assertions de DOM.
 
 ## Imports / aliases
 

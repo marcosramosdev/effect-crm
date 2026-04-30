@@ -1,9 +1,18 @@
-import { useState } from 'react'
-import { Plus, MoreVertical, GripVertical } from 'lucide-react'
-import { useStages, useLeads, useCustomFields } from './api'
+import { useState, useCallback } from 'react'
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  closestCorners,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
+import { useStages, useLeads, useCustomFields, useMoveLead } from './api'
 import { LeadFormModal } from './LeadFormModal'
-import { Card } from '../../components/Card'
-import { EmptyState } from '../../components/EmptyState'
+import { DroppableColumn } from './dnd/DroppableColumn'
+import { SortableLeadCard } from './dnd/SortableLeadCard'
 import type { PipelineLead } from '@shared/pipeline'
 
 interface ModalState {
@@ -17,15 +26,128 @@ export function PipelineBoard() {
   const { data: stagesData, isLoading: stagesLoading } = useStages()
   const { data: leadsData, isLoading: leadsLoading } = useLeads()
   const { data: customFieldsData } = useCustomFields()
+  const moveMutation = useMoveLead()
 
   const [modal, setModal] = useState<ModalState>({
     open: false,
     mode: 'create',
   })
+  const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
+  const [optimisticLeads, setOptimisticLeads] = useState<PipelineLead[] | null>(
+    null,
+  )
 
   const stages = stagesData?.stages ?? []
-  const leads = leadsData?.leads ?? []
+  const leads = optimisticLeads ?? leadsData?.leads ?? []
   const customFields = customFieldsData?.fields ?? []
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(KeyboardSensor),
+  )
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveLeadId(event.active.id as string)
+  }, [])
+
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const { active, over } = event
+      if (!over) return
+
+      const activeId = active.id as string
+      const overId = over.id as string
+
+      const activeLead = leads.find((l) => l.id === activeId)
+      if (!activeLead) return
+
+      const overStage = stages.find((s) => s.id === overId)
+      const overLead = leads.find((l) => l.id === overId)
+
+      const targetStageId = overStage ? overStage.id : overLead?.stageId
+      if (!targetStageId || targetStageId === activeLead.stageId) return
+
+      setOptimisticLeads((prev) => {
+        const current = prev ?? leads
+        return current.map((l) =>
+          l.id === activeId ? { ...l, stageId: targetStageId } : l,
+        )
+      })
+    },
+    [leads, stages],
+  )
+
+  const computePosition = useCallback(
+    (stageId: string, overId: string | null): number => {
+      const stageLeads = leads
+        .filter((l) => l.stageId === stageId && l.id !== activeLeadId)
+        .sort((a, b) => a.position - b.position)
+
+      if (stageLeads.length === 0) return 1024
+
+      const overIndex = stageLeads.findIndex((l) => l.id === overId)
+
+      if (overIndex === -1) {
+        const maxPos = stageLeads[stageLeads.length - 1]?.position ?? 0
+        return maxPos + 1024
+      }
+
+      const leftPos = overIndex > 0 ? stageLeads[overIndex - 1].position : 0
+      const rightPos = stageLeads[overIndex]?.position ?? leftPos + 2048
+
+      if (leftPos === 0) return rightPos - 1024
+      return Math.floor((leftPos + rightPos) / 2)
+    },
+    [leads, activeLeadId],
+  )
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event
+      setActiveLeadId(null)
+
+      if (!over) {
+        setOptimisticLeads(null)
+        return
+      }
+
+      const activeId = active.id as string
+      const overId = over.id as string
+
+      const activeLead = leads.find((l) => l.id === activeId)
+      if (!activeLead) {
+        setOptimisticLeads(null)
+        return
+      }
+
+      const overStage = stages.find((s) => s.id === overId)
+      const overLead = leads.find((l) => l.id === overId)
+
+      const targetStageId = overStage ? overStage.id : overLead?.stageId
+      if (!targetStageId) {
+        setOptimisticLeads(null)
+        return
+      }
+
+      const position = computePosition(targetStageId, overLead?.id ?? null)
+
+      if (
+        activeLead.stageId !== targetStageId ||
+        activeLead.position !== position
+      ) {
+        moveMutation.mutate({
+          leadId: activeId,
+          stageId: targetStageId,
+          position,
+        })
+      }
+
+      setOptimisticLeads(null)
+    },
+    [leads, stages, moveMutation, computePosition],
+  )
 
   const openCreateModal = (stageId: string) => {
     setModal({ open: true, mode: 'create', stageId })
@@ -43,120 +165,47 @@ export function PipelineBoard() {
     )
   }
 
+  const activeLead = activeLeadId
+    ? leads.find((l) => l.id === activeLeadId)
+    : null
+
   return (
-    <>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
       <div className="flex gap-4 p-4 overflow-x-auto h-full">
         {stages.map((stage) => {
-          const stageLeads = leads.filter((l) => l.stageId === stage.id)
+          const stageLeads = leads
+            .filter((l) => l.stageId === stage.id)
+            .sort((a, b) => a.position - b.position)
           return (
-            <div
+            <DroppableColumn
               key={stage.id}
-              className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg"
-            >
-              {/* Column header */}
-              <div
-                className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg"
-                style={{ borderTopColor: stage.color }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="truncate"
-                      title={stage.description ?? undefined}
-                    >
-                      {stage.name}
-                    </span>
-                    <span className="badge badge-sm badge-ghost shrink-0">
-                      {stageLeads.length}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-xs btn-square"
-                      onClick={() => openCreateModal(stage.id)}
-                      aria-label={`Adicionar lead em ${stage.name}`}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-xs btn-square"
-                      aria-label={`Opções de ${stage.name}`}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                {stage.description && (
-                  <p className="text-xs text-base-content/60 mt-1 truncate">
-                    {stage.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Leads list */}
-              <div className="flex flex-col gap-2 p-2 flex-1 min-h-16">
-                {stageLeads.length === 0 && (
-                  <EmptyState
-                    heading="Sem leads"
-                    body="Arraste um lead para aqui ou clique em + para criar um novo."
-                    className="py-8"
-                  />
-                )}
-                {stageLeads.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="cursor-grab active:cursor-grabbing"
-                  >
-                    <Card
-                      as="div"
-                      className="p-3 hover:shadow-md transition-shadow"
-                      onClick={() => openEditModal(lead)}
-                    >
-                      <div className="flex items-start gap-2">
-                        <GripVertical className="h-4 w-4 text-base-content/40 shrink-0 mt-0.5" />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-sm truncate">
-                            {lead.displayName ?? formatPhone(lead.phoneNumber)}
-                          </div>
-                          <div className="text-xs text-base-content/60 truncate">
-                            {formatPhone(lead.phoneNumber)}
-                          </div>
-                          {lead.customValues &&
-                            Object.keys(lead.customValues).length > 0 &&
-                            customFields.length > 0 && (
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {Object.entries(lead.customValues)
-                                  .filter(([, v]) => v !== null)
-                                  .slice(0, 3)
-                                  .map(([fieldId, value]) => {
-                                    const field = customFields.find(
-                                      (f) => f.id === fieldId,
-                                    )
-                                    if (!field) return null
-                                    return (
-                                      <span
-                                        key={fieldId}
-                                        className="badge badge-xs badge-ghost"
-                                        title={`${field.label}: ${value}`}
-                                      >
-                                        {field.label}: {value}
-                                      </span>
-                                    )
-                                  })}
-                              </div>
-                            )}
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-            </div>
+              stage={stage}
+              leads={stageLeads}
+              customFields={customFields}
+              onOpenEdit={openEditModal}
+              onOpenCreate={openCreateModal}
+            />
           )
         })}
       </div>
+
+      <DragOverlay>
+        {activeLead ? (
+          <div className="w-72">
+            <SortableLeadCard
+              lead={activeLead}
+              customFields={customFields}
+              onOpenEdit={() => {}}
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
 
       <LeadFormModal
         open={modal.open}
@@ -165,11 +214,6 @@ export function PipelineBoard() {
         lead={modal.lead}
         onClose={() => setModal({ open: false, mode: 'create' })}
       />
-    </>
+    </DndContext>
   )
-}
-
-function formatPhone(phone: string): string {
-  if (phone.startsWith('manual:')) return '—'
-  return phone
 }

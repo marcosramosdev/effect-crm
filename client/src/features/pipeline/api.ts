@@ -85,13 +85,24 @@ export function useUpdateLead() {
 export function useMoveLead() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ leadId, stageId }: { leadId: string; stageId: string }) =>
+    mutationFn: ({
+      leadId,
+      stageId,
+      position,
+    }: {
+      leadId: string
+      stageId: string
+      position?: number
+    }) =>
       apiFetch(`/pipeline/leads/${leadId}/stage`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stageId }),
+        body: JSON.stringify({
+          stageId,
+          ...(position !== undefined ? { position } : {}),
+        }),
       }),
-    onMutate: async ({ leadId, stageId }) => {
+    onMutate: async ({ leadId, stageId, position }) => {
       await queryClient.cancelQueries({ queryKey: leadsQueryKey })
       const previousLeads =
         queryClient.getQueryData<LeadListResponse>(leadsQueryKey)
@@ -102,7 +113,13 @@ export function useMoveLead() {
           return {
             ...old,
             leads: old.leads.map((l) =>
-              l.id === leadId ? { ...l, stageId } : l,
+              l.id === leadId
+                ? {
+                    ...l,
+                    stageId,
+                    ...(position !== undefined ? { position } : {}),
+                  }
+                : l,
             ),
           }
         },

@@ -15,13 +15,13 @@
 
 ## 3. DnD core in pipeline
 
-- [ ] 3.1 Create `client/src/features/pipeline/dnd/PipelineDndContext.tsx` wrapping `<DndContext>` with sensors: `useSensor(PointerSensor, { activationConstraint: { distance: 5 } })` and `useSensor(KeyboardSensor)`
-- [ ] 3.2 Create `client/src/features/pipeline/dnd/SortableLeadCard.tsx` using `useSortable({id: lead.id})` and forwarding `attributes`, `listeners`, and `transform`/`transition` to the card root
-- [ ] 3.3 Create `client/src/features/pipeline/dnd/DroppableColumn.tsx` using `useDroppable({id: stage.id})` and rendering a `<SortableContext items={leadIds} strategy={verticalListSortingStrategy}>`
-- [ ] 3.4 Implement `onDragEnd` handler in `PipelineBoard`: read `active.id` and `over.id`; resolve target stage and target position; call `moveMutation.mutate({leadId, stageId, position})`; optimistically update React Query cache by reordering leads locally before the server responds
-- [ ] 3.5 Implement `onDragOver` to maintain placeholder location across columns (use `arrayMove` from `@dnd-kit/sortable` for intra-column, manual splice for cross-column)
-- [ ] 3.6 Compute new `position` numerically client-side: midpoint of neighbours' positions; if no left neighbour, `(right.position - 1024)`; if no right neighbour, `(left.position + 1024)`; if column empty, `1024`. Send to server.
-- [ ] 3.7 Honour `prefers-reduced-motion`: when matched, set `transition: null` on `useSortable` results
+- [x] 3.1 Create `client/src/features/pipeline/dnd/PipelineDndContext.tsx` wrapping `<DndContext>` with sensors: `useSensor(PointerSensor, { activationConstraint: { distance: 5 } })` and `useSensor(KeyboardSensor)`
+- [x] 3.2 Create `client/src/features/pipeline/dnd/SortableLeadCard.tsx` using `useSortable({id: lead.id})` and forwarding `attributes`, `listeners`, and `transform`/`transition` to the card root
+- [x] 3.3 Create `client/src/features/pipeline/dnd/DroppableColumn.tsx` using `useDroppable({id: stage.id})` and rendering a `<SortableContext items={leadIds} strategy={verticalListSortingStrategy}>`
+- [x] 3.4 Implement `onDragEnd` handler in `PipelineBoard`: read `active.id` and `over.id`; resolve target stage and target position; call `moveMutation.mutate({leadId, stageId, position})`; optimistically update React Query cache by reordering leads locally before the server responds
+- [x] 3.5 Implement `onDragOver` to maintain placeholder location across columns (use `arrayMove` from `@dnd-kit/sortable` for intra-column, manual splice for cross-column)
+- [x] 3.6 Compute new `position` numerically client-side: midpoint of neighbours' positions; if no left neighbour, `(right.position - 1024)`; if no right neighbour, `(left.position + 1024)`; if column empty, `1024`. Send to server.
+- [x] 3.7 Honour `prefers-reduced-motion`: when matched, set `transition: null` on `useSortable` results
 
 ## 4. Lead card redesign
 
