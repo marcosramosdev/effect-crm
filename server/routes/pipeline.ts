@@ -158,10 +158,11 @@ export function createPipelineRouter(
         .filter(([, v]) => v !== null && v !== undefined)
         .map(([fieldId, value]) => {
           const type = fieldMap.get(fieldId)
+          const isTextLike = type === 'text' || type === 'url' || type === 'select' || type === 'email' || type === 'phone' || type === 'instagram'
           return {
             lead_id: id,
             field_id: fieldId,
-            value_text: type === 'text' || type === 'url' || type === 'select' ? (value as string) : null,
+            value_text: isTextLike ? (value as string) : type === 'checkbox' ? (value ? 'true' : 'false') : null,
             value_number: type === 'number' ? Number(value) : null,
             value_date: type === 'date' ? (value as string) : null,
           }
@@ -240,10 +241,11 @@ export function createPipelineRouter(
           toDelete.push(fieldId)
         } else {
           const type = fieldMap.get(fieldId)
+          const isTextLike = type === 'text' || type === 'url' || type === 'select' || type === 'email' || type === 'phone' || type === 'instagram'
           toInsert.push({
             lead_id: leadId,
             field_id: fieldId,
-            value_text: type === 'text' || type === 'url' || type === 'select' ? (value as string) : null,
+            value_text: isTextLike ? (value as string) : type === 'checkbox' ? (value ? 'true' : 'false') : null,
             value_number: type === 'number' ? Number(value) : null,
             value_date: type === 'date' ? (value as string) : null,
           })

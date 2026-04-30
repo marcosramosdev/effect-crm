@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar'
 
 type DashboardLayoutProps = {
   title: string
+  subtitle?: string
   filters?: FilterPill[]
   onFilterSelect?: (label: string) => void
   viewTabs?: ViewTab[]
@@ -17,6 +18,7 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({
   title,
+  subtitle,
   filters,
   onFilterSelect,
   viewTabs,
@@ -31,6 +33,7 @@ export function DashboardLayout({
       <div className="flex flex-col flex-1 min-w-0">
         <AppBar
           title={title}
+          subtitle={subtitle}
           filters={filters}
           onFilterSelect={onFilterSelect}
           viewTabs={viewTabs}

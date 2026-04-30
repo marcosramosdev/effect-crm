@@ -22,7 +22,7 @@ export function DroppableColumn({
   return (
     <div
       key={stage.id}
-      className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg max-h-full"
+      className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg min-h-full max-h-full [scroll-snap-align:start]"
       ref={setNodeRef}
     >
       {/* Column header — sticky */}
@@ -78,7 +78,7 @@ export function DroppableColumn({
 
       {/* Column body — scrollable */}
       <div
-        className={`flex flex-col gap-2 p-2 flex-1 overflow-y-auto min-h-0 ${isOver ? 'bg-base-300/50' : ''}`}
+        className={`flex flex-col gap-2 p-2 flex-1 overflow-y-auto min-h-16 ${isOver ? 'bg-base-300/50' : ''}`}
       >
         {leads.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">

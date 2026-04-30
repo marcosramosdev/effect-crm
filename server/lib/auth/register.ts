@@ -93,6 +93,18 @@ export async function registerOwner(
     throw err
   }
 
+  // Seed default custom fields for the new tenant
+  try {
+    const now = new Date().toISOString()
+    await dbClient.from('lead_custom_fields').insert([
+      { tenant_id: tenantId, key: 'email', label: 'Email', type: 'email', order: 0, created_at: now },
+      { tenant_id: tenantId, key: 'instagram', label: 'Instagram', type: 'instagram', order: 1, created_at: now },
+      { tenant_id: tenantId, key: 'appointmentDate', label: 'Data do compromisso', type: 'date', order: 2, created_at: now },
+    ])
+  } catch {
+    // Non-critical: seeding failure should not block registration
+  }
+
   const { data: sessionData, error: sessionError } = await anonClient.auth.signInWithPassword({
     email,
     password,

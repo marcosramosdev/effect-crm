@@ -175,7 +175,7 @@ export function PipelineBoard() {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 p-4 overflow-x-auto h-full">
+      <div className="board-scroll flex gap-4 p-4 overflow-x-auto scroll-smooth [scroll-snap-type:x_proximity] [overscroll-behavior-x:contain] h-full">
         {stages.map((stage) => {
           const stageLeads = leads
             .filter((l) => l.stageId === stage.id)

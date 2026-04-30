@@ -20,10 +20,10 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { to: '/app/dashboard', icon: HomeIcon, label: 'Dashboard' },
   { to: '/app/inbox', icon: InboxIcon, label: 'Inbox' },
-  { to: '/app/pipeline', icon: BoardIcon, label: 'Pipeline' },
+  { to: '/app/contacts', icon: BoardIcon, label: 'Contatos' },
   { to: '/app/connect', icon: PlugIcon, label: 'Conectar', ownerOnly: true },
   {
-    to: '/app/settings/pipeline',
+    to: '/app/settings/profile',
     icon: CogIcon,
     label: 'Configurar',
     ownerOnly: true,

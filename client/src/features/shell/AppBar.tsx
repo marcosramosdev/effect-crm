@@ -7,6 +7,7 @@ import { UserMenu } from './UserMenu'
 
 type AppBarProps = {
   title: string
+  subtitle?: string
   filters?: FilterPill[]
   onFilterSelect?: (label: string) => void
   viewTabs?: ViewTab[]
@@ -16,6 +17,7 @@ type AppBarProps = {
 
 export function AppBar({
   title,
+  subtitle,
   filters,
   onFilterSelect,
   viewTabs,
@@ -24,7 +26,12 @@ export function AppBar({
 }: AppBarProps) {
   return (
     <header className="flex items-center gap-4 h-14 px-4 bg-base-100 border-b border-base-200 shrink-0">
-      <h1 className="font-semibold text-base whitespace-nowrap">{title}</h1>
+      <div className="flex flex-col justify-center">
+        <h1 className="font-semibold text-base whitespace-nowrap">{title}</h1>
+        {subtitle && (
+          <p className="text-sm text-base-content/60">{subtitle}</p>
+        )}
+      </div>
 
       {/* View tab strip in centre */}
       {viewTabs && viewTabs.length > 0 && (
