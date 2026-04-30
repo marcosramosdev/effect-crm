@@ -23,22 +23,15 @@ vi.mock('@tanstack/react-router', async () => {
     Link: ({
       children,
       to,
-      title,
       className,
       'aria-current': ariaCurrent,
     }: {
       children: ReactNode
       to: string
-      title?: string
       className?: string
       'aria-current'?: string
     }) => (
-      <a
-        href={to}
-        title={title}
-        className={className}
-        aria-current={ariaCurrent}
-      >
+      <a href={to} className={className} aria-current={ariaCurrent}>
         {children}
       </a>
     ),
@@ -82,11 +75,11 @@ describe('Sidebar', () => {
     render(<Sidebar />, { wrapper: makeWrapper() })
 
     await waitFor(() => {
-      expect(screen.getByTitle('Dashboard')).toBeInTheDocument()
-      expect(screen.getByTitle('Inbox')).toBeInTheDocument()
-      expect(screen.getByTitle('Pipeline')).toBeInTheDocument()
-      expect(screen.getByTitle('Conectar')).toBeInTheDocument()
-      expect(screen.getByTitle('Configurar')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard')).toBeInTheDocument()
+      expect(screen.getByText('Inbox')).toBeInTheDocument()
+      expect(screen.getByText('Pipeline')).toBeInTheDocument()
+      expect(screen.getByText('Conectar')).toBeInTheDocument()
+      expect(screen.getByText('Configurar')).toBeInTheDocument()
     })
   })
 
@@ -94,13 +87,13 @@ describe('Sidebar', () => {
     render(<Sidebar />, { wrapper: makeWrapper() })
 
     await waitFor(() => {
-      expect(screen.getByTitle('Dashboard')).toBeInTheDocument()
-      expect(screen.getByTitle('Inbox')).toBeInTheDocument()
-      expect(screen.getByTitle('Pipeline')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard')).toBeInTheDocument()
+      expect(screen.getByText('Inbox')).toBeInTheDocument()
+      expect(screen.getByText('Pipeline')).toBeInTheDocument()
     })
 
-    expect(screen.queryByTitle('Conectar')).not.toBeInTheDocument()
-    expect(screen.queryByTitle('Configurar')).not.toBeInTheDocument()
+    expect(screen.queryByText('Conectar')).not.toBeInTheDocument()
+    expect(screen.queryByText('Configurar')).not.toBeInTheDocument()
   })
 
   it('active route link has aria-current="page"', async () => {
@@ -108,9 +101,35 @@ describe('Sidebar', () => {
 
     render(<Sidebar />, { wrapper: makeWrapper() })
 
-    await waitFor(() => expect(screen.getByTitle('Inbox')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Inbox')).toBeInTheDocument())
 
-    expect(screen.getByTitle('Inbox')).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByTitle('Dashboard')).not.toHaveAttribute('aria-current')
+    const inboxLink = screen
+      .getByText('Inbox')
+      .closest('a') as HTMLAnchorElement
+    expect(inboxLink).toHaveAttribute('aria-current', 'page')
+
+    const dashboardLink = screen
+      .getByText('Dashboard')
+      .closest('a') as HTMLAnchorElement
+    expect(dashboardLink).not.toHaveAttribute('aria-current')
+  })
+
+  it('support block is present with CTA button', async () => {
+    render(<Sidebar />, { wrapper: makeWrapper() })
+
+    await waitFor(() =>
+      expect(screen.getByText('Need support?')).toBeInTheDocument(),
+    )
+    expect(
+      screen.getByRole('button', { name: /contact us/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('user profile block is present at bottom', async () => {
+    render(<Sidebar />, { wrapper: makeWrapper() })
+
+    await waitFor(() =>
+      expect(screen.getByText('Test Tenant')).toBeInTheDocument(),
+    )
   })
 })

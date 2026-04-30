@@ -26,6 +26,12 @@ const FILTERS = [
   { label: 'Completed', count: 10 },
 ]
 
+const VIEW_TABS = [
+  { label: 'Board', active: true },
+  { label: 'List', disabled: true },
+  { label: 'Gantt', disabled: true },
+]
+
 describe('AppBar', () => {
   it('renders the page title', () => {
     render(<AppBar title="Pipeline" />, { wrapper: makeWrapper() })
@@ -76,5 +82,29 @@ describe('AppBar', () => {
     expect(
       screen.getByRole('button', { name: 'Custom Action' }),
     ).toBeInTheDocument()
+  })
+
+  it('renders view-tabs when provided', () => {
+    render(<AppBar title="Pipeline" viewTabs={VIEW_TABS} />, {
+      wrapper: makeWrapper(),
+    })
+    expect(screen.getByRole('tab', { name: 'Board' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'List' })).toBeInTheDocument()
+  })
+
+  it('disabled view-tab has aria-disabled="true"', () => {
+    render(<AppBar title="Pipeline" viewTabs={VIEW_TABS} />, {
+      wrapper: makeWrapper(),
+    })
+    const listTab = screen.getByRole('tab', { name: 'List' })
+    expect(listTab).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('active view-tab has aria-selected="true"', () => {
+    render(<AppBar title="Pipeline" viewTabs={VIEW_TABS} />, {
+      wrapper: makeWrapper(),
+    })
+    const boardTab = screen.getByRole('tab', { name: 'Board' })
+    expect(boardTab).toHaveAttribute('aria-selected', 'true')
   })
 })

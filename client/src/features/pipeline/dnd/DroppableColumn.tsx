@@ -1,18 +1,12 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { Plus, MoreVertical } from 'lucide-react'
+import { Plus, MoreVertical, Inbox } from 'lucide-react'
 import { SortableLeadCard } from './SortableLeadCard'
-import { EmptyState } from '../../../components/EmptyState'
-import type {
-  PipelineLead,
-  PipelineStage,
-  CustomFieldDef,
-} from '@shared/pipeline'
+import type { PipelineLead, PipelineStage } from '@shared/pipeline'
 
 interface DroppableColumnProps {
   stage: PipelineStage
   leads: PipelineLead[]
-  customFields: CustomFieldDef[]
   onOpenEdit: (lead: PipelineLead) => void
   onOpenCreate: (stageId: string) => void
 }
@@ -20,7 +14,6 @@ interface DroppableColumnProps {
 export function DroppableColumn({
   stage,
   leads,
-  customFields,
   onOpenEdit,
   onOpenCreate,
 }: DroppableColumnProps) {
@@ -29,16 +22,29 @@ export function DroppableColumn({
   return (
     <div
       key={stage.id}
-      className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg"
+      className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg max-h-full"
       ref={setNodeRef}
     >
+      {/* Column header — sticky */}
       <div
-        className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg"
+        className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg sticky top-0 z-10 bg-base-200"
         style={{ borderTopColor: stage.color }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="truncate" title={stage.description ?? undefined}>
+            {/* Stage tag chip */}
+            <span
+              className="badge badge-sm gap-1 shrink-0"
+              style={{
+                backgroundColor: stage.color + '18',
+                borderColor: stage.color,
+                color: stage.color,
+              }}
+            >
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: stage.color }}
+              />
               {stage.name}
             </span>
             <span className="badge badge-sm badge-ghost shrink-0">
@@ -70,15 +76,24 @@ export function DroppableColumn({
         )}
       </div>
 
+      {/* Column body — scrollable */}
       <div
-        className={`flex flex-col gap-2 p-2 flex-1 min-h-16 ${isOver ? 'bg-base-300/50' : ''}`}
+        className={`flex flex-col gap-2 p-2 flex-1 overflow-y-auto min-h-0 ${isOver ? 'bg-base-300/50' : ''}`}
       >
         {leads.length === 0 && (
-          <EmptyState
-            heading="Sem leads"
-            body="Arraste um lead para aqui ou clique em + para criar um novo."
-            className="py-8"
-          />
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+            <Inbox className="h-10 w-10 text-base-content/30" />
+            <p className="text-sm font-medium text-base-content/70">
+              Sem leads nesta etapa
+            </p>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              onClick={() => onOpenCreate(stage.id)}
+            >
+              Criar lead
+            </button>
+          </div>
         )}
         <SortableContext
           items={leads.map((l) => l.id)}
@@ -88,7 +103,7 @@ export function DroppableColumn({
             <SortableLeadCard
               key={lead.id}
               lead={lead}
-              customFields={customFields}
+              stage={stage}
               onOpenEdit={onOpenEdit}
             />
           ))}

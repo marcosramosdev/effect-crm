@@ -9,7 +9,7 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
-import { useStages, useLeads, useCustomFields, useMoveLead } from './api'
+import { useStages, useLeads, useMoveLead } from './api'
 import { LeadFormModal } from './LeadFormModal'
 import { DroppableColumn } from './dnd/DroppableColumn'
 import { SortableLeadCard } from './dnd/SortableLeadCard'
@@ -25,7 +25,6 @@ interface ModalState {
 export function PipelineBoard() {
   const { data: stagesData, isLoading: stagesLoading } = useStages()
   const { data: leadsData, isLoading: leadsLoading } = useLeads()
-  const { data: customFieldsData } = useCustomFields()
   const moveMutation = useMoveLead()
 
   const [modal, setModal] = useState<ModalState>({
@@ -39,7 +38,6 @@ export function PipelineBoard() {
 
   const stages = stagesData?.stages ?? []
   const leads = optimisticLeads ?? leadsData?.leads ?? []
-  const customFields = customFieldsData?.fields ?? []
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -187,7 +185,6 @@ export function PipelineBoard() {
               key={stage.id}
               stage={stage}
               leads={stageLeads}
-              customFields={customFields}
               onOpenEdit={openEditModal}
               onOpenCreate={openCreateModal}
             />
@@ -200,7 +197,7 @@ export function PipelineBoard() {
           <div className="w-72">
             <SortableLeadCard
               lead={activeLead}
-              customFields={customFields}
+              stage={stages.find((s) => s.id === activeLead.stageId)}
               onOpenEdit={() => {}}
             />
           </div>

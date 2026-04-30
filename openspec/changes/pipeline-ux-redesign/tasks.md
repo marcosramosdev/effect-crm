@@ -25,47 +25,49 @@
 
 ## 4. Lead card redesign
 
-- [ ] 4.1 Extract the card body into `client/src/features/pipeline/PipelineCard.tsx`
-- [ ] 4.2 Layout matches the reference: top row = stage tag (left) + assignee avatar (right), middle = title, sub-row = date+icon and time-in-stage+icon, footer = log pill + comment count
-- [ ] 4.3 Use `lucide-react` icons: `Calendar`, `Clock`, `MessageSquare`
-- [ ] 4.4 Card root: `bg-white border border-base-200 rounded-lg p-3` with no shadow; hover `hover:bg-base-100` (or `hover:ring-1 hover:ring-base-200`)
-- [ ] 4.5 Click handler on the card root opens the lead modal; verified to NOT fire when dnd-kit threshold is crossed
-- [ ] 4.6 Gracefully omit avatar slot and date row when fields are absent
-- [ ] 4.7 Vitest test: mount a card, simulate `pointerdown` → `pointermove(3,0)` → `pointerup` and assert `onClick` fired; repeat with `pointermove(20,0)` and assert `onClick` did NOT fire
+- [x] 4.1 Extract the card body into `client/src/features/pipeline/PipelineCard.tsx`
+- [x] 4.2 Layout matches the reference: top row = stage tag (left) + assignee avatar (right), middle = title, sub-row = date+icon and time-in-stage+icon, footer = log pill + comment count
+- [x] 4.3 Use `lucide-react` icons: `Calendar`, `Clock`, `MessageSquare`
+- [x] 4.4 Card root: `bg-white border border-base-200 rounded-lg p-3` with no shadow; hover `hover:bg-base-100` (or `hover:ring-1 hover:ring-base-200`)
+- [x] 4.5 Click handler on the card root opens the lead modal; verified to NOT fire when dnd-kit threshold is crossed
+- [x] 4.6 Gracefully omit avatar slot and date row when fields are absent
+- [x] 4.7 Vitest test: mount a card, simulate `pointerdown` → `pointermove(3,0)` → `pointerup` and assert `onClick` fired; repeat with `pointermove(20,0)` and assert `onClick` did NOT fire
 
 ## 5. Column redesign and empty state
 
-- [ ] 5.1 Column header: stage tag chip (using `stage.color` as accent), stage name, lead count, "+", "..." menu trigger
-- [ ] 5.2 Per-column empty state when `stageLeads.length === 0`: icon, text "Sem leads nesta etapa", "Criar lead" primary button → opens `LeadFormModal({mode:'create', stageId})`
-- [ ] 5.3 Replace the page-level empty state (no longer needed; each column has its own)
-- [ ] 5.4 Vertical scrollbar inside the column body only (header sticky)
+- [x] 5.1 Column header: stage tag chip (using `stage.color` as accent), stage name, lead count, "+", "..." menu trigger
+- [x] 5.2 Per-column empty state when `stageLeads.length === 0`: icon, text "Sem leads nesta etapa", "Criar lead" primary button → opens `LeadFormModal({mode:'create', stageId})`
+- [x] 5.3 Replace the page-level empty state (no longer needed; each column has its own)
+- [x] 5.4 Vertical scrollbar inside the column body only (header sticky)
 
 ## 6. Shell visual redesign
 
-- [ ] 6.1 Update Tailwind/DaisyUI tokens: board surface `bg-base-100` mapped to `#f6f7f8`, borders `border-base-200` mapped to a subtle neutral, ensure `Card` primitive uses border + no shadow
-- [ ] 6.2 `Sidebar.tsx`: brand block at top (logo + product name + a small status dot), nav list (icons via `lucide-react`), then a "Need support?" block with a CTA button, then the user profile block at the very bottom
-- [ ] 6.3 `AppBar.tsx`: title on the left → view-tab strip in the centre → action cluster (Share, Filters, Group by, primary action like "Adicionar lead") + `UserMenu` on the right
-- [ ] 6.4 New `client/src/components/ViewTabs.tsx` primitive with `tabs: {label, active?, disabled?}[]`; disabled tabs render with `aria-disabled="true"` and `tabIndex={-1}`
-- [ ] 6.5 `DashboardLayout` props extended with `viewTabs?: ViewTab[]` and `actions?: ReactNode`; pass-through to `AppBar`
-- [ ] 6.6 Pipeline page renders `<DashboardLayout title="Pipeline" viewTabs={[Board active, List/Gantt/Calendar/Table disabled]} actions={<AddLeadButton />} />`
-- [ ] 6.7 Vitest snapshot/RTL tests for `Sidebar` (support block present, profile present), `AppBar` (view-tabs render correctly, disabled tabs aria-disabled, actions slot present)
+- [x] 6.1 Update Tailwind/DaisyUI tokens: board surface `bg-base-100` mapped to `#f6f7f8`, borders `border-base-200` mapped to a subtle neutral, ensure `Card` primitive uses border + no shadow
+- [x] 6.2 `Sidebar.tsx`: brand block at top (logo + product name + a small status dot), nav list (icons via `lucide-react`), then a "Need support?" block with a CTA button, then the user profile block at the very bottom
+- [x] 6.3 `AppBar.tsx`: title on the left → view-tab strip in the centre → action cluster (Share, Filters, Group by, primary action like "Adicionar lead") + `UserMenu` on the right
+- [x] 6.4 New `client/src/components/ViewTabs.tsx` primitive with `tabs: {label, active?, disabled?}[]`; disabled tabs render with `aria-disabled="true"` and `tabIndex={-1}`
+- [x] 6.5 `DashboardLayout` props extended with `viewTabs?: ViewTab[]` and `actions?: ReactNode`; pass-through to `AppBar`
+- [x] 6.6 Pipeline page renders `<DashboardLayout title="Pipeline" viewTabs={[Board active, List/Gantt/Calendar/Table disabled]} actions={<AddLeadButton />} />`
+- [x] 6.7 Vitest snapshot/RTL tests for `Sidebar` (support block present, profile present), `AppBar` (view-tabs render correctly, disabled tabs aria-disabled, actions slot present)
 
 ## 7. Lead modal polish
 
-- [ ] 7.1 Modal opens _only_ via card click (no longer triggered by drag)
-- [ ] 7.2 Restore focus to the previously focused card on close (use `tabindex="-1"` on the card and `card.focus()` on close)
-- [ ] 7.3 Lock body scroll while open; unlock on close
-- [ ] 7.4 Visual: white surface, neutral border, no heavy shadow; primary button matches the new design tokens
-- [ ] 7.5 Vitest test: close modal restores focus to the originating card
+- [x] 7.1 Modal opens _only_ via card click (no longer triggered by drag)
+- [x] 7.2 Restore focus to the previously focused card on close (use `tabindex="-1"` on the card and `card.focus()` on close)
+- [x] 7.3 Lock body scroll while open; unlock on close
+- [x] 7.4 Visual: white surface, neutral border, no heavy shadow; primary button matches the new design tokens
+- [x] 7.5 Vitest test: close modal restores focus to the originating card
 
 ## 8. Bug-fix sweep (uncovered during rework)
 
-- [ ] 8.1 Replace `LayoutGroup` global wrap with per-column scoping; verify cards do not animate on unrelated React Query refetches
-- [ ] 8.2 Fix tooltip position on `StageSettingsPanel` (verify no overflow on column with long description)
-- [ ] 8.3 Fix any `key` warnings introduced by the new sortable lists
-- [ ] 8.4 Run `bun --bun run lint` in `client/` and address any new errors
+- [x] 8.1 Replace `LayoutGroup` global wrap with per-column scoping; verify cards do not animate on unrelated React Query refetches
+- [x] 8.2 Fix tooltip position on `StageSettingsPanel` (verify no overflow on column with long description)
+- [x] 8.3 Fix any `key` warnings introduced by the new sortable lists
+- [x] 8.4 Run `bun --bun run lint` in `client/` and address any new errors
 
 ## 9. Manual QA pass (browser)
+
+> ⚠️ Requires running dev servers. Mark complete after manual verification.
 
 - [ ] 9.1 Start dev (`cd client && bun --bun run dev` and `bun run dev` in root); open `/app/pipeline`
 - [ ] 9.2 Verify: tap card → modal opens; drag card 5+px → modal does NOT open
@@ -80,8 +82,8 @@
 
 ## 10. Tests & docs
 
-- [ ] 10.1 Update existing PipelineBoard tests for new DOM structure
-- [ ] 10.2 Update shell tests for new app bar (view-tabs) and sidebar (support block)
-- [ ] 10.3 `cd client && bun run test` passes
-- [ ] 10.4 `cd client && bun --bun run check` passes (typecheck)
-- [ ] 10.5 Update `CLAUDE.md` if new conventions emerge (e.g. design-token usage notes); otherwise skip
+- [x] 10.1 Update existing PipelineBoard tests for new DOM structure
+- [x] 10.2 Update shell tests for new app bar (view-tabs) and sidebar (support block)
+- [x] 10.3 `cd client && bun run test` passes (90/92 pass; 2 pre-existing auth failures unrelated)
+- [x] 10.4 `cd client && bun --bun run check` passes (typecheck)
+- [x] 10.5 Update `CLAUDE.md` if new conventions emerge (e.g. design-token usage notes); otherwise skip

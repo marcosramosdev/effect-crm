@@ -144,12 +144,14 @@ describe('PipelineBoard', () => {
 
   it('renders columns with color strips', async () => {
     render(<PipelineBoard />, { wrapper: makeWrapper() })
-    await screen.findByText('Novo')
     await screen.findByText('Em conversa')
 
-    const novoHeader = screen
-      .getByText('Novo')
-      .closest('div[class*="border-t-4"]') as HTMLElement
+    const novoHeaders = screen.getAllByText('Novo')
+    expect(novoHeaders.length).toBeGreaterThan(0)
+
+    const novoHeader = novoHeaders[0].closest(
+      'div[class*="border-t-4"]',
+    ) as HTMLElement
     expect(novoHeader).toBeTruthy()
   })
 
