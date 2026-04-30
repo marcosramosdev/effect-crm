@@ -19,7 +19,9 @@ import { Route as AppConnectRouteImport } from './routes/app/connect'
 import { Route as AppPipelineIndexRouteImport } from './routes/app/pipeline/index'
 import { Route as AppInboxIndexRouteImport } from './routes/app/inbox/index'
 import { Route as AppDashboardIndexRouteImport } from './routes/app/dashboard/index'
+import { Route as AppContactsIndexRouteImport } from './routes/app/contacts/index'
 import { Route as AppSettingsTeamRouteImport } from './routes/app/settings/team'
+import { Route as AppSettingsProfileRouteImport } from './routes/app/settings/profile'
 import { Route as AppSettingsPipelineRouteImport } from './routes/app/settings/pipeline'
 import { Route as AppPipelineSettingsRouteImport } from './routes/app/pipeline/settings'
 import { Route as AppInboxConversationIdRouteImport } from './routes/app/inbox/$conversationId'
@@ -74,9 +76,19 @@ const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppContactsIndexRoute = AppContactsIndexRouteImport.update({
+  id: '/contacts/',
+  path: '/contacts/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
   id: '/settings/team',
   path: '/settings/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsProfileRoute = AppSettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsPipelineRoute = AppSettingsPipelineRouteImport.update({
@@ -106,7 +118,9 @@ export interface FileRoutesByFullPath {
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/app/pipeline/settings': typeof AppPipelineSettingsRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
+  '/app/settings/profile': typeof AppSettingsProfileRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/contacts/': typeof AppContactsIndexRoute
   '/app/dashboard/': typeof AppDashboardIndexRoute
   '/app/inbox/': typeof AppInboxIndexRoute
   '/app/pipeline/': typeof AppPipelineIndexRoute
@@ -121,7 +135,9 @@ export interface FileRoutesByTo {
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/app/pipeline/settings': typeof AppPipelineSettingsRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
+  '/app/settings/profile': typeof AppSettingsProfileRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/contacts': typeof AppContactsIndexRoute
   '/app/dashboard': typeof AppDashboardIndexRoute
   '/app/inbox': typeof AppInboxIndexRoute
   '/app/pipeline': typeof AppPipelineIndexRoute
@@ -138,7 +154,9 @@ export interface FileRoutesById {
   '/app/inbox/$conversationId': typeof AppInboxConversationIdRoute
   '/app/pipeline/settings': typeof AppPipelineSettingsRoute
   '/app/settings/pipeline': typeof AppSettingsPipelineRoute
+  '/app/settings/profile': typeof AppSettingsProfileRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/contacts/': typeof AppContactsIndexRoute
   '/app/dashboard/': typeof AppDashboardIndexRoute
   '/app/inbox/': typeof AppInboxIndexRoute
   '/app/pipeline/': typeof AppPipelineIndexRoute
@@ -156,7 +174,9 @@ export interface FileRouteTypes {
     | '/app/inbox/$conversationId'
     | '/app/pipeline/settings'
     | '/app/settings/pipeline'
+    | '/app/settings/profile'
     | '/app/settings/team'
+    | '/app/contacts/'
     | '/app/dashboard/'
     | '/app/inbox/'
     | '/app/pipeline/'
@@ -171,7 +191,9 @@ export interface FileRouteTypes {
     | '/app/inbox/$conversationId'
     | '/app/pipeline/settings'
     | '/app/settings/pipeline'
+    | '/app/settings/profile'
     | '/app/settings/team'
+    | '/app/contacts'
     | '/app/dashboard'
     | '/app/inbox'
     | '/app/pipeline'
@@ -187,7 +209,9 @@ export interface FileRouteTypes {
     | '/app/inbox/$conversationId'
     | '/app/pipeline/settings'
     | '/app/settings/pipeline'
+    | '/app/settings/profile'
     | '/app/settings/team'
+    | '/app/contacts/'
     | '/app/dashboard/'
     | '/app/inbox/'
     | '/app/pipeline/'
@@ -271,11 +295,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/contacts/': {
+      id: '/app/contacts/'
+      path: '/contacts'
+      fullPath: '/app/contacts/'
+      preLoaderRoute: typeof AppContactsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settings/team': {
       id: '/app/settings/team'
       path: '/settings/team'
       fullPath: '/app/settings/team'
       preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings/profile': {
+      id: '/app/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/app/settings/profile'
+      preLoaderRoute: typeof AppSettingsProfileRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/settings/pipeline': {
@@ -308,7 +346,9 @@ interface AppRouteChildren {
   AppInboxConversationIdRoute: typeof AppInboxConversationIdRoute
   AppPipelineSettingsRoute: typeof AppPipelineSettingsRoute
   AppSettingsPipelineRoute: typeof AppSettingsPipelineRoute
+  AppSettingsProfileRoute: typeof AppSettingsProfileRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
+  AppContactsIndexRoute: typeof AppContactsIndexRoute
   AppDashboardIndexRoute: typeof AppDashboardIndexRoute
   AppInboxIndexRoute: typeof AppInboxIndexRoute
   AppPipelineIndexRoute: typeof AppPipelineIndexRoute
@@ -320,7 +360,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppInboxConversationIdRoute: AppInboxConversationIdRoute,
   AppPipelineSettingsRoute: AppPipelineSettingsRoute,
   AppSettingsPipelineRoute: AppSettingsPipelineRoute,
+  AppSettingsProfileRoute: AppSettingsProfileRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
+  AppContactsIndexRoute: AppContactsIndexRoute,
   AppDashboardIndexRoute: AppDashboardIndexRoute,
   AppInboxIndexRoute: AppInboxIndexRoute,
   AppPipelineIndexRoute: AppPipelineIndexRoute,

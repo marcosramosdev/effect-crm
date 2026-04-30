@@ -22,24 +22,59 @@ vi.mock('../../../lib/supabase', () => ({
   },
 }))
 
+vi.mock('@dnd-kit/core', () => ({
+  DndContext: ({
+    children,
+    onDragStart,
+    onDragOver,
+    onDragEnd,
+  }: {
+    children: ReactNode
+    onDragStart?: () => void
+    onDragOver?: () => void
+    onDragEnd?: () => void
+  }) => <div data-testid="dnd-context">{children}</div>,
+  DragOverlay: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useSensor: () => ({}),
+  useSensors: () => ({}),
+  closestCorners: () => [],
+  useDroppable: () => ({ setNodeRef: () => {}, isOver: false }),
+  KeyboardSensor: {},
+  PointerSensor: {},
+}))
+
+vi.mock('@dnd-kit/sortable', () => ({
+  useSortable: ({ id }: { id: string }) => ({
+    attributes: { 'data-sortable-id': id },
+    listeners: {},
+    setNodeRef: () => {},
+    transform: null,
+    transition: null,
+    isDragging: false,
+  }),
+  SortableContext: ({ children }: { children: ReactNode }) => <>{children}</>,
+  arrayMove: (arr: unknown[], from: number, to: number) => {
+    const result = [...arr]
+    const [item] = result.splice(from, 1)
+    result.splice(to, 0, item)
+    return result
+  },
+  verticalListSortingStrategy: {},
+}))
+
+vi.mock('@dnd-kit/utilities', () => ({
+  CSS: {
+    Transform: {
+      toString: (t: unknown) => String(t ?? ''),
+    },
+  },
+}))
+
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({
-      children,
-      layoutId: _layoutId,
-      layout: _layout,
-      drag: _drag,
-      dragSnapToOrigin: _dragSnapToOrigin,
-      onDragEnd: _onDragEnd,
-      ...props
-    }: {
-      children: ReactNode
-      layoutId?: string
-      layout?: string
-      drag?: boolean
-      dragSnapToOrigin?: boolean
-      onDragEnd?: () => void
-    }) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: { children: ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
   },
   LayoutGroup: ({ children }: { children: ReactNode }) => <>{children}</>,
   AnimatePresence: ({ children }: { children: ReactNode }) => <>{children}</>,
@@ -78,6 +113,7 @@ const leads = [
     displayName: 'Alice',
     phoneNumber: '+351912345678',
     stageId: STAGE1_ID,
+    position: 1024,
     createdAt: '2024-01-01T10:00:00.000Z',
     updatedAt: '2024-01-01T10:00:00.000Z',
     customValues: null,
@@ -108,12 +144,14 @@ describe('PipelineBoard', () => {
 
   it('renders columns with color strips', async () => {
     render(<PipelineBoard />, { wrapper: makeWrapper() })
-    await screen.findByText('Novo')
     await screen.findByText('Em conversa')
 
-    const novoHeader = screen
-      .getByText('Novo')
-      .closest('div[class*="border-t-4"]') as HTMLElement
+    const novoHeaders = screen.getAllByText('Novo')
+    expect(novoHeaders.length).toBeGreaterThan(0)
+
+    const novoHeader = novoHeaders[0].closest(
+      'div[class*="border-t-4"]',
+    ) as HTMLElement
     expect(novoHeader).toBeTruthy()
   })
 

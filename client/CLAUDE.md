@@ -49,3 +49,18 @@ bun --bun run dev      # http://localhost:5173
 - Usar Tailwind + DaisyUI (ex.: `btn`, `input`, `card`).
 - Componentes reutilizáveis em `src/components/`.
 - Lógica de domínio em `src/features/` e hooks em `src/hooks/`.
+
+### Design tokens (post-redesign)
+
+- Board surface: `bg-base-100` → `#f6f7f8` (cinza claro)
+- Bordas: `border-base-200` → neutro subtil
+- Cards: `bg-white border border-base-200 rounded-lg` sem shadow; hover `hover:bg-base-100`
+- Tipografia: `text-base-content/60` para texto secundário, `text-base-content/40` para ícones
+
+### Drag-and-drop (@dnd-kit)
+
+- `PipelineBoard` gere o `DndContext` com `onDragOver` (optimistic cross-column) e `onDragEnd` (commit com `position`).
+- `SortableLeadCard` usa `useSortable` com `activationConstraint: { distance: 5 }` para evitar cliques acidentais.
+- `DroppableColumn` usa `useDroppable` + `SortableContext` com `verticalListSortingStrategy`.
+- Mockar `@dnd-kit/*` em testes Vitest para simplificar assertions de DOM.
+- `framer-motion` mantido apenas para `Reorder.Group` nos painéis de settings (etapas/campos).

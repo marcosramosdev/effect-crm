@@ -31,10 +31,20 @@ describe('registerOwner', () => {
         },
       },
     }
+    const insertedCustomFields: Array<Record<string, unknown>> = []
     const dbClient = {
       from: (table: string) => {
         if (table === 'tenants') return makeChain({ data: { id: TENANT_ID }, error: null })
-        return makeChain({ data: {}, error: null })
+        const chain = makeChain({ data: {}, error: null })
+        const originalInsert = chain.insert as (data: unknown) => typeof chain
+        chain.insert = (data: unknown) => {
+          if (table === 'lead_custom_fields') {
+            const rows = Array.isArray(data) ? data : [data]
+            insertedCustomFields.push(...rows)
+          }
+          return originalInsert(data)
+        }
+        return chain
       },
     }
     const anonClient = {
@@ -59,6 +69,10 @@ describe('registerOwner', () => {
       expiresAt: 9999999999,
     })
     expect(deleteUser).not.toHaveBeenCalled()
+    expect(insertedCustomFields).toHaveLength(3)
+    expect(insertedCustomFields.map((f) => f.key)).toContain('email')
+    expect(insertedCustomFields.map((f) => f.key)).toContain('instagram')
+    expect(insertedCustomFields.map((f) => f.key)).toContain('appointmentDate')
   })
 
   it('falha em insert tenants → user removido, sem tenant', async () => {

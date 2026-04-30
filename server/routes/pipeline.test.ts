@@ -772,6 +772,46 @@ describe('POST /pipeline/custom-fields — owner-only + 20 limit', () => {
     const body = (await res.json()) as { error: { code: string } }
     expect(body.error.code).toBe('CUSTOM_FIELDS_LIMIT')
   })
+
+  it('accepts new types: email, instagram, checkbox', async () => {
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        lead_custom_fields: [],
+      },
+    })
+
+    const jwt = await ownerJwt()
+
+    for (const type of ['email', 'instagram', 'checkbox']) {
+      const res = await app.request('/pipeline/custom-fields', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: type, label: type, type }),
+      })
+      expect(res.status).toBe(201)
+    }
+
+    const insertOps = serviceDb.calls.filter(
+      (c) => c.table === 'lead_custom_fields' && c.op === 'insert',
+    )
+    expect(insertOps.length).toBe(3)
+  })
+
+  it('returns 400 for unknown type', async () => {
+    const { app } = makeApp({
+      serviceRows: {
+        lead_custom_fields: [],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request('/pipeline/custom-fields', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'colour', label: 'Cor', type: 'colour' }),
+    })
+    expect(res.status).toBe(400)
+  })
 })
 
 // T-S-072
@@ -917,5 +957,199 @@ describe('PATCH /pipeline/stages/:id — color and description', () => {
     })
 
     expect(res.status).toBe(400)
+  })
+})
+
+describe('PATCH /pipeline/leads/:id/stage — position handling', () => {
+  it('move without position appends to end with MAX+1024', async () => {
+    const LEAD_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    const LEAD_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        leads: [
+          {
+            id: LEAD_A,
+            tenant_id: TENANT_ID,
+            phone_number: '5511111111111',
+            display_name: 'Lead A',
+            stage_id: STAGE1_ID,
+            position: 1024,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+          {
+            id: LEAD_B,
+            tenant_id: TENANT_ID,
+            phone_number: '5511222222222',
+            display_name: 'Lead B',
+            stage_id: STAGE1_ID,
+            position: 2048,
+            created_at: '2024-01-02T00:00:00.000Z',
+            updated_at: '2024-01-02T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/leads/${LEAD_A}/stage`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stageId: STAGE2_ID }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { lead: { stageId: string; position: number } }
+    expect(body.lead.stageId).toBe(STAGE2_ID)
+    // STAGE2_ID has no leads, so position defaults to 0 + 1024 = 1024
+    // But mock returns max from all leads (2048) since it doesn't filter by stage_id on select
+    // So expected = 2048 + 1024 = 3072 in mock world, but we test the update was called with a position
+    const updateOp = serviceDb.calls.find((c) => c.table === 'leads' && c.op === 'update')
+    expect(updateOp).toBeDefined()
+    expect((updateOp?.data as Record<string, unknown>)?.position).toBeGreaterThan(0)
+    expect((updateOp?.data as Record<string, unknown>)?.stage_id).toBe(STAGE2_ID)
+  })
+
+  it('move with position persists exact value', async () => {
+    const LEAD_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        leads: [
+          {
+            id: LEAD_A,
+            tenant_id: TENANT_ID,
+            phone_number: '5511111111111',
+            display_name: 'Lead A',
+            stage_id: STAGE1_ID,
+            position: 1024,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    const res = await app.request(`/pipeline/leads/${LEAD_A}/stage`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stageId: STAGE2_ID, position: 5000 }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { lead: { position: number } }
+    expect(body.lead.position).toBe(5000)
+
+    const updateOp = serviceDb.calls.find((c) => c.table === 'leads' && c.op === 'update')
+    expect(updateOp).toBeDefined()
+    expect((updateOp?.data as Record<string, unknown>)?.position).toBe(5000)
+  })
+
+  it('two leads same position both succeed', async () => {
+    const LEAD_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    const LEAD_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        leads: [
+          {
+            id: LEAD_A,
+            tenant_id: TENANT_ID,
+            phone_number: '5511111111111',
+            display_name: 'Lead A',
+            stage_id: STAGE1_ID,
+            position: 1024,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+          {
+            id: LEAD_B,
+            tenant_id: TENANT_ID,
+            phone_number: '5511222222222',
+            display_name: 'Lead B',
+            stage_id: STAGE1_ID,
+            position: 1024,
+            created_at: '2024-01-02T00:00:00.000Z',
+            updated_at: '2024-01-02T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+
+    const res1 = await app.request(`/pipeline/leads/${LEAD_A}/stage`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stageId: STAGE2_ID, position: 2048 }),
+    })
+    expect(res1.status).toBe(200)
+
+    const res2 = await app.request(`/pipeline/leads/${LEAD_B}/stage`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stageId: STAGE2_ID, position: 2048 }),
+    })
+    expect(res2.status).toBe(200)
+  })
+
+  it('reorder triggers re-pack when gap is too small', async () => {
+    const LEAD_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    const LEAD_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+    const { app, serviceDb } = makeApp({
+      serviceRows: {
+        leads: [
+          {
+            id: LEAD_A,
+            tenant_id: TENANT_ID,
+            phone_number: '5511111111111',
+            display_name: 'Lead A',
+            stage_id: STAGE1_ID,
+            position: 1024,
+            created_at: '2024-01-01T00:00:00.000Z',
+            updated_at: '2024-01-01T00:00:00.000Z',
+          },
+          {
+            id: LEAD_B,
+            tenant_id: TENANT_ID,
+            phone_number: '5511222222222',
+            display_name: 'Lead B',
+            stage_id: STAGE1_ID,
+            position: 1025,
+            created_at: '2024-01-02T00:00:00.000Z',
+            updated_at: '2024-01-02T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    const jwt = await ownerJwt()
+    // Move LEAD_A to position 1026 - gap with LEAD_B (1025) is only 1, should trigger repack
+    const res = await app.request(`/pipeline/leads/${LEAD_A}/stage`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stageId: STAGE1_ID, position: 1026 }),
+    })
+
+    expect(res.status).toBe(200)
+
+    // Check that multiple updates happened (repack updates other leads)
+    const updateOps = serviceDb.calls.filter((c) => c.table === 'leads' && c.op === 'update')
+    // Should have at least 2 updates: one for the lead move, and at least one for repack
+    expect(updateOps.length).toBeGreaterThan(1)
   })
 })

@@ -64,8 +64,9 @@ export function createPipelineRouter(
 
     let query = userDb
       .from('leads')
-      .select('id, phone_number, display_name, stage_id, created_at, updated_at, lead_custom_values(field_id, value_text, value_number, value_date)')
-      .order('updated_at', { ascending: false })
+      .select('id, phone_number, display_name, stage_id, position, created_at, updated_at, lead_custom_values(field_id, value_text, value_number, value_date)')
+      .order('position', { ascending: true })
+      .order('created_at', { ascending: true })
       .limit(limit + 1)
 
     if (stageId) {
@@ -106,6 +107,7 @@ export function createPipelineRouter(
           displayName: l.display_name,
           phoneNumber: l.phone_number,
           stageId: l.stage_id,
+          position: l.position,
           createdAt: l.created_at,
           updatedAt: l.updated_at,
           customValues: Object.keys(customValues).length > 0 ? customValues : null,
@@ -156,10 +158,11 @@ export function createPipelineRouter(
         .filter(([, v]) => v !== null && v !== undefined)
         .map(([fieldId, value]) => {
           const type = fieldMap.get(fieldId)
+          const isTextLike = type === 'text' || type === 'url' || type === 'select' || type === 'email' || type === 'phone' || type === 'instagram'
           return {
             lead_id: id,
             field_id: fieldId,
-            value_text: type === 'text' || type === 'url' || type === 'select' ? (value as string) : null,
+            value_text: isTextLike ? (value as string) : type === 'checkbox' ? (value ? 'true' : 'false') : null,
             value_number: type === 'number' ? Number(value) : null,
             value_date: type === 'date' ? (value as string) : null,
           }
@@ -238,10 +241,11 @@ export function createPipelineRouter(
           toDelete.push(fieldId)
         } else {
           const type = fieldMap.get(fieldId)
+          const isTextLike = type === 'text' || type === 'url' || type === 'select' || type === 'email' || type === 'phone' || type === 'instagram'
           toInsert.push({
             lead_id: leadId,
             field_id: fieldId,
-            value_text: type === 'text' || type === 'url' || type === 'select' ? (value as string) : null,
+            value_text: isTextLike ? (value as string) : type === 'checkbox' ? (value ? 'true' : 'false') : null,
             value_number: type === 'number' ? Number(value) : null,
             value_date: type === 'date' ? (value as string) : null,
           })
@@ -285,19 +289,115 @@ export function createPipelineRouter(
     })
   })
 
+  async function computePositionForStage(
+    serviceDb: AnyClient,
+    tenantId: string,
+    stageId: string,
+    requestedPosition?: number,
+  ): Promise<number> {
+    if (requestedPosition !== undefined) {
+      return requestedPosition
+    }
+
+    const { data: maxRow } = await serviceDb
+      .from('leads')
+      .select('position')
+      .eq('tenant_id', tenantId)
+      .eq('stage_id', stageId)
+      .order('position', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    const maxPos = (maxRow as Record<string, unknown> | null)?.position as number | null
+    return (maxPos ?? 0) + 1024
+  }
+
+  async function repackStagePositions(
+    serviceDb: AnyClient,
+    tenantId: string,
+    stageId: string,
+    excludeLeadId?: string,
+  ): Promise<void> {
+    let query = serviceDb
+      .from('leads')
+      .select('id, position, created_at')
+      .eq('tenant_id', tenantId)
+      .eq('stage_id', stageId)
+
+    if (excludeLeadId) {
+      query = query.neq('id', excludeLeadId)
+    }
+
+    const { data: leads } = await query
+
+    const rows = (leads ?? []) as Array<Record<string, unknown>>
+    rows.sort((a, b) => {
+      const posA = (a.position as number) ?? 0
+      const posB = (b.position as number) ?? 0
+      if (posA !== posB) return posA - posB
+      return new Date(a.created_at as string).getTime() - new Date(b.created_at as string).getTime()
+    })
+
+    for (let i = 0; i < rows.length; i++) {
+      await serviceDb
+        .from('leads')
+        .update({ position: (i + 1) * 1024 })
+        .eq('id', rows[i].id as string)
+        .eq('tenant_id', tenantId)
+    }
+  }
+
+  async function checkAndRepackIfNeeded(
+    serviceDb: AnyClient,
+    tenantId: string,
+    stageId: string,
+    leadId: string,
+    newPosition: number,
+  ): Promise<void> {
+    const { data: neighbours } = await serviceDb
+      .from('leads')
+      .select('position')
+      .eq('tenant_id', tenantId)
+      .eq('stage_id', stageId)
+      .neq('id', leadId)
+      .order('position', { ascending: true })
+
+    const positions = ((neighbours ?? []) as Array<Record<string, unknown>>)
+      .map((r) => r.position as number)
+      .sort((a, b) => a - b)
+
+    if (positions.length === 0) return
+
+    let lowerGap = Infinity
+    let upperGap = Infinity
+
+    for (const p of positions) {
+      if (p < newPosition) {
+        lowerGap = Math.min(lowerGap, newPosition - p)
+      }
+      if (p > newPosition) {
+        upperGap = Math.min(upperGap, p - newPosition)
+      }
+    }
+
+    if (lowerGap < 2 || upperGap < 2) {
+      await repackStagePositions(serviceDb, tenantId, stageId, leadId)
+    }
+  }
+
   router.patch(
     '/leads/:leadId/stage',
     zValidator('json', MoveLeadRequestSchema),
     async (c) => {
       const { tenantId, userId } = c.var
       const leadId = c.req.param('leadId')
-      const { stageId: toStageId } = c.req.valid('json')
+      const { stageId: toStageId, position: requestedPosition } = c.req.valid('json')
 
       const serviceDb = getServiceClient()
 
       const { data: lead } = await serviceDb
         .from('leads')
-        .select('id, stage_id, phone_number, display_name, created_at, updated_at')
+        .select('id, stage_id, phone_number, display_name, created_at, updated_at, position')
         .eq('id', leadId)
         .eq('tenant_id', tenantId)
         .maybeSingle()
@@ -313,9 +413,11 @@ export function createPipelineRouter(
       const fromStageId = typedLead.stage_id
       const updatedAt = new Date().toISOString()
 
+      const newPosition = await computePositionForStage(serviceDb, tenantId, toStageId, requestedPosition)
+
       const { error: updateError } = await serviceDb
         .from('leads')
-        .update({ stage_id: toStageId, updated_at: updatedAt })
+        .update({ stage_id: toStageId, position: newPosition, updated_at: updatedAt })
         .eq('id', leadId)
         .eq('tenant_id', tenantId)
 
@@ -325,6 +427,8 @@ export function createPipelineRouter(
           500,
         )
       }
+
+      await checkAndRepackIfNeeded(serviceDb, tenantId, toStageId, leadId, newPosition)
 
       await serviceDb.from('stage_transitions').insert({
         id: crypto.randomUUID(),
@@ -342,6 +446,7 @@ export function createPipelineRouter(
           displayName: typedLead.display_name,
           phoneNumber: typedLead.phone_number,
           stageId: toStageId,
+          position: newPosition,
           createdAt: typedLead.created_at,
           updatedAt,
         },

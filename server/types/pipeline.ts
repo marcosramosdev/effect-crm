@@ -15,7 +15,17 @@ export const StageListResponseSchema = z.object({
 })
 export type StageListResponse = z.infer<typeof StageListResponseSchema>
 
-export const CustomFieldTypeSchema = z.enum(['text', 'number', 'date', 'select', 'url'])
+export const CustomFieldTypeSchema = z.enum([
+  'text',
+  'number',
+  'date',
+  'select',
+  'url',
+  'email',
+  'phone',
+  'instagram',
+  'checkbox',
+])
 export type CustomFieldType = z.infer<typeof CustomFieldTypeSchema>
 
 export const CustomFieldDefSchema = z.object({
@@ -41,6 +51,7 @@ export const PipelineLeadSchema = z.object({
   displayName: z.string().nullable(),
   phoneNumber: z.string(),
   stageId: z.string().uuid(),
+  position: z.number().int(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   customValues: z.record(z.string(), z.string().nullable()).nullable(),
@@ -63,6 +74,7 @@ export type ListLeadsQuery = z.infer<typeof ListLeadsQuerySchema>
 
 export const MoveLeadRequestSchema = z.object({
   stageId: z.string().uuid(),
+  position: z.number().int().min(0).optional(),
 })
 export type MoveLeadRequest = z.infer<typeof MoveLeadRequestSchema>
 
@@ -70,7 +82,7 @@ export const CreateLeadRequestSchema = z.object({
   displayName: z.string().trim().min(1).max(255).optional(),
   phoneNumber: z.string().trim().optional(),
   stageId: z.string().uuid(),
-  customValues: z.record(z.string(), z.union([z.string(), z.number(), z.null()])).optional(),
+  customValues: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 })
 export type CreateLeadRequest = z.infer<typeof CreateLeadRequestSchema>
 
@@ -78,7 +90,7 @@ export const UpdateLeadRequestSchema = z.object({
   displayName: z.string().trim().min(1).max(255).optional(),
   phoneNumber: z.string().trim().optional(),
   stageId: z.string().uuid().optional(),
-  customValues: z.record(z.string(), z.union([z.string(), z.number(), z.null()])).optional(),
+  customValues: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 })
 export type UpdateLeadRequest = z.infer<typeof UpdateLeadRequestSchema>
 

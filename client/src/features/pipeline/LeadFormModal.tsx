@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -24,6 +24,7 @@ interface LeadFormModalProps {
   stageId?: string
   lead?: PipelineLead
   onClose: () => void
+  triggerRef?: React.RefObject<HTMLElement | null>
 }
 
 export function LeadFormModal({
@@ -32,10 +33,12 @@ export function LeadFormModal({
   stageId,
   lead,
   onClose,
+  triggerRef,
 }: LeadFormModalProps) {
   const { data: customFieldsData } = useCustomFields()
   const createLead = useCreateLead()
   const updateLead = useUpdateLead()
+  const modalRef = useRef<HTMLDivElement>(null)
 
   const customFields = customFieldsData?.fields ?? []
 
@@ -86,6 +89,25 @@ export function LeadFormModal({
     }
   }, [open, mode, lead, stageId, reset, clearErrors])
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
+  // Restore focus on close
+  useEffect(() => {
+    if (!open && triggerRef?.current) {
+      triggerRef.current.focus()
+    }
+  }, [open, triggerRef])
+
   const onSubmit = (data: LeadFormInput) => {
     const payload = {
       displayName: data.displayName || undefined,
@@ -132,8 +154,11 @@ export function LeadFormModal({
       onClick={onClose}
     >
       <div
-        className="bg-base-100 rounded-lg p-6 shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
+        ref={modalRef}
+        className="bg-white border border-base-200 rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">
