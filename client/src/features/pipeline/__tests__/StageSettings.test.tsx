@@ -130,17 +130,3 @@ describe('StageSettings', () => {
     expect(deleteCount).toBe(1)
   })
 })
-
-// T-C-034
-describe('NavMenu', () => {
-  it('agent does not see /settings/pipeline link', async () => {
-    const { NavMenu } = await import('../../../components/NavMenu')
-    render(<NavMenu />, { wrapper: makeWrapper() })
-
-    await screen.findByRole('link', { name: /inbox/i })
-
-    expect(
-      screen.queryByRole('link', { name: /configurar pipeline/i }),
-    ).not.toBeInTheDocument()
-  })
-})

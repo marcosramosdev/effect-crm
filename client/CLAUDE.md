@@ -28,6 +28,8 @@ bun --bun run dev      # http://localhost:5173
 
 - Rotas são ficheiros em `src/routes/`.
 - Layout base: `src/routes/__root.tsx`.
+- Rotas autenticadas vivem sob `/app/*` (layout `src/routes/app.tsx` com guard `beforeLoad`).
+- Rotas públicas de auth vivem sob `/auth/*` (layout `src/routes/auth.tsx` — redireciona para `/app/inbox` se já autenticado).
 - ⚠️ Não editar `src/routeTree.gen.ts` (gerado automaticamente).
 
 ## Dados e API

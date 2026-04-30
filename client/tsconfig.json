@@ -15,7 +15,8 @@
     "paths": {
       "#/*": ["./src/*"],
       "@/*": ["./src/*"],
-      "@shared/*": ["../server/types/*"]
+      "@shared/*": ["../server/types/*"],
+      "@server/types/*": ["../server/types/*"]
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],

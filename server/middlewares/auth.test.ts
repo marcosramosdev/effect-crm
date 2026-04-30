@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll } from 'bun:test'
+import { describe, it, expect } from 'bun:test'
 import { Hono } from 'hono'
-import { makeTestJwt } from '../test/fixtures/jwts'
+import { makeTestJwt, verifyTestJwt } from '../test/fixtures/jwts'
 import { makeSupabaseMock } from '../test/fixtures/supabase'
 import { createAuthMiddleware } from './auth'
 import type { AuthVariables } from './auth'
@@ -9,15 +9,11 @@ import { errorHandler } from './error'
 const TENANT_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 const USER_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
 
-beforeAll(() => {
-  process.env.SUPABASE_JWT_SECRET = 'test-secret'
-})
-
 function makeApp(memberRows: Record<string, unknown>[]) {
   const mock = makeSupabaseMock({ rows: memberRows })
   const app = new Hono<{ Variables: AuthVariables }>()
   app.use('*', errorHandler())
-  app.use('*', createAuthMiddleware(() => mock as never))
+  app.use('*', createAuthMiddleware(() => mock as never, verifyTestJwt))
   app.get('/test', (c) =>
     c.json({ userId: c.get('userId'), tenantId: c.get('tenantId'), role: c.get('role') }),
   )

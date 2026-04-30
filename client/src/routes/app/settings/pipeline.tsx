@@ -1,12 +1,12 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { authQueryOptions } from '../../hooks/useAuth'
-import { StageSettings } from '../../features/pipeline/StageSettings'
+import { authQueryOptions } from '../../../hooks/useAuth'
+import { StageSettings } from '../../../features/pipeline/StageSettings'
 
-export const Route = createFileRoute('/settings/pipeline')({
+export const Route = createFileRoute('/app/settings/pipeline')({
   beforeLoad: async ({ context }) => {
     const auth = await context.queryClient.ensureQueryData(authQueryOptions)
     if (auth.role !== 'owner') {
-      throw redirect({ to: '/inbox' })
+      throw redirect({ to: '/app/inbox' })
     }
   },
   component: SettingsPipelinePage,

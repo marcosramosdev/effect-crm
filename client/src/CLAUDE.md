@@ -15,6 +15,13 @@ Notas de organização e padrões para o código dentro de `client/src/`.
 - Leitura/escrita remota deve passar por React Query (queries/mutations).
 - Validações de formulários e payloads: Zod (idealmente o mesmo schema serve UI e requests).
 
+## Pipeline / Board
+
+- Usar Framer Motion para animações de drag-and-drop entre colunas.
+- Cards usam `motion.div` com `layoutId` para transições fluidas entre colunas.
+- Cross-column drag: `onDragEnd` usa hit-test (`getBoundingClientRect`) sobre as colunas alvo.
+- Mockar `framer-motion` em testes (Vitest) para simplificar assertions de DOM.
+
 ## Imports / aliases
 
 - Preferir `@/` ou `#/*` para imports dentro de `src`.
