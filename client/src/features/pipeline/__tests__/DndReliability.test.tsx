@@ -85,8 +85,22 @@ const STAGE2_ID = '00000000-0000-0000-0003-000000000002'
 const LEAD_ID = '00000000-0000-0000-0002-000000000001'
 
 const stages = [
-  { id: STAGE1_ID, name: 'Novo', order: 1, isDefaultEntry: true, color: '#22c55e', description: null },
-  { id: STAGE2_ID, name: 'Vazio', order: 2, isDefaultEntry: false, color: '#3b82f6', description: null },
+  {
+    id: STAGE1_ID,
+    name: 'Novo',
+    order: 1,
+    isDefaultEntry: true,
+    color: '#22c55e',
+    description: null,
+  },
+  {
+    id: STAGE2_ID,
+    name: 'Vazio',
+    order: 2,
+    isDefaultEntry: false,
+    color: '#3b82f6',
+    description: null,
+  },
 ]
 
 const leads = [
@@ -131,12 +145,16 @@ describe('DnD reliability', () => {
 
     expect(() => {
       captured.onDragEnd?.({
-        active: { id: LEAD_ID, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+        active: {
+          id: LEAD_ID,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
         over: null,
         delta: { x: 0, y: 0 },
         activatorEvent: {} as Event,
         collisions: [],
-      } as unknown as DragEndEvent)
+      })
     }).not.toThrow()
 
     expect(screen.getByText('Alice')).toBeInTheDocument()
@@ -145,35 +163,62 @@ describe('DnD reliability', () => {
   it('drop on empty column commits with position=1024', async () => {
     let patchBody: { stageId: string; position?: number } | null = null
     overrideHandler(
-      http.patch(`/api/pipeline/leads/${LEAD_ID}/stage`, async ({ request }) => {
-        patchBody = (await request.json()) as { stageId: string; position?: number }
-        return HttpResponse.json({})
-      }),
+      http.patch(
+        `/api/pipeline/leads/${LEAD_ID}/stage`,
+        async ({ request }) => {
+          patchBody = (await request.json()) as {
+            stageId: string
+            position?: number
+          }
+          return HttpResponse.json({})
+        },
+      ),
     )
 
     render(<PipelineBoard />, { wrapper: makeWrapper() })
     await screen.findByText('Alice')
 
     captured.onDragEnd?.({
-      active: { id: LEAD_ID, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
-      over: { id: STAGE2_ID, data: { current: {} }, rect: { width: 288, height: 400, left: 300, top: 0, right: 588, bottom: 400 } },
+      active: {
+        id: LEAD_ID,
+        data: { current: {} },
+        rect: { current: { initial: null, translated: null } },
+      },
+      over: {
+        id: STAGE2_ID,
+        data: { current: {} },
+        rect: {
+          width: 288,
+          height: 400,
+          left: 300,
+          top: 0,
+          right: 588,
+          bottom: 400,
+        },
+      },
       delta: { x: 300, y: 0 },
       activatorEvent: {} as Event,
       collisions: [],
     } as unknown as DragEndEvent)
 
     await waitFor(() => expect(patchBody).not.toBeNull())
-    expect(patchBody?.stageId).toBe(STAGE2_ID)
-    expect(patchBody?.position).toBe(1024)
+    expect(patchBody!.stageId).toBe(STAGE2_ID)
+    expect(patchBody!.position).toBe(1024)
   })
 
   it('drop on column body below last card commits the move', async () => {
     let patchBody: { stageId: string; position?: number } | null = null
     overrideHandler(
-      http.patch(`/api/pipeline/leads/${LEAD_ID}/stage`, async ({ request }) => {
-        patchBody = (await request.json()) as { stageId: string; position?: number }
-        return HttpResponse.json({})
-      }),
+      http.patch(
+        `/api/pipeline/leads/${LEAD_ID}/stage`,
+        async ({ request }) => {
+          patchBody = (await request.json()) as {
+            stageId: string
+            position?: number
+          }
+          return HttpResponse.json({})
+        },
+      ),
     )
 
     render(<PipelineBoard />, { wrapper: makeWrapper() })
@@ -181,14 +226,29 @@ describe('DnD reliability', () => {
 
     // Drop back on same column (below last card) — over = stage itself
     captured.onDragEnd?.({
-      active: { id: LEAD_ID, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
-      over: { id: STAGE2_ID, data: { current: {} }, rect: { width: 288, height: 400, left: 300, top: 0, right: 588, bottom: 400 } },
+      active: {
+        id: LEAD_ID,
+        data: { current: {} },
+        rect: { current: { initial: null, translated: null } },
+      },
+      over: {
+        id: STAGE2_ID,
+        data: { current: {} },
+        rect: {
+          width: 288,
+          height: 400,
+          left: 300,
+          top: 0,
+          right: 588,
+          bottom: 400,
+        },
+      },
       delta: { x: 300, y: 200 },
       activatorEvent: {} as Event,
       collisions: [],
     } as unknown as DragEndEvent)
 
     await waitFor(() => expect(patchBody).not.toBeNull())
-    expect(patchBody?.stageId).toBe(STAGE2_ID)
+    expect(patchBody!.stageId).toBe(STAGE2_ID)
   })
 })

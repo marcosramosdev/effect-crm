@@ -48,7 +48,11 @@ vi.mock('@dnd-kit/utilities', () => ({
 }))
 
 vi.mock('framer-motion', () => ({
-  motion: { div: ({ children, ...props }: { children: ReactNode }) => <div {...props}>{children}</div> },
+  motion: {
+    div: ({ children, ...props }: { children: ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
+  },
   LayoutGroup: ({ children }: { children: ReactNode }) => <>{children}</>,
   AnimatePresence: ({ children }: { children: ReactNode }) => <>{children}</>,
   Reorder: {
@@ -71,7 +75,16 @@ describe('Board horizontal scroll', () => {
     overrideHandler(
       http.get('/api/pipeline/stages', () =>
         HttpResponse.json({
-          stages: [{ id: STAGE_ID, name: 'Novo', order: 1, isDefaultEntry: true, color: '#22c55e', description: null }],
+          stages: [
+            {
+              id: STAGE_ID,
+              name: 'Novo',
+              order: 1,
+              isDefaultEntry: true,
+              color: '#22c55e',
+              description: null,
+            },
+          ],
         }),
       ),
       http.get('/api/pipeline/leads', () =>
@@ -95,7 +108,16 @@ describe('Board horizontal scroll', () => {
     overrideHandler(
       http.get('/api/pipeline/stages', () =>
         HttpResponse.json({
-          stages: [{ id: STAGE_ID, name: 'Novo', order: 1, isDefaultEntry: true, color: '#22c55e', description: null }],
+          stages: [
+            {
+              id: STAGE_ID,
+              name: 'Novo',
+              order: 1,
+              isDefaultEntry: true,
+              color: '#22c55e',
+              description: null,
+            },
+          ],
         }),
       ),
       http.get('/api/pipeline/leads', () =>

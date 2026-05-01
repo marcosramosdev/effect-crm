@@ -9,7 +9,10 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
-import { useStages, useLeads, useMoveLead } from './api'
+import { arrayMove } from '@dnd-kit/sortable'
+import { Plus } from 'lucide-react'
+import { useStages, useLeads, useMoveLead, useStageMutations } from './api'
+import { useAuth } from '../../hooks/useAuth'
 import { LeadFormModal } from './LeadFormModal'
 import { DroppableColumn } from './dnd/DroppableColumn'
 import { SortableLeadCard } from './dnd/SortableLeadCard'
@@ -25,7 +28,11 @@ interface ModalState {
 export function PipelineBoard() {
   const { data: stagesData, isLoading: stagesLoading } = useStages()
   const { data: leadsData, isLoading: leadsLoading } = useLeads()
+  const { data: auth } = useAuth()
   const moveMutation = useMoveLead()
+  const { createStage, reorderStages } = useStageMutations()
+
+  const isOwner = auth?.role === 'owner'
 
   const [modal, setModal] = useState<ModalState>({
     open: false,
@@ -35,24 +42,26 @@ export function PipelineBoard() {
   const [optimisticLeads, setOptimisticLeads] = useState<PipelineLead[] | null>(
     null,
   )
+  const [addingStage, setAddingStage] = useState(false)
+  const [newStageName, setNewStageName] = useState('')
 
   const stages = stagesData?.stages ?? []
   const leads = optimisticLeads ?? leadsData?.leads ?? []
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
   )
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    if (event.active.data.current?.type === 'column') return
     setActiveLeadId(event.active.id as string)
   }, [])
 
   const handleDragOver = useCallback(
     (event: DragOverEvent) => {
       const { active, over } = event
+      if (active.data.current?.type === 'column') return
       if (!over) return
 
       const activeId = active.id as string
@@ -104,6 +113,24 @@ export function PipelineBoard() {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event
+
+      // Column reorder
+      if (active.data.current?.type === 'column') {
+        if (!over) return
+        const activeStageId = active.data.current.id as string
+        const overStageId = over.id as string
+        const fromIndex = stages.findIndex((s) => s.id === activeStageId)
+        const toIndex = stages.findIndex((s) => s.id === overStageId)
+        if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+          const reordered = arrayMove([...stages], fromIndex, toIndex)
+          reorderStages.mutate({
+            stages: reordered.map((s, i) => ({ id: s.id, order: i + 1 })),
+          })
+        }
+        return
+      }
+
+      // Lead move
       setActiveLeadId(null)
 
       if (!over) {
@@ -144,8 +171,20 @@ export function PipelineBoard() {
 
       setOptimisticLeads(null)
     },
-    [leads, stages, moveMutation, computePosition],
+    [leads, stages, moveMutation, computePosition, reorderStages],
   )
+
+  function handleAddStage(e: React.FormEvent) {
+    e.preventDefault()
+    const name = newStageName.trim()
+    if (!name) return
+    createStage.mutate(name, {
+      onSuccess: () => {
+        setAddingStage(false)
+        setNewStageName('')
+      },
+    })
+  }
 
   const openCreateModal = (stageId: string) => {
     setModal({ open: true, mode: 'create', stageId })
@@ -184,12 +223,69 @@ export function PipelineBoard() {
             <DroppableColumn
               key={stage.id}
               stage={stage}
+              stages={stages}
               leads={stageLeads}
+              isOwner={isOwner}
               onOpenEdit={openEditModal}
               onOpenCreate={openCreateModal}
             />
           )
         })}
+
+        {/* Add stage ghost column (owner only) */}
+        {isOwner && (
+          <div className="flex flex-col w-72 shrink-0 min-h-full [scroll-snap-align:start]">
+            {addingStage ? (
+              <form
+                onSubmit={handleAddStage}
+                className="flex flex-col gap-2 p-3 bg-base-200 rounded-lg border-2 border-dashed border-base-300"
+              >
+                <input
+                  autoFocus
+                  className="input input-sm input-bordered w-full"
+                  placeholder="Nome da etapa..."
+                  value={newStageName}
+                  onChange={(e) => setNewStageName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setAddingStage(false)
+                      setNewStageName('')
+                    }
+                  }}
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="btn btn-sm btn-primary flex-1"
+                    disabled={createStage.isPending}
+                  >
+                    Criar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => {
+                      setAddingStage(false)
+                      setNewStageName('')
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button
+                type="button"
+                aria-label="Adicionar etapa"
+                className="flex items-center justify-center gap-2 h-full min-h-32 rounded-lg border-2 border-dashed border-base-300 text-base-content/40 hover:border-primary/50 hover:text-primary/70 transition-colors"
+                onClick={() => setAddingStage(true)}
+              >
+                <Plus className="h-5 w-5" />
+                <span className="text-sm font-medium">Adicionar etapa</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <DragOverlay>

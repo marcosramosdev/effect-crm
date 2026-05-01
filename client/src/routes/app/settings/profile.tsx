@@ -9,7 +9,9 @@ export const Route = createFileRoute('/app/settings/profile')({
 
 function ProfileSettingsPage() {
   const { data: auth } = useAuth()
-  const [displayName, setDisplayName] = useState(auth?.email?.split('@')[0] ?? '')
+  const [displayName, setDisplayName] = useState(
+    auth?.email.split('@')[0] ?? '',
+  )
   const [passwordModalOpen, setPasswordModalOpen] = useState(false)
 
   return (

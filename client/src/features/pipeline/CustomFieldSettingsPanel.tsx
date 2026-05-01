@@ -1,215 +1,209 @@
 import { useState } from 'react'
-import { Reorder } from 'framer-motion'
-import { Trash2, GripVertical } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { X, Trash2, GripVertical } from 'lucide-react'
 import { useCustomFields, useCustomFieldMutations } from './api'
+import type { CustomFieldDef } from '@shared/pipeline'
 
-export function CustomFieldSettingsPanel() {
-  const { data: customFieldsData } = useCustomFields()
+const FIELD_TYPES = [
+  { value: 'text', label: 'Texto' },
+  { value: 'number', label: 'Número' },
+  { value: 'date', label: 'Data' },
+  { value: 'select', label: 'Seleção' },
+  { value: 'url', label: 'URL' },
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Telefone' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'checkbox', label: 'Checkbox' },
+] as const
+
+const CreateFieldSchema = z.object({
+  key: z
+    .string()
+    .trim()
+    .min(1, 'Chave obrigatória')
+    .max(50)
+    .regex(/^[a-z_][a-z0-9_]*$/, 'Apenas letras minúsculas, números e _'),
+  label: z.string().trim().min(1, 'Label obrigatório').max(255),
+  type: z.enum([
+    'text',
+    'number',
+    'date',
+    'select',
+    'url',
+    'email',
+    'phone',
+    'instagram',
+    'checkbox',
+  ]),
+})
+
+type CreateFieldInput = z.infer<typeof CreateFieldSchema>
+
+interface CustomFieldSettingsPanelProps {
+  open: boolean
+  onClose: () => void
+}
+
+export function CustomFieldSettingsPanel({
+  open,
+  onClose,
+}: CustomFieldSettingsPanelProps) {
+  const { data } = useCustomFields()
+  const fields = data?.fields ?? []
   const { createField, updateField, deleteField } = useCustomFieldMutations()
-  const fields = customFieldsData?.fields ?? []
+  const [draggingId, setDraggingId] = useState<string | null>(null)
 
-  const [isCreating, setIsCreating] = useState(false)
-  const [newKey, setNewKey] = useState('')
-  const [newLabel, setNewLabel] = useState('')
-  const [newType, setNewType] = useState<
-    'text' | 'number' | 'date' | 'select' | 'url'
-  >('text')
-  const [newOptions, setNewOptions] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editLabel, setEditLabel] = useState('')
-  const [editOptions, setEditOptions] = useState('')
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreateFieldInput>({
+    resolver: zodResolver(CreateFieldSchema),
+    defaultValues: { type: 'text' },
+  })
 
-  function handleCreate() {
-    const options =
-      newType === 'select'
-        ? newOptions
-            .split(',')
-            .map((o) => o.trim())
-            .filter(Boolean)
-        : undefined
-    createField.mutate(
-      { key: newKey, label: newLabel, type: newType, options },
-      {
-        onSuccess: () => {
-          setIsCreating(false)
-          setNewKey('')
-          setNewLabel('')
-          setNewType('text')
-          setNewOptions('')
-        },
-        onError: (err) => {
-          const error = err as { code?: string }
-          if (error.code === 'CUSTOM_FIELDS_LIMIT') {
-            alert('Limite de 20 campos personalizados atingido.')
-          }
-        },
-      },
-    )
+  function handleDrop(target: CustomFieldDef) {
+    if (!draggingId || draggingId === target.id) return
+    updateField.mutate({ fieldId: draggingId, body: { order: target.order } })
+    setDraggingId(null)
   }
 
-  function handleReorder(newOrder: typeof fields) {
-    const payload = newOrder.map((f, i) => ({ id: f.id, order: i }))
-    for (const p of payload) {
-      updateField.mutate({ fieldId: p.id, body: { order: p.order } })
-    }
-  }
-
-  function startEdit(field: (typeof fields)[number]) {
-    setEditingId(field.id)
-    setEditLabel(field.label)
-    setEditOptions(field.options?.join(', ') ?? '')
-  }
-
-  function saveEdit(fieldId: string) {
-    const options = editOptions
-      .split(',')
-      .map((o) => o.trim())
-      .filter(Boolean)
-    updateField.mutate(
-      { fieldId, body: { label: editLabel, options } },
-      { onSuccess: () => setEditingId(null) },
-    )
-  }
+  if (!open) return null
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Campos personalizados</h3>
-        <button
-          type="button"
-          className="btn btn-sm btn-primary"
-          onClick={() => setIsCreating(!isCreating)}
-        >
-          {isCreating ? 'Cancelar' : 'Adicionar'}
-        </button>
-      </div>
+    <>
+      <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
 
-      {isCreating && (
-        <div className="bg-base-100 border border-base-300 rounded-lg p-4 space-y-3">
-          <input
-            className="input input-bordered w-full"
-            placeholder="Chave (ex: company)"
-            value={newKey}
-            onChange={(e) => setNewKey(e.target.value)}
-          />
-          <input
-            className="input input-bordered w-full"
-            placeholder="Etiqueta (ex: Empresa)"
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-          />
-          <select
-            className="select select-bordered w-full"
-            value={newType}
-            onChange={(e) => setNewType(e.target.value as typeof newType)}
-          >
-            <option value="text">Texto</option>
-            <option value="number">Número</option>
-            <option value="date">Data</option>
-            <option value="select">Seleção</option>
-            <option value="url">URL</option>
-          </select>
-          {newType === 'select' && (
-            <input
-              className="input input-bordered w-full"
-              placeholder="Opções separadas por vírgula"
-              value={newOptions}
-              onChange={(e) => setNewOptions(e.target.value)}
-            />
-          )}
+      <div
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-xl flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Campos personalizados"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-base-200">
+          <h2 className="text-lg font-semibold">Campos personalizados</h2>
           <button
             type="button"
-            className="btn btn-sm btn-primary"
-            onClick={handleCreate}
+            className="btn btn-ghost btn-sm btn-square"
+            onClick={onClose}
+            aria-label="Fechar painel"
           >
-            Criar campo
+            <X className="h-4 w-4" />
           </button>
         </div>
-      )}
 
-      <Reorder.Group
-        axis="y"
-        values={fields}
-        onReorder={handleReorder}
-        className="space-y-2"
-      >
-        {fields.map((field) => (
-          <Reorder.Item
-            key={field.id}
-            value={field}
-            className="bg-base-100 border border-base-300 rounded-lg p-3"
-          >
-            {editingId === field.id ? (
-              <div className="space-y-3">
-                <input
-                  className="input input-bordered w-full"
-                  value={editLabel}
-                  onChange={(e) => setEditLabel(e.target.value)}
-                  placeholder="Etiqueta"
-                />
-                {field.type === 'select' && (
-                  <input
-                    className="input input-bordered w-full"
-                    placeholder="Opções separadas por vírgula"
-                    value={editOptions}
-                    onChange={(e) => setEditOptions(e.target.value)}
-                  />
-                )}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-primary"
-                    onClick={() => saveEdit(field.id)}
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-sm"
-                    onClick={() => setEditingId(null)}
-                  >
-                    Cancelar
-                  </button>
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+          <ul className="flex flex-col gap-2">
+            {fields.map((field) => (
+              <li
+                key={field.id}
+                draggable
+                onDragStart={() => setDraggingId(field.id)}
+                onDragEnd={() => setDraggingId(null)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleDrop(field)}
+                className="flex items-center gap-2 bg-base-100 border border-base-200 rounded-lg p-3"
+              >
+                <GripVertical className="h-4 w-4 text-base-content/40 cursor-grab flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-sm">{field.label}</span>
+                  <span className="ml-2 text-xs text-base-content/50">
+                    {field.type}
+                  </span>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  <GripVertical className="h-4 w-4 text-base-content/40 shrink-0 cursor-grab" />
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{field.label}</p>
-                    <p className="text-xs text-base-content/60">
-                      {field.key} · {field.type}
-                      {field.options ? ` · [${field.options.join(', ')}]` : ''}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-xs"
-                    onClick={() => startEdit(field)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-xs btn-square text-error"
-                    onClick={() => {
-                      if (confirm(`Eliminar campo "${field.label}"?`)) {
-                        deleteField.mutate(field.id)
-                      }
-                    }}
-                    aria-label={`Apagar ${field.label}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs btn-square text-error"
+                  aria-label={`Apagar ${field.label}`}
+                  onClick={() => deleteField.mutate(field.id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </li>
+            ))}
+            {fields.length === 0 && (
+              <p className="text-sm text-base-content/50 text-center py-4">
+                Nenhum campo criado ainda.
+              </p>
             )}
-          </Reorder.Item>
-        ))}
-      </Reorder.Group>
-    </div>
+          </ul>
+
+          <form
+            onSubmit={handleSubmit((values) =>
+              createField.mutate(values, {
+                onSuccess: () => reset({ type: 'text' }),
+              }),
+            )}
+            className="flex flex-col gap-3 border-t border-base-200 pt-4"
+          >
+            <h3 className="text-sm font-semibold">Novo campo</h3>
+
+            <div>
+              <label htmlFor="cf-key" className="label">
+                <span className="label-text">Chave</span>
+              </label>
+              <input
+                id="cf-key"
+                {...register('key')}
+                className="input input-bordered input-sm w-full"
+                placeholder="ex: empresa"
+              />
+              {errors.key && (
+                <p className="text-error text-xs mt-1">{errors.key.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="cf-label" className="label">
+                <span className="label-text">Label</span>
+              </label>
+              <input
+                id="cf-label"
+                {...register('label')}
+                className="input input-bordered input-sm w-full"
+                placeholder="ex: Empresa"
+              />
+              {errors.label && (
+                <p className="text-error text-xs mt-1">
+                  {errors.label.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="cf-type" className="label">
+                <span className="label-text">Tipo</span>
+              </label>
+              <select
+                id="cf-type"
+                {...register('type')}
+                className="select select-bordered select-sm w-full"
+              >
+                {FIELD_TYPES.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={createField.isPending}
+            >
+              {createField.isPending ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : (
+                'Criar campo'
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    </>
   )
 }

@@ -53,33 +53,33 @@
 
 ## 7. Inline stage management on board
 
-- [ ] 7.1 Create `client/src/features/pipeline/StageColumnMenu.tsx` (overflow `...` button on column header) with: Renomear, Alterar cor, Eliminar (with destination fallback prompt)
-- [ ] 7.2 Allow rename inline: double-click on column label opens an editable input; Enter saves via `PATCH /api/pipeline/stages/:id`; Escape cancels
-- [ ] 7.3 Reuse existing `StageColorPicker.tsx` in the column menu's "Alterar cor" submenu
-- [ ] 7.4 Add a `+` button after the last column (full-height ghost column); click opens an inline create form; submit calls `POST /api/pipeline/stages`
-- [ ] 7.5 Make the column header itself draggable (own `useDraggable` with `data:{type:'column', id}`) so owners can reorder columns horizontally; `onDragEnd` for column-type calls `PATCH /api/pipeline/stages/reorder`
-- [ ] 7.6 Hide all stage-management controls (`StageColumnMenu`, `+`, rename, column-drag listeners) when `useAuth().role !== 'owner'`
-- [ ] 7.7 Delete the now-unused `StageSettingsPanel.tsx` and `CustomFieldSettingsPanel.tsx` if they are not referenced elsewhere; otherwise mark for removal
-- [ ] 7.8 Vitest tests: owner sees menu/`+`; agent does not; rename round-trips; column reorder fires the reorder mutation
+- [x] 7.1 Create `client/src/features/pipeline/StageColumnMenu.tsx` (overflow `...` button on column header) with: Renomear, Alterar cor, Eliminar (with destination fallback prompt)
+- [x] 7.2 Allow rename inline: double-click on column label opens an editable input; Enter saves via `PATCH /api/pipeline/stages/:id`; Escape cancels
+- [x] 7.3 Reuse existing `StageColorPicker.tsx` in the column menu's "Alterar cor" submenu
+- [x] 7.4 Add a `+` button after the last column (full-height ghost column); click opens an inline create form; submit calls `POST /api/pipeline/stages`
+- [x] 7.5 Make the column header itself draggable (own `useDraggable` with `data:{type:'column', id}`) so owners can reorder columns horizontally; `onDragEnd` for column-type calls `PATCH /api/pipeline/stages/reorder`
+- [x] 7.6 Hide all stage-management controls (`StageColumnMenu`, `+`, rename, column-drag listeners) when `useAuth().role !== 'owner'`
+- [x] 7.7 Delete the now-unused `StageSettingsPanel.tsx` and `CustomFieldSettingsPanel.tsx` if they are not referenced elsewhere; otherwise mark for removal
+- [x] 7.8 Vitest tests: owner sees menu/`+`; agent does not; rename round-trips; column reorder fires the reorder mutation
 
 ## 8. Lead detail modal: stage selector and typed inputs
 
-- [ ] 8.1 Add a stage `<select>` to `LeadFormModal.tsx` (or `LeadDetailModal.tsx`); options come from current tenant stages ordered by `order`
-- [ ] 8.2 On save, if `stageId` changed, call `PATCH /api/pipeline/leads/:id/move` with `{stageId}` (omit position so server appends)
-- [ ] 8.3 Create `client/src/features/pipeline/TypedFieldInput.tsx` switching on `type` to render the right input; integrate into modal's custom-fields section
-- [ ] 8.4 Instagram type: render with fixed `@` prefix; strip leading `@` before save; restore on display
-- [ ] 8.5 Email type: native `<input type="email">` + Zod validation; show inline error before enabling Save
-- [ ] 8.6 Checkbox type: boolean storage; render `<input type="checkbox">`
-- [ ] 8.7 Number type: `<input type="number">` with step controls; coerce to `Number` on save
-- [ ] 8.8 Date type: native `<input type="date">`
-- [ ] 8.9 Vitest tests: changing stage in modal fires `move` mutation; email type validates; checkbox toggles persist; instagram strips leading `@`
+- [x] 8.1 Add a stage `<select>` to `LeadFormModal.tsx` (or `LeadDetailModal.tsx`); options come from current tenant stages ordered by `order`
+- [x] 8.2 On save, if `stageId` changed, call `PATCH /api/pipeline/leads/:id/move` with `{stageId}` (omit position so server appends)
+- [x] 8.3 Create `client/src/features/pipeline/TypedFieldInput.tsx` switching on `type` to render the right input; integrate into modal's custom-fields section
+- [x] 8.4 Instagram type: render with fixed `@` prefix; strip leading `@` before save; restore on display
+- [x] 8.5 Email type: native `<input type="email">` + Zod validation; show inline error before enabling Save
+- [x] 8.6 Checkbox type: boolean storage; render `<input type="checkbox">`
+- [x] 8.7 Number type: `<input type="number">` with step controls; coerce to `Number` on save
+- [x] 8.8 Date type: native `<input type="date">`
+- [x] 8.9 Vitest tests: changing stage in modal fires `move` mutation; email type validates; checkbox toggles persist; instagram strips leading `@`
 
 ## 9. Custom fields panel (reachable from contacts page)
 
-- [ ] 9.1 Add a "Campos" trigger in the contacts page header (visible to owners only); opens a slide-over panel
-- [ ] 9.2 Panel reuses CRUD logic for `lead_custom_fields` previously hosted in `CustomFieldSettingsPanel.tsx`; wire create/update/reorder/delete
-- [ ] 9.3 Type select in the create form lists all 9 supported types
-- [ ] 9.4 Vitest test: panel opens, creates an `email` field, list reflects it without page reload
+- [x] 9.1 Add a "Campos" trigger in the contacts page header (visible to owners only); opens a slide-over panel
+- [x] 9.2 Panel reuses CRUD logic for `lead_custom_fields` previously hosted in `CustomFieldSettingsPanel.tsx`; wire create/update/reorder/delete
+- [x] 9.3 Type select in the create form lists all 9 supported types
+- [x] 9.4 Vitest test: panel opens, creates an `email` field, list reflects it without page reload
 
 ## 10. Visual style refresh
 
