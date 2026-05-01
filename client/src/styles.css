@@ -1,6 +1,11 @@
 @import 'tailwindcss';
 @plugin "daisyui/index.js";
 
+/* base-100 = #f6f7f8 (board surface light gray); cards/columns stay bg-white */
+[data-theme="light"] {
+  --b1: 97.04% 0.004 265;
+}
+
 .board-scroll {
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--bc) / 0.2) transparent;

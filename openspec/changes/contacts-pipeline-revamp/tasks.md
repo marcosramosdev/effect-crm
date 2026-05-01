@@ -83,10 +83,10 @@
 
 ## 10. Visual style refresh
 
-- [ ] 10.1 Audit `PipelineCard.tsx`, `DroppableColumn.tsx`, board surface; remove any `shadow-*` classes
-- [ ] 10.2 Confirm `bg-base-100` maps to `#f6f7f8` and `border-base-200` is a subtle neutral; columns are `bg-white`
-- [ ] 10.3 Replace any non-`lucide-react` icons with `lucide-react` equivalents
-- [ ] 10.4 Ensure stage tag chip uses `stage.color` as accent only (background tint or border-left), not the full card
+- [x] 10.1 Audit `PipelineCard.tsx`, `DroppableColumn.tsx`, board surface; remove any `shadow-*` classes
+- [x] 10.2 Confirm `bg-base-100` maps to `#f6f7f8` and `border-base-200` is a subtle neutral; columns are `bg-white`
+- [x] 10.3 Replace any non-`lucide-react` icons with `lucide-react` equivalents
+- [x] 10.4 Ensure stage tag chip uses `stage.color` as accent only (background tint or border-left), not the full card
 
 ## 11. Tests and quality gates
 

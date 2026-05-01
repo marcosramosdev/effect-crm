@@ -75,13 +75,13 @@ export function DroppableColumn({
   return (
     <div
       key={stage.id}
-      className="flex flex-col w-72 shrink-0 bg-base-200 rounded-lg min-h-full max-h-full [scroll-snap-align:start]"
+      className="flex flex-col w-72 shrink-0 bg-white rounded-lg min-h-full max-h-full [scroll-snap-align:start]"
       ref={setNodeRef}
       style={{ ...style, opacity: isDragging ? 0.5 : 1 }}
     >
       {/* Column header */}
       <div
-        className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg sticky top-0 z-10 bg-base-200"
+        className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg sticky top-0 z-10 bg-white"
         style={{ borderTopColor: stage.color }}
       >
         <div className="flex items-center justify-between">
