@@ -57,6 +57,7 @@ export function LeadFormModal({
   const [fieldOverrides, setFieldOverrides] = useState<Record<string, unknown>>(
     {},
   )
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const {
     register,
@@ -115,6 +116,7 @@ export function LeadFormModal({
         }
       }
       setFieldOverrides(overrides)
+      setFieldErrors({})
       clearErrors()
     }
   }, [open, mode, lead, stageId, reset, clearErrors, customFields])
@@ -137,6 +139,22 @@ export function LeadFormModal({
   }, [open, triggerRef])
 
   const onSubmit = (data: LeadFormInput) => {
+    const emailErrs: Record<string, string> = {}
+    for (const field of customFields) {
+      if (field.type === 'email') {
+        const val = data.customValues?.[field.id]
+        if (
+          val &&
+          typeof val === 'string' &&
+          !z.email().safeParse(val).success
+        ) {
+          emailErrs[field.id] = 'Email inválido'
+        }
+      }
+    }
+    setFieldErrors(emailErrs)
+    if (Object.keys(emailErrs).length > 0) return
+
     const originalStageId = lead?.stageId
     const newStageId = data.stageId
 
@@ -318,7 +336,10 @@ export function LeadFormModal({
                         setFieldOverrides((p) => ({ ...p, [field.id]: val }))
                     : undefined
                 }
-                error={errors.customValues?.[field.id]?.message}
+                error={
+                  errors.customValues?.[field.id]?.message ??
+                  fieldErrors[field.id]
+                }
               />
             )
           })}

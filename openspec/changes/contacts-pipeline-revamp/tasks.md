@@ -64,22 +64,22 @@
 
 ## 8. Lead detail modal: stage selector and typed inputs
 
-- [ ] 8.1 Add a stage `<select>` to `LeadFormModal.tsx` (or `LeadDetailModal.tsx`); options come from current tenant stages ordered by `order`
-- [ ] 8.2 On save, if `stageId` changed, call `PATCH /api/pipeline/leads/:id/move` with `{stageId}` (omit position so server appends)
-- [ ] 8.3 Create `client/src/features/pipeline/TypedFieldInput.tsx` switching on `type` to render the right input; integrate into modal's custom-fields section
-- [ ] 8.4 Instagram type: render with fixed `@` prefix; strip leading `@` before save; restore on display
-- [ ] 8.5 Email type: native `<input type="email">` + Zod validation; show inline error before enabling Save
-- [ ] 8.6 Checkbox type: boolean storage; render `<input type="checkbox">`
-- [ ] 8.7 Number type: `<input type="number">` with step controls; coerce to `Number` on save
-- [ ] 8.8 Date type: native `<input type="date">`
-- [ ] 8.9 Vitest tests: changing stage in modal fires `move` mutation; email type validates; checkbox toggles persist; instagram strips leading `@`
+- [x] 8.1 Add a stage `<select>` to `LeadFormModal.tsx` (or `LeadDetailModal.tsx`); options come from current tenant stages ordered by `order`
+- [x] 8.2 On save, if `stageId` changed, call `PATCH /api/pipeline/leads/:id/move` with `{stageId}` (omit position so server appends)
+- [x] 8.3 Create `client/src/features/pipeline/TypedFieldInput.tsx` switching on `type` to render the right input; integrate into modal's custom-fields section
+- [x] 8.4 Instagram type: render with fixed `@` prefix; strip leading `@` before save; restore on display
+- [x] 8.5 Email type: native `<input type="email">` + Zod validation; show inline error before enabling Save
+- [x] 8.6 Checkbox type: boolean storage; render `<input type="checkbox">`
+- [x] 8.7 Number type: `<input type="number">` with step controls; coerce to `Number` on save
+- [x] 8.8 Date type: native `<input type="date">`
+- [x] 8.9 Vitest tests: changing stage in modal fires `move` mutation; email type validates; checkbox toggles persist; instagram strips leading `@`
 
 ## 9. Custom fields panel (reachable from contacts page)
 
-- [ ] 9.1 Add a "Campos" trigger in the contacts page header (visible to owners only); opens a slide-over panel
-- [ ] 9.2 Panel reuses CRUD logic for `lead_custom_fields` previously hosted in `CustomFieldSettingsPanel.tsx`; wire create/update/reorder/delete
-- [ ] 9.3 Type select in the create form lists all 9 supported types
-- [ ] 9.4 Vitest test: panel opens, creates an `email` field, list reflects it without page reload
+- [x] 9.1 Add a "Campos" trigger in the contacts page header (visible to owners only); opens a slide-over panel
+- [x] 9.2 Panel reuses CRUD logic for `lead_custom_fields` previously hosted in `CustomFieldSettingsPanel.tsx`; wire create/update/reorder/delete
+- [x] 9.3 Type select in the create form lists all 9 supported types
+- [x] 9.4 Vitest test: panel opens, creates an `email` field, list reflects it without page reload
 
 ## 10. Visual style refresh
 
