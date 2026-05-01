@@ -53,14 +53,14 @@
 
 ## 7. Inline stage management on board
 
-- [ ] 7.1 Create `client/src/features/pipeline/StageColumnMenu.tsx` (overflow `...` button on column header) with: Renomear, Alterar cor, Eliminar (with destination fallback prompt)
-- [ ] 7.2 Allow rename inline: double-click on column label opens an editable input; Enter saves via `PATCH /api/pipeline/stages/:id`; Escape cancels
-- [ ] 7.3 Reuse existing `StageColorPicker.tsx` in the column menu's "Alterar cor" submenu
-- [ ] 7.4 Add a `+` button after the last column (full-height ghost column); click opens an inline create form; submit calls `POST /api/pipeline/stages`
-- [ ] 7.5 Make the column header itself draggable (own `useDraggable` with `data:{type:'column', id}`) so owners can reorder columns horizontally; `onDragEnd` for column-type calls `PATCH /api/pipeline/stages/reorder`
-- [ ] 7.6 Hide all stage-management controls (`StageColumnMenu`, `+`, rename, column-drag listeners) when `useAuth().role !== 'owner'`
-- [ ] 7.7 Delete the now-unused `StageSettingsPanel.tsx` and `CustomFieldSettingsPanel.tsx` if they are not referenced elsewhere; otherwise mark for removal
-- [ ] 7.8 Vitest tests: owner sees menu/`+`; agent does not; rename round-trips; column reorder fires the reorder mutation
+- [x] 7.1 Create `client/src/features/pipeline/StageColumnMenu.tsx` (overflow `...` button on column header) with: Renomear, Alterar cor, Eliminar (with destination fallback prompt)
+- [x] 7.2 Allow rename inline: double-click on column label opens an editable input; Enter saves via `PATCH /api/pipeline/stages/:id`; Escape cancels
+- [x] 7.3 Reuse existing `StageColorPicker.tsx` in the column menu's "Alterar cor" submenu
+- [x] 7.4 Add a `+` button after the last column (full-height ghost column); click opens an inline create form; submit calls `POST /api/pipeline/stages`
+- [x] 7.5 Make the column header itself draggable (own `useDraggable` with `data:{type:'column', id}`) so owners can reorder columns horizontally; `onDragEnd` for column-type calls `PATCH /api/pipeline/stages/reorder`
+- [x] 7.6 Hide all stage-management controls (`StageColumnMenu`, `+`, rename, column-drag listeners) when `useAuth().role !== 'owner'`
+- [x] 7.7 Delete the now-unused `StageSettingsPanel.tsx` and `CustomFieldSettingsPanel.tsx` if they are not referenced elsewhere; otherwise mark for removal
+- [x] 7.8 Vitest tests: owner sees menu/`+`; agent does not; rename round-trips; column reorder fires the reorder mutation
 
 ## 8. Lead detail modal: stage selector and typed inputs
 

@@ -13,12 +13,10 @@ vi.mock('@tanstack/react-router', async () => {
   )
   return {
     ...actual,
-    createFileRoute:
-      () =>
-      (opts: Record<string, unknown>) => ({
-        ...opts,
-        useSearch: () => ({ view: mockView }),
-      }),
+    createFileRoute: () => (opts: Record<string, unknown>) => ({
+      ...opts,
+      useSearch: () => ({ view: mockView }),
+    }),
     useNavigate: () => mockNavigate,
     useRouterState: ({
       select,
@@ -34,7 +32,7 @@ vi.mock('@tanstack/react-router', async () => {
       children: ReactNode
       to: string
       className?: string
-      'aria-current'?: string
+      'aria-current'?: React.AriaAttributes['aria-current']
     }) => (
       <a href={to} className={className} aria-current={ariaCurrent}>
         {children}
@@ -75,7 +73,9 @@ describe('ContactsPage', () => {
 
   it('renders board view by default', async () => {
     const mod = await import('../index')
-    const ContactsPage = (mod.Route as { component: React.ComponentType }).component
+    const ContactsPage = (
+      mod.Route as unknown as { component: React.ComponentType }
+    ).component
     render(<ContactsPage />, { wrapper: makeWrapper() })
     expect(screen.getByTestId('pipeline-board')).toBeInTheDocument()
     expect(screen.queryByTestId('lead-list-view')).not.toBeInTheDocument()
@@ -84,7 +84,9 @@ describe('ContactsPage', () => {
   it('renders list view when ?view=list', async () => {
     mockView = 'list'
     const mod = await import('../index')
-    const ContactsPage = (mod.Route as { component: React.ComponentType }).component
+    const ContactsPage = (
+      mod.Route as unknown as { component: React.ComponentType }
+    ).component
     render(<ContactsPage />, { wrapper: makeWrapper() })
     expect(screen.getByTestId('lead-list-view')).toBeInTheDocument()
     expect(screen.queryByTestId('pipeline-board')).not.toBeInTheDocument()
@@ -92,7 +94,9 @@ describe('ContactsPage', () => {
 
   it('clicking List tab navigates with view=list', async () => {
     const mod = await import('../index')
-    const ContactsPage = (mod.Route as { component: React.ComponentType }).component
+    const ContactsPage = (
+      mod.Route as unknown as { component: React.ComponentType }
+    ).component
     render(<ContactsPage />, { wrapper: makeWrapper() })
     fireEvent.click(screen.getByRole('tab', { name: 'List' }))
     expect(mockNavigate).toHaveBeenCalledWith({ search: { view: 'list' } })
@@ -101,7 +105,9 @@ describe('ContactsPage', () => {
   it('clicking Board tab navigates with view=board', async () => {
     mockView = 'list'
     const mod = await import('../index')
-    const ContactsPage = (mod.Route as { component: React.ComponentType }).component
+    const ContactsPage = (
+      mod.Route as unknown as { component: React.ComponentType }
+    ).component
     render(<ContactsPage />, { wrapper: makeWrapper() })
     fireEvent.click(screen.getByRole('tab', { name: 'Board' }))
     expect(mockNavigate).toHaveBeenCalledWith({ search: { view: 'board' } })
@@ -109,10 +115,14 @@ describe('ContactsPage', () => {
 
   it('subtitle is rendered', async () => {
     const mod = await import('../index')
-    const ContactsPage = (mod.Route as { component: React.ComponentType }).component
+    const ContactsPage = (
+      mod.Route as unknown as { component: React.ComponentType }
+    ).component
     render(<ContactsPage />, { wrapper: makeWrapper() })
     expect(
-      screen.getByText('Centralize e organize todos os seus leads em um só lugar'),
+      screen.getByText(
+        'Centralize e organize todos os seus leads em um só lugar',
+      ),
     ).toBeInTheDocument()
   })
 })

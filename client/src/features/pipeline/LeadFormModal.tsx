@@ -1,10 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import type { UseFormRegister } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { X } from 'lucide-react'
-import { useCreateLead, useUpdateLead, useCustomFields } from './api'
-import type { PipelineLead, CustomFieldDef } from '@shared/pipeline'
+import {
+  useCreateLead,
+  useUpdateLead,
+  useCustomFields,
+  useStages,
+  useMoveLead,
+} from './api'
+import { TypedFieldInput } from './TypedFieldInput'
+import type { PipelineLead } from '@shared/pipeline'
 
 const LeadFormSchema = z.object({
   displayName: z.string().trim().max(255).optional().or(z.literal('')),
@@ -12,7 +20,7 @@ const LeadFormSchema = z.object({
   stageId: z.string().uuid(),
   customValues: z.record(
     z.string(),
-    z.union([z.string(), z.number(), z.null()]).optional(),
+    z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
   ),
 })
 
@@ -36,11 +44,19 @@ export function LeadFormModal({
   triggerRef,
 }: LeadFormModalProps) {
   const { data: customFieldsData } = useCustomFields()
+  const { data: stagesData } = useStages()
   const createLead = useCreateLead()
   const updateLead = useUpdateLead()
+  const moveLead = useMoveLead()
   const modalRef = useRef<HTMLDivElement>(null)
 
   const customFields = customFieldsData?.fields ?? []
+  const stages = stagesData?.stages ?? []
+
+  // Track typed field values for uncontrolled fields (checkbox, instagram)
+  const [fieldOverrides, setFieldOverrides] = useState<Record<string, unknown>>(
+    {},
+  )
 
   const {
     register,
@@ -48,8 +64,8 @@ export function LeadFormModal({
     reset,
     setError,
     clearErrors,
-    formState: { errors },
     watch,
+    formState: { errors },
   } = useForm<LeadFormInput>({
     resolver: zodResolver(LeadFormSchema),
     defaultValues: {
@@ -62,6 +78,7 @@ export function LeadFormModal({
 
   useEffect(() => {
     if (open) {
+      const overrides: Record<string, unknown> = {}
       if (mode === 'edit' && lead) {
         const customValues: Record<string, string | number | null> = {}
         if (lead.customValues) {
@@ -77,6 +94,14 @@ export function LeadFormModal({
           stageId: lead.stageId,
           customValues,
         })
+        // Pre-populate overrides for checkbox/instagram
+        for (const field of customFields) {
+          if (field.type === 'checkbox' || field.type === 'instagram') {
+            overrides[field.id] =
+              lead.customValues?.[field.id] ??
+              (field.type === 'checkbox' ? false : '')
+          }
+        }
       } else {
         reset({
           displayName: '',
@@ -84,12 +109,16 @@ export function LeadFormModal({
           stageId: stageId ?? '',
           customValues: {},
         })
+        for (const field of customFields) {
+          if (field.type === 'checkbox') overrides[field.id] = false
+          if (field.type === 'instagram') overrides[field.id] = ''
+        }
       }
+      setFieldOverrides(overrides)
       clearErrors()
     }
-  }, [open, mode, lead, stageId, reset, clearErrors])
+  }, [open, mode, lead, stageId, reset, clearErrors, customFields])
 
-  // Lock body scroll when modal is open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden'
@@ -101,7 +130,6 @@ export function LeadFormModal({
     }
   }, [open])
 
-  // Restore focus on close
   useEffect(() => {
     if (!open && triggerRef?.current) {
       triggerRef.current.focus()
@@ -109,18 +137,42 @@ export function LeadFormModal({
   }, [open, triggerRef])
 
   const onSubmit = (data: LeadFormInput) => {
+    const originalStageId = lead?.stageId
+    const newStageId = data.stageId
+
+    // Merge checkbox/instagram overrides into customValues
+    const customValues: Record<string, unknown> = { ...data.customValues }
+    for (const [fieldId, val] of Object.entries(fieldOverrides)) {
+      customValues[fieldId] = val
+    }
+    // Strip @ from instagram fields before save
+    for (const field of customFields) {
+      if (
+        field.type === 'instagram' &&
+        typeof customValues[field.id] === 'string'
+      ) {
+        customValues[field.id] = (customValues[field.id] as string).replace(
+          /^@/,
+          '',
+        )
+      }
+    }
+
     const payload = {
       displayName: data.displayName || undefined,
       phoneNumber: data.phoneNumber || undefined,
-      stageId: data.stageId,
-      customValues: data.customValues,
+      stageId: newStageId,
+      customValues: customValues as Record<
+        string,
+        string | number | boolean | null
+      >,
     }
 
     if (mode === 'create') {
       createLead.mutate(payload, {
         onSuccess: () => onClose(),
         onError: (err) => {
-          const error = err as { code?: string; message?: string }
+          const error = err as { code?: string }
           if (error.code === 'LEAD_PHONE_EXISTS') {
             setError('phoneNumber', {
               message: 'Número de telefone já existe para este tenant',
@@ -132,9 +184,15 @@ export function LeadFormModal({
       updateLead.mutate(
         { leadId: lead.id, body: payload },
         {
-          onSuccess: () => onClose(),
+          onSuccess: () => {
+            // If stage changed, also fire the move mutation
+            if (originalStageId && newStageId !== originalStageId) {
+              moveLead.mutate({ leadId: lead.id, stageId: newStageId })
+            }
+            onClose()
+          },
           onError: (err) => {
-            const error = err as { code?: string; message?: string }
+            const error = err as { code?: string }
             if (error.code === 'LEAD_PHONE_EXISTS') {
               setError('phoneNumber', {
                 message: 'Número de telefone já existe para este tenant',
@@ -147,6 +205,8 @@ export function LeadFormModal({
   }
 
   if (!open) return null
+
+  const isPending = createLead.isPending || updateLead.isPending
 
   return (
     <div
@@ -208,15 +268,60 @@ export function LeadFormModal({
             )}
           </div>
 
-          {customFields.map((field) => (
-            <CustomFieldInput
-              key={field.id}
-              field={field}
-              register={register}
-              error={errors.customValues?.[field.id]?.message}
-              value={watch(`customValues.${field.id}`)}
-            />
-          ))}
+          {/* Stage selector */}
+          <div>
+            <label htmlFor="stageId" className="label">
+              <span className="label-text">Etapa</span>
+            </label>
+            <select
+              id="stageId"
+              {...register('stageId')}
+              className="select select-bordered w-full"
+            >
+              <option value="">Selecionar etapa...</option>
+              {[...stages]
+                .sort((a, b) => a.order - b.order)
+                .map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+            </select>
+            {errors.stageId && (
+              <p className="text-error text-sm mt-1">
+                {errors.stageId.message}
+              </p>
+            )}
+          </div>
+
+          {/* Typed custom fields */}
+          {customFields.map((field) => {
+            const needsOverride =
+              field.type === 'checkbox' || field.type === 'instagram'
+            return (
+              <TypedFieldInput
+                key={field.id}
+                field={field}
+                register={
+                  register as unknown as UseFormRegister<
+                    Record<string, unknown>
+                  >
+                }
+                value={
+                  needsOverride
+                    ? fieldOverrides[field.id]
+                    : watch(`customValues.${field.id}`)
+                }
+                onChange={
+                  needsOverride
+                    ? (val) =>
+                        setFieldOverrides((p) => ({ ...p, [field.id]: val }))
+                    : undefined
+                }
+                error={errors.customValues?.[field.id]?.message}
+              />
+            )
+          })}
 
           <div className="flex justify-end gap-2 mt-2">
             <button type="button" className="btn" onClick={onClose}>
@@ -225,9 +330,9 @@ export function LeadFormModal({
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={createLead.isPending || updateLead.isPending}
+              disabled={isPending}
             >
-              {createLead.isPending || updateLead.isPending ? (
+              {isPending ? (
                 <span className="loading loading-spinner loading-sm" />
               ) : mode === 'create' ? (
                 'Criar'
@@ -238,65 +343,6 @@ export function LeadFormModal({
           </div>
         </form>
       </div>
-    </div>
-  )
-}
-
-function CustomFieldInput({
-  field,
-  register,
-  error,
-}: {
-  field: CustomFieldDef
-  register: ReturnType<typeof useForm<LeadFormInput>>['register']
-  error?: string
-  value?: unknown
-}) {
-  const name = `customValues.${field.id}` as const
-
-  return (
-    <div>
-      <label htmlFor={field.id} className="label">
-        <span className="label-text">{field.label}</span>
-      </label>
-      {field.type === 'select' && field.options ? (
-        <select
-          id={field.id}
-          {...register(name)}
-          className="select select-bordered w-full"
-        >
-          <option value="">Selecionar...</option>
-          {field.options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-      ) : field.type === 'number' ? (
-        <input
-          id={field.id}
-          type="number"
-          {...register(name, { valueAsNumber: true })}
-          className="input input-bordered w-full"
-          placeholder={field.label}
-        />
-      ) : field.type === 'date' ? (
-        <input
-          id={field.id}
-          type="date"
-          {...register(name)}
-          className="input input-bordered w-full"
-        />
-      ) : (
-        <input
-          id={field.id}
-          type={field.type === 'url' ? 'url' : 'text'}
-          {...register(name)}
-          className="input input-bordered w-full"
-          placeholder={field.label}
-        />
-      )}
-      {error && <p className="text-error text-sm mt-1">{error}</p>}
     </div>
   )
 }

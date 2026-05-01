@@ -28,9 +28,7 @@ export function AppBar({
     <header className="flex items-center gap-4 h-14 px-4 bg-base-100 border-b border-base-200 shrink-0">
       <div className="flex flex-col justify-center">
         <h1 className="font-semibold text-base whitespace-nowrap">{title}</h1>
-        {subtitle && (
-          <p className="text-sm text-base-content/60">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-sm text-base-content/60">{subtitle}</p>}
       </div>
 
       {/* View tab strip in centre */}

@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { useLeads, useStages, useCustomFields } from './api'
 import { LeadFormModal } from './LeadFormModal'
-import type { PipelineLead, PipelineStage, CustomFieldDef } from '@shared/pipeline'
+import type {
+  PipelineLead,
+  PipelineStage,
+  CustomFieldDef,
+} from '@shared/pipeline'
 
 type SortKey = 'displayName' | 'appointmentDate' | 'timeInStage'
 type SortDir = 'asc' | 'desc'
@@ -40,9 +44,8 @@ function sortLeads(
       const aVal = getCustomValue(a, fields, 'appointmentDate') ?? ''
       const bVal = getCustomValue(b, fields, 'appointmentDate') ?? ''
       cmp = aVal.localeCompare(bVal)
-    } else if (sortKey === 'timeInStage') {
-      cmp =
-        new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+    } else {
+      cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
     }
     return sortDir === 'asc' ? cmp : -cmp
   })
@@ -61,7 +64,9 @@ function SortHeader({ label, sortKey, active, dir, onSort }: SortHeaderProps) {
   return (
     <th
       className="px-3 py-2 text-left text-xs font-medium text-base-content/60 cursor-pointer select-none whitespace-nowrap"
-      aria-sort={isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      aria-sort={
+        isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'
+      }
       onClick={() => onSort(sortKey)}
     >
       <span className="flex items-center gap-1">
@@ -171,7 +176,9 @@ export function LeadListView() {
                 <tr
                   key={lead.id}
                   className="border-b border-base-200 hover:bg-base-100 cursor-pointer"
-                  onClick={() => setModal({ open: true, lead, stageId: lead.stageId })}
+                  onClick={() =>
+                    setModal({ open: true, lead, stageId: lead.stageId })
+                  }
                 >
                   <td className="px-3 py-2">
                     {stage && (
@@ -188,7 +195,9 @@ export function LeadListView() {
                     )}
                   </td>
                   <td className="px-3 py-2 font-medium text-base-content">
-                    {lead.displayName ?? <span className="text-base-content/40">—</span>}
+                    {lead.displayName ?? (
+                      <span className="text-base-content/40">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-base-content/70">
                     {lead.phoneNumber.startsWith('manual:') ? (
@@ -201,10 +210,16 @@ export function LeadListView() {
                     {email ?? <span className="text-base-content/40">—</span>}
                   </td>
                   <td className="px-3 py-2 text-base-content/70">
-                    {instagram ? `@${instagram.replace(/^@/, '')}` : <span className="text-base-content/40">—</span>}
+                    {instagram ? (
+                      `@${instagram.replace(/^@/, '')}`
+                    ) : (
+                      <span className="text-base-content/40">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-base-content/70">
-                    {apptDate ?? <span className="text-base-content/40">—</span>}
+                    {apptDate ?? (
+                      <span className="text-base-content/40">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-base-content/50 tabular-nums">
                     {formatTimeInStage(lead.updatedAt)}

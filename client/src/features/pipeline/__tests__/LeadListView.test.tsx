@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
@@ -21,8 +21,22 @@ const STAGE2_ID = '00000000-0000-0000-0003-000000000002'
 const EMAIL_FIELD_ID = '00000000-0000-0000-0005-000000000001'
 
 const stages = [
-  { id: STAGE_ID, name: 'Novo', order: 1, isDefaultEntry: true, color: '#22c55e', description: null },
-  { id: STAGE2_ID, name: 'Fechado', order: 2, isDefaultEntry: false, color: '#ef4444', description: null },
+  {
+    id: STAGE_ID,
+    name: 'Novo',
+    order: 1,
+    isDefaultEntry: true,
+    color: '#22c55e',
+    description: null,
+  },
+  {
+    id: STAGE2_ID,
+    name: 'Fechado',
+    order: 2,
+    isDefaultEntry: false,
+    color: '#ef4444',
+    description: null,
+  },
 ]
 
 const customFields = [
