@@ -46,19 +46,17 @@ describe('CustomFieldSettingsPanel', () => {
   })
 
   it('panel opens and shows heading', async () => {
-    render(
-      <CustomFieldSettingsPanel open onClose={vi.fn()} />,
-      { wrapper: makeWrapper() },
-    )
+    render(<CustomFieldSettingsPanel open onClose={vi.fn()} />, {
+      wrapper: makeWrapper(),
+    })
     await screen.findByText('Campos personalizados')
     expect(screen.getByText('Nenhum campo criado ainda.')).toBeInTheDocument()
   })
 
   it('panel hidden when open=false', () => {
-    render(
-      <CustomFieldSettingsPanel open={false} onClose={vi.fn()} />,
-      { wrapper: makeWrapper() },
-    )
+    render(<CustomFieldSettingsPanel open={false} onClose={vi.fn()} />, {
+      wrapper: makeWrapper(),
+    })
     expect(screen.queryByText('Campos personalizados')).not.toBeInTheDocument()
   })
 
@@ -75,10 +73,9 @@ describe('CustomFieldSettingsPanel', () => {
       }),
     )
 
-    render(
-      <CustomFieldSettingsPanel open onClose={vi.fn()} />,
-      { wrapper: makeWrapper() },
-    )
+    render(<CustomFieldSettingsPanel open onClose={vi.fn()} />, {
+      wrapper: makeWrapper(),
+    })
 
     await screen.findByText('Campos personalizados')
 

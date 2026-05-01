@@ -36,43 +36,43 @@ function ContactsPage() {
 
   return (
     <>
-    <DashboardLayout
-      title="Contatos"
-      subtitle="Centralize e organize todos os seus leads em um só lugar"
-      contentClassName="flex-1 overflow-hidden"
-      viewTabs={viewTabs}
-      onViewTabChange={handleViewChange}
-      actions={
-        <div className="flex items-center gap-2">
-          {isOwner && (
+      <DashboardLayout
+        title="Contatos"
+        subtitle="Centralize e organize todos os seus leads em um só lugar"
+        contentClassName="flex-1 overflow-hidden"
+        viewTabs={viewTabs}
+        onViewTabChange={handleViewChange}
+        actions={
+          <div className="flex items-center gap-2">
+            {isOwner && (
+              <button
+                type="button"
+                className="btn btn-sm btn-ghost"
+                onClick={() => setCamposOpen(true)}
+              >
+                <Settings2 className="h-4 w-4" />
+                Campos
+              </button>
+            )}
             <button
               type="button"
-              className="btn btn-sm btn-ghost"
-              onClick={() => setCamposOpen(true)}
+              className="btn btn-sm btn-primary"
+              onClick={() => {}}
             >
-              <Settings2 className="h-4 w-4" />
-              Campos
+              <Plus className="h-4 w-4" />
+              Adicionar lead
             </button>
-          )}
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            onClick={() => {}}
-          >
-            <Plus className="h-4 w-4" />
-            Adicionar lead
-          </button>
-        </div>
-      }
-    >
-      {view === 'list' ? <LeadListView /> : <PipelineBoard />}
-    </DashboardLayout>
-    {camposOpen && (
-      <CustomFieldSettingsPanel
-        open={camposOpen}
-        onClose={() => setCamposOpen(false)}
-      />
-    )}
+          </div>
+        }
+      >
+        {view === 'list' ? <LeadListView /> : <PipelineBoard />}
+      </DashboardLayout>
+      {camposOpen && (
+        <CustomFieldSettingsPanel
+          open={camposOpen}
+          onClose={() => setCamposOpen(false)}
+        />
+      )}
     </>
   )
 }

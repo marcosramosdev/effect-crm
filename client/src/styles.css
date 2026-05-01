@@ -2,13 +2,18 @@
 @plugin "daisyui/index.js";
 
 /* base-100 = #f6f7f8 (board surface light gray); cards/columns stay bg-white */
-[data-theme="light"] {
-  --b1: 97.04% 0.004 265;
+[data-theme='light'] {
+  --color-base-100: oklch(97.04% 0.004 265);
 }
 
 .board-scroll {
   scrollbar-width: thin;
-  scrollbar-color: oklch(var(--bc) / 0.2) transparent;
+  scrollbar-color: color-mix(
+      in oklch,
+      var(--color-base-content) 20%,
+      transparent
+    )
+    transparent;
 }
 
 .board-scroll::-webkit-scrollbar {
@@ -20,6 +25,10 @@
 }
 
 .board-scroll::-webkit-scrollbar-thumb {
-  background-color: oklch(var(--bc) / 0.2);
+  background-color: color-mix(
+    in oklch,
+    var(--color-base-content) 20%,
+    transparent
+  );
   border-radius: 3px;
 }
