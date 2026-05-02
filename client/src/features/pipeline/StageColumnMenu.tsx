@@ -16,7 +16,7 @@ export function StageColumnMenu({
   onRename,
 }: StageColumnMenuProps) {
   const [open, setOpen] = useState(false)
-  const [showColor, setShowColor] = useState(false)
+  const [colorOpen, setColorOpen] = useState(false)
   const [deleteModal, setDeleteModal] = useState<{
     leadsAffected: number
   } | null>(null)
@@ -27,23 +27,44 @@ export function StageColumnMenu({
 
   useEffect(() => {
     if (!open) {
-      setShowColor(false)
+      setColorOpen(false)
     }
   }, [open])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
+      if (colorOpen) return
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
-    if (open) document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open])
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        if (colorOpen) {
+          setColorOpen(false)
+        } else {
+          setOpen(false)
+        }
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, colorOpen])
 
-  function handleColorChange(color: string) {
+  function handleColorApply(color: string) {
     updateStage.mutate({ stageId: stage.id, body: { color } })
+    setColorOpen(false)
     setOpen(false)
+  }
+
+  function handleColorCancel() {
+    setColorOpen(false)
   }
 
   function handleDeleteClick() {
@@ -105,15 +126,16 @@ export function StageColumnMenu({
             <button
               type="button"
               className="w-full px-3 py-1.5 text-sm text-left hover:bg-base-200 transition-colors"
-              onClick={() => setShowColor((v) => !v)}
+              onClick={() => setColorOpen((v) => !v)}
             >
               Alterar cor
             </button>
-            {showColor && (
+            {colorOpen && (
               <div className="px-3 py-2 border-t border-base-200">
                 <StageColorPicker
-                  value={stage.color}
-                  onChange={handleColorChange}
+                  initialColor={stage.color}
+                  onApply={handleColorApply}
+                  onCancel={handleColorCancel}
                 />
               </div>
             )}

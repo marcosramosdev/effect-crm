@@ -57,10 +57,9 @@ bun --bun run dev      # http://localhost:5173
 - Cards: `bg-white border border-base-200 rounded-lg` sem shadow; hover `hover:bg-base-100`
 - Tipografia: `text-base-content/60` para texto secundário, `text-base-content/40` para ícones
 
-### Drag-and-drop (@dnd-kit)
+### Drag-and-drop (@hello-pangea/dnd)
 
-- `PipelineBoard` gere o `DndContext` com `onDragOver` (optimistic cross-column) e `onDragEnd` (commit com `position`).
-- `SortableLeadCard` usa `useSortable` com `activationConstraint: { distance: 5 }` para evitar cliques acidentais.
-- `DroppableColumn` usa `useDroppable` + `SortableContext` com `verticalListSortingStrategy`.
-- Mockar `@dnd-kit/*` em testes Vitest para simplificar assertions de DOM.
+- `PipelineBoard` delega DnD para `PipelineBoardDnd` (wrapper em `features/pipeline/dnd-pangea/`).
+- `PipelineBoardDnd` usa `DragDropContext` + `Droppable` + `Draggable`; calcula `position` com midpoint strategy no `onDragEnd`.
+- Mockar `@hello-pangea/dnd` em testes Vitest para simplificar assertions de DOM.
 - `framer-motion` mantido apenas para `Reorder.Group` nos painéis de settings (etapas/campos).

@@ -1,16 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-  within,
-} from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
+import React from 'react'
 import { overrideHandler } from '../../../test/msw/server'
 import { PipelineBoard } from '../PipelineBoard'
+import type { PipelineLead, PipelineStage } from '@shared/pipeline'
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
@@ -18,54 +14,6 @@ vi.mock('../../../lib/supabase', () => ({
       getSession: () =>
         Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
-    },
-  },
-}))
-
-vi.mock('@dnd-kit/core', () => ({
-  DndContext: ({
-    children,
-    onDragStart,
-    onDragOver,
-    onDragEnd,
-  }: {
-    children: ReactNode
-    onDragStart?: () => void
-    onDragOver?: () => void
-    onDragEnd?: () => void
-  }) => <div data-testid="dnd-context">{children}</div>,
-  DragOverlay: ({ children }: { children: ReactNode }) => <>{children}</>,
-  useSensor: () => ({}),
-  useSensors: () => ({}),
-  closestCorners: () => [],
-  useDroppable: () => ({ setNodeRef: () => {}, isOver: false }),
-  KeyboardSensor: {},
-  PointerSensor: {},
-}))
-
-vi.mock('@dnd-kit/sortable', () => ({
-  useSortable: ({ id }: { id: string }) => ({
-    attributes: { 'data-sortable-id': id },
-    listeners: {},
-    setNodeRef: () => {},
-    transform: null,
-    transition: null,
-    isDragging: false,
-  }),
-  SortableContext: ({ children }: { children: ReactNode }) => <>{children}</>,
-  arrayMove: (arr: unknown[], from: number, to: number) => {
-    const result = [...arr]
-    const [item] = result.splice(from, 1)
-    result.splice(to, 0, item)
-    return result
-  },
-  verticalListSortingStrategy: {},
-}))
-
-vi.mock('@dnd-kit/utilities', () => ({
-  CSS: {
-    Transform: {
-      toString: (t: unknown) => String(t ?? ''),
     },
   },
 }))
@@ -81,6 +29,76 @@ vi.mock('framer-motion', () => ({
   Reorder: {
     Group: ({ children }: { children: ReactNode }) => <>{children}</>,
     Item: ({ children }: { children: ReactNode }) => <>{children}</>,
+  },
+}))
+
+// Capture onMove so tests can trigger drops without real DnD
+let capturedOnMove:
+  | ((leadId: string, stageId: string, position: number) => void)
+  | undefined
+
+vi.mock('../dnd-pangea/PipelineBoardDnd', () => ({
+  PipelineBoardDnd: ({
+    stages,
+    leads,
+    onMove,
+    renderColumnHeader,
+    renderCard,
+    renderEmptyColumn,
+    renderBoardFooter,
+  }: {
+    stages: PipelineStage[]
+    leads: PipelineLead[]
+    onMove: (leadId: string, stageId: string, position: number) => void
+    renderColumnHeader: (
+      stage: PipelineStage,
+      stageLeads: PipelineLead[],
+    ) => ReactNode
+    renderCard: (
+      lead: PipelineLead,
+      provided: {
+        innerRef: (el: HTMLElement | null) => void
+        draggableProps: { style: object; [k: string]: unknown }
+        dragHandleProps: object | null
+      },
+      isDragging: boolean,
+    ) => ReactNode
+    renderEmptyColumn?: (stage: PipelineStage) => ReactNode
+    renderBoardFooter?: () => ReactNode
+  }) => {
+    capturedOnMove = onMove
+    return (
+      <div data-testid="pipeline-board-dnd">
+        {stages.map((stage) => {
+          const stageLeads = leads
+            .filter((l) => l.stageId === stage.id)
+            .sort((a, b) => a.position - b.position)
+          return (
+            <div key={stage.id}>
+              {renderColumnHeader(stage, stageLeads)}
+              {stageLeads.length === 0 && renderEmptyColumn?.(stage)}
+              {stageLeads.map((lead) => (
+                <React.Fragment key={lead.id}>
+                  {renderCard(
+                    lead,
+                    {
+                      innerRef: () => {},
+                      draggableProps: {
+                        style: {},
+                        'data-rbd-draggable-id': lead.id,
+                      },
+                      dragHandleProps: {},
+                    },
+                    false,
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          )
+        })}
+        {renderBoardFooter?.()}
+      </div>
+    )
   },
 }))
 
@@ -131,6 +149,7 @@ function makeWrapper() {
 
 describe('PipelineBoard', () => {
   beforeEach(() => {
+    capturedOnMove = undefined
     overrideHandler(
       http.get('/api/pipeline/stages', () => HttpResponse.json({ stages })),
       http.get('/api/pipeline/leads', () =>
@@ -140,6 +159,19 @@ describe('PipelineBoard', () => {
         HttpResponse.json({ fields: [] }),
       ),
     )
+  })
+
+  it('renders all columns by name', async () => {
+    render(<PipelineBoard />, { wrapper: makeWrapper() })
+    await screen.findByText('Em conversa')
+    expect(screen.getAllByText('Novo').length).toBeGreaterThan(0)
+    expect(screen.getByText('Em conversa')).toBeInTheDocument()
+  })
+
+  it('renders lead cards', async () => {
+    render(<PipelineBoard />, { wrapper: makeWrapper() })
+    await screen.findByText('Alice')
+    expect(screen.getByText('Alice')).toBeInTheDocument()
   })
 
   it('renders columns with color strips', async () => {
@@ -174,9 +206,13 @@ describe('PipelineBoard', () => {
     render(<PipelineBoard />, { wrapper: makeWrapper() })
     await screen.findByText('Alice')
 
-    // Since framer-motion is mocked, we trigger the drag via a direct handler invocation
-    // In the real implementation, drag fires onDragEnd which hit-tests columns
-    // For this test, we verify the mutation hook is wired correctly by checking the board renders
-    expect(screen.getByText('Alice')).toBeInTheDocument()
+    act(() => {
+      capturedOnMove?.(LEAD_ID, STAGE2_ID, 512)
+    })
+
+    await waitFor(() => {
+      expect(patchedLeadId).toBe(LEAD_ID)
+      expect(patchedStageId).toBe(STAGE2_ID)
+    })
   })
 })

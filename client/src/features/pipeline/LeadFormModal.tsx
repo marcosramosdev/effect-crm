@@ -142,7 +142,7 @@ export function LeadFormModal({
     const emailErrs: Record<string, string> = {}
     for (const field of customFields) {
       if (field.type === 'email') {
-        const val = data.customValues?.[field.id]
+        const val = data.customValues[field.id]
         if (
           val &&
           typeof val === 'string' &&

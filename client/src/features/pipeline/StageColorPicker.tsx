@@ -16,11 +16,17 @@ const PALETTE = [
 ]
 
 interface StageColorPickerProps {
-  value: string
-  onChange: (color: string) => void
+  initialColor: string
+  onApply: (color: string) => void
+  onCancel: () => void
 }
 
-export function StageColorPicker({ value, onChange }: StageColorPickerProps) {
+export function StageColorPicker({
+  initialColor,
+  onApply,
+  onCancel,
+}: StageColorPickerProps) {
+  const [draft, setDraft] = useState(initialColor)
   const [custom, setCustom] = useState(false)
 
   return (
@@ -31,12 +37,12 @@ export function StageColorPicker({ value, onChange }: StageColorPickerProps) {
             key={color}
             type="button"
             className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${
-              value === color
+              draft === color
                 ? 'border-base-content scale-110'
                 : 'border-transparent'
             }`}
             style={{ backgroundColor: color }}
-            onClick={() => onChange(color)}
+            onClick={() => setDraft(color)}
             aria-label={`Selecionar cor ${color}`}
           />
         ))}
@@ -52,11 +58,27 @@ export function StageColorPicker({ value, onChange }: StageColorPickerProps) {
         {custom && (
           <input
             type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             className="w-8 h-8 p-0 border-0 bg-transparent cursor-pointer"
           />
         )}
+      </div>
+      <div className="flex gap-2 justify-end pt-1 border-t border-base-200">
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={onCancel}
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={() => onApply(draft)}
+        >
+          Aplicar
+        </button>
       </div>
     </div>
   )

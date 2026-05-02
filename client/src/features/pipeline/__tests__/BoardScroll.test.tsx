@@ -6,45 +6,57 @@ import type { ReactNode } from 'react'
 import { overrideHandler } from '../../../test/msw/server'
 import { PipelineBoard } from '../PipelineBoard'
 
-vi.mock('../../../lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: () =>
-        Promise.resolve({ data: { session: null }, error: null }),
-      signOut: vi.fn(),
-    },
-  },
-}))
-
-vi.mock('@dnd-kit/core', () => ({
-  DndContext: ({ children }: { children: ReactNode }) => (
+vi.mock('@hello-pangea/dnd', () => ({
+  DragDropContext: ({ children }: { children: ReactNode }) => (
     <div data-testid="dnd-context">{children}</div>
   ),
-  DragOverlay: ({ children }: { children: ReactNode }) => <>{children}</>,
-  useSensor: () => ({}),
-  useSensors: () => ({}),
-  closestCorners: () => [],
-  useDroppable: () => ({ setNodeRef: () => {}, isOver: false }),
-  KeyboardSensor: {},
-  PointerSensor: {},
-}))
-
-vi.mock('@dnd-kit/sortable', () => ({
-  useSortable: ({ id }: { id: string }) => ({
-    attributes: { 'data-sortable-id': id },
-    listeners: {},
-    setNodeRef: () => {},
-    transform: null,
-    transition: null,
-    isDragging: false,
-  }),
-  SortableContext: ({ children }: { children: ReactNode }) => <>{children}</>,
-  arrayMove: (arr: unknown[]) => arr,
-  verticalListSortingStrategy: {},
-}))
-
-vi.mock('@dnd-kit/utilities', () => ({
-  CSS: { Transform: { toString: () => '' } },
+  Droppable: ({
+    children,
+    droppableId,
+  }: {
+    children: (p: object, s: object) => ReactNode
+    droppableId: string
+  }) =>
+    children(
+      {
+        innerRef: () => {},
+        droppableProps: { 'data-rfd-droppable-id': droppableId },
+        placeholder: null,
+      },
+      {
+        isDraggingOver: false,
+        draggingOverWith: null,
+        draggingFromThisWith: null,
+        isUsingPlaceholder: false,
+      },
+    ),
+  Draggable: ({
+    children,
+    draggableId,
+    index,
+  }: {
+    children: (p: object, s: object, r: object) => ReactNode
+    draggableId: string
+    index: number
+  }) =>
+    children(
+      { innerRef: () => {}, draggableProps: {}, dragHandleProps: {} },
+      {
+        isDragging: false,
+        isDropAnimating: false,
+        isClone: false,
+        dropAnimation: null,
+        draggingOver: null,
+        combineWith: null,
+        combineTargetFor: null,
+        mode: null,
+      },
+      {
+        draggableId,
+        type: 'DEFAULT',
+        source: { droppableId: 'unknown', index },
+      },
+    ),
 }))
 
 vi.mock('framer-motion', () => ({

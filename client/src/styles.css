@@ -1,9 +1,8 @@
 @import 'tailwindcss';
-@plugin "daisyui/index.js";
-
-/* base-100 = #f6f7f8 (board surface light gray); cards/columns stay bg-white */
-[data-theme='light'] {
-  --color-base-100: oklch(97.04% 0.004 265);
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
 }
 
 .board-scroll {

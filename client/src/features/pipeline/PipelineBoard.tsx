@@ -1,22 +1,13 @@
-import { useState, useCallback } from 'react'
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
-  closestCorners,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
-import { arrayMove } from '@dnd-kit/sortable'
-import { Plus } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Plus, Inbox } from 'lucide-react'
 import { useStages, useLeads, useMoveLead, useStageMutations } from './api'
 import { useAuth } from '../../hooks/useAuth'
 import { LeadFormModal } from './LeadFormModal'
-import { DroppableColumn } from './dnd/DroppableColumn'
-import { SortableLeadCard } from './dnd/SortableLeadCard'
-import type { PipelineLead } from '@shared/pipeline'
+import { PipelineBoardDnd } from './dnd-pangea/PipelineBoardDnd'
+import { PipelineCard } from './PipelineCard'
+import { StageColumnMenu } from './StageColumnMenu'
+import type { DraggableProvided } from '@hello-pangea/dnd'
+import type { PipelineLead, PipelineStage } from '@shared/pipeline'
 
 interface ModalState {
   open: boolean
@@ -25,12 +16,122 @@ interface ModalState {
   lead?: PipelineLead
 }
 
+function StageColumnHeader({
+  stage,
+  stages,
+  leadCount,
+  isOwner,
+  onOpenCreate,
+}: {
+  stage: PipelineStage
+  stages: PipelineStage[]
+  leadCount: number
+  isOwner: boolean
+  onOpenCreate: (stageId: string) => void
+}) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState(stage.name)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const { updateStage } = useStageMutations()
+
+  useEffect(() => {
+    if (isEditing) inputRef.current?.select()
+  }, [isEditing])
+
+  function startRename() {
+    setEditName(stage.name)
+    setIsEditing(true)
+  }
+
+  function commitRename() {
+    const trimmed = editName.trim()
+    if (trimmed && trimmed !== stage.name) {
+      updateStage.mutate({ stageId: stage.id, body: { name: trimmed } })
+    }
+    setIsEditing(false)
+  }
+
+  function handleRenameKey(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') commitRename()
+    if (e.key === 'Escape') {
+      setEditName(stage.name)
+      setIsEditing(false)
+    }
+  }
+
+  return (
+    <div
+      className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg sticky top-0 z-10 bg-white"
+      style={{ borderTopColor: stage.color }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              className="input input-xs input-bordered flex-1 min-w-0"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={handleRenameKey}
+              aria-label="Renomear etapa"
+            />
+          ) : (
+            <span
+              className="badge badge-sm gap-1 shrink-0 cursor-default"
+              style={{
+                backgroundColor: stage.color + '18',
+                borderColor: stage.color,
+                color: stage.color,
+              }}
+              onDoubleClick={isOwner ? startRename : undefined}
+              title={isOwner ? 'Duplo clique para renomear' : undefined}
+            >
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: stage.color }}
+              />
+              {stage.name}
+            </span>
+          )}
+          <span className="badge badge-sm badge-ghost shrink-0">
+            {leadCount}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="btn btn-ghost btn-xs btn-square"
+            onClick={() => onOpenCreate(stage.id)}
+            aria-label={`Adicionar lead em ${stage.name}`}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+          {isOwner && (
+            <StageColumnMenu
+              stage={stage}
+              stages={stages}
+              onRename={startRename}
+            />
+          )}
+        </div>
+      </div>
+      {stage.description && (
+        <p className="text-xs text-base-content/60 mt-1 truncate">
+          {stage.description}
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function PipelineBoard() {
   const { data: stagesData, isLoading: stagesLoading } = useStages()
   const { data: leadsData, isLoading: leadsLoading } = useLeads()
   const { data: auth } = useAuth()
   const moveMutation = useMoveLead()
-  const { createStage, reorderStages } = useStageMutations()
+  const { createStage } = useStageMutations()
 
   const isOwner = auth?.role === 'owner'
 
@@ -38,141 +139,15 @@ export function PipelineBoard() {
     open: false,
     mode: 'create',
   })
-  const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
-  const [optimisticLeads, setOptimisticLeads] = useState<PipelineLead[] | null>(
-    null,
-  )
   const [addingStage, setAddingStage] = useState(false)
   const [newStageName, setNewStageName] = useState('')
 
   const stages = stagesData?.stages ?? []
-  const leads = optimisticLeads ?? leadsData?.leads ?? []
+  const leads = leadsData?.leads ?? []
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor),
-  )
-
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    if (event.active.data.current?.type === 'column') return
-    setActiveLeadId(event.active.id as string)
-  }, [])
-
-  const handleDragOver = useCallback(
-    (event: DragOverEvent) => {
-      const { active, over } = event
-      if (active.data.current?.type === 'column') return
-      if (!over) return
-
-      const activeId = active.id as string
-      const overId = over.id as string
-
-      const activeLead = leads.find((l) => l.id === activeId)
-      if (!activeLead) return
-
-      const overStage = stages.find((s) => s.id === overId)
-      const overLead = leads.find((l) => l.id === overId)
-
-      const targetStageId = overStage ? overStage.id : overLead?.stageId
-      if (!targetStageId || targetStageId === activeLead.stageId) return
-
-      setOptimisticLeads((prev) => {
-        const current = prev ?? leads
-        return current.map((l) =>
-          l.id === activeId ? { ...l, stageId: targetStageId } : l,
-        )
-      })
-    },
-    [leads, stages],
-  )
-
-  const computePosition = useCallback(
-    (stageId: string, overId: string | null): number => {
-      const stageLeads = leads
-        .filter((l) => l.stageId === stageId && l.id !== activeLeadId)
-        .sort((a, b) => a.position - b.position)
-
-      if (stageLeads.length === 0) return 1024
-
-      const overIndex = stageLeads.findIndex((l) => l.id === overId)
-
-      if (overIndex === -1) {
-        const maxPos = stageLeads[stageLeads.length - 1]?.position ?? 0
-        return maxPos + 1024
-      }
-
-      const leftPos = overIndex > 0 ? stageLeads[overIndex - 1].position : 0
-      const rightPos = stageLeads[overIndex]?.position ?? leftPos + 2048
-
-      if (leftPos === 0) return rightPos - 1024
-      return Math.floor((leftPos + rightPos) / 2)
-    },
-    [leads, activeLeadId],
-  )
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event
-
-      // Column reorder
-      if (active.data.current?.type === 'column') {
-        if (!over) return
-        const activeStageId = active.data.current.id as string
-        const overStageId = over.id as string
-        const fromIndex = stages.findIndex((s) => s.id === activeStageId)
-        const toIndex = stages.findIndex((s) => s.id === overStageId)
-        if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
-          const reordered = arrayMove([...stages], fromIndex, toIndex)
-          reorderStages.mutate({
-            stages: reordered.map((s, i) => ({ id: s.id, order: i + 1 })),
-          })
-        }
-        return
-      }
-
-      // Lead move
-      setActiveLeadId(null)
-
-      if (!over) {
-        setOptimisticLeads(null)
-        return
-      }
-
-      const activeId = active.id as string
-      const overId = over.id as string
-
-      const activeLead = leads.find((l) => l.id === activeId)
-      if (!activeLead) {
-        setOptimisticLeads(null)
-        return
-      }
-
-      const overStage = stages.find((s) => s.id === overId)
-      const overLead = leads.find((l) => l.id === overId)
-
-      const targetStageId = overStage ? overStage.id : overLead?.stageId
-      if (!targetStageId) {
-        setOptimisticLeads(null)
-        return
-      }
-
-      const position = computePosition(targetStageId, overLead?.id ?? null)
-
-      if (
-        activeLead.stageId !== targetStageId ||
-        activeLead.position !== position
-      ) {
-        moveMutation.mutate({
-          leadId: activeId,
-          stageId: targetStageId,
-          position,
-        })
-      }
-
-      setOptimisticLeads(null)
-    },
-    [leads, stages, moveMutation, computePosition, reorderStages],
-  )
+  function handleMove(leadId: string, targetStageId: string, position: number) {
+    moveMutation.mutate({ leadId, stageId: targetStageId, position })
+  }
 
   function handleAddStage(e: React.FormEvent) {
     e.preventDefault()
@@ -186,13 +161,11 @@ export function PipelineBoard() {
     })
   }
 
-  const openCreateModal = (stageId: string) => {
+  const openCreateModal = (stageId: string) =>
     setModal({ open: true, mode: 'create', stageId })
-  }
 
-  const openEditModal = (lead: PipelineLead) => {
+  const openEditModal = (lead: PipelineLead) =>
     setModal({ open: true, mode: 'edit', lead })
-  }
 
   if (stagesLoading || leadsLoading) {
     return (
@@ -202,104 +175,118 @@ export function PipelineBoard() {
     )
   }
 
-  const activeLead = activeLeadId
-    ? leads.find((l) => l.id === activeLeadId)
-    : null
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="board-scroll flex gap-4 p-4 overflow-x-auto scroll-smooth [scroll-snap-type:x_proximity] [overscroll-behavior-x:contain] h-full">
-        {stages.map((stage) => {
-          const stageLeads = leads
-            .filter((l) => l.stageId === stage.id)
-            .sort((a, b) => a.position - b.position)
-          return (
-            <DroppableColumn
-              key={stage.id}
-              stage={stage}
-              stages={stages}
-              leads={stageLeads}
-              isOwner={isOwner}
-              onOpenEdit={openEditModal}
-              onOpenCreate={openCreateModal}
+    <>
+      <PipelineBoardDnd
+        stages={stages}
+        leads={leads}
+        onMove={handleMove}
+        renderColumnHeader={(stage, stageLeads) => (
+          <StageColumnHeader
+            stage={stage}
+            stages={stages}
+            leadCount={stageLeads.length}
+            isOwner={isOwner}
+            onOpenCreate={openCreateModal}
+          />
+        )}
+        renderCard={(
+          lead: PipelineLead,
+          provided: DraggableProvided,
+          isDragging: boolean,
+        ) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            style={{
+              ...provided.draggableProps.style,
+              opacity: isDragging ? 0.5 : 1,
+            }}
+            className="cursor-grab active:cursor-grabbing"
+          >
+            <PipelineCard
+              lead={lead}
+              stage={stages.find((s) => s.id === lead.stageId)}
+              onClick={() => openEditModal(lead)}
             />
-          )
-        })}
-
-        {/* Add stage ghost column (owner only) */}
-        {isOwner && (
-          <div className="flex flex-col w-72 shrink-0 min-h-full [scroll-snap-align:start]">
-            {addingStage ? (
-              <form
-                onSubmit={handleAddStage}
-                className="flex flex-col gap-2 p-3 bg-base-200 rounded-lg border-2 border-dashed border-base-300"
-              >
-                <input
-                  autoFocus
-                  className="input input-sm input-bordered w-full"
-                  placeholder="Nome da etapa..."
-                  value={newStageName}
-                  onChange={(e) => setNewStageName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                      setAddingStage(false)
-                      setNewStageName('')
-                    }
-                  }}
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    className="btn btn-sm btn-primary flex-1"
-                    disabled={createStage.isPending}
-                  >
-                    Criar
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-sm"
-                    onClick={() => {
-                      setAddingStage(false)
-                      setNewStageName('')
-                    }}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <button
-                type="button"
-                aria-label="Adicionar etapa"
-                className="flex items-center justify-center gap-2 h-full min-h-32 rounded-lg border-2 border-dashed border-base-300 text-base-content/40 hover:border-primary/50 hover:text-primary/70 transition-colors"
-                onClick={() => setAddingStage(true)}
-              >
-                <Plus className="h-5 w-5" />
-                <span className="text-sm font-medium">Adicionar etapa</span>
-              </button>
-            )}
           </div>
         )}
-      </div>
-
-      <DragOverlay>
-        {activeLead ? (
-          <div className="w-72">
-            <SortableLeadCard
-              lead={activeLead}
-              stage={stages.find((s) => s.id === activeLead.stageId)}
-              onOpenEdit={() => {}}
-            />
+        renderEmptyColumn={(stage) => (
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+            <Inbox className="h-10 w-10 text-base-content/30" />
+            <p className="text-sm font-medium text-base-content/70">
+              Sem leads nesta etapa
+            </p>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              onClick={() => openCreateModal(stage.id)}
+            >
+              Criar lead
+            </button>
           </div>
-        ) : null}
-      </DragOverlay>
-
+        )}
+        renderBoardFooter={
+          isOwner
+            ? () => (
+                <div className="flex flex-col w-72 shrink-0 min-h-full [scroll-snap-align:start]">
+                  {addingStage ? (
+                    <form
+                      onSubmit={handleAddStage}
+                      className="flex flex-col gap-2 p-3 bg-base-200 rounded-lg border-2 border-dashed border-base-300"
+                    >
+                      <input
+                        autoFocus
+                        className="input input-sm input-bordered w-full"
+                        placeholder="Nome da etapa..."
+                        value={newStageName}
+                        onChange={(e) => setNewStageName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setAddingStage(false)
+                            setNewStageName('')
+                          }
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          className="btn btn-sm btn-primary flex-1"
+                          disabled={createStage.isPending}
+                        >
+                          Criar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          onClick={() => {
+                            setAddingStage(false)
+                            setNewStageName('')
+                          }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-label="Adicionar etapa"
+                      className="flex items-center justify-center gap-2 h-full min-h-32 rounded-lg border-2 border-dashed border-base-300 text-base-content/40 hover:border-primary/50 hover:text-primary/70 transition-colors"
+                      onClick={() => setAddingStage(true)}
+                    >
+                      <Plus className="h-5 w-5" />
+                      <span className="text-sm font-medium">
+                        Adicionar etapa
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )
+            : undefined
+        }
+      />
       <LeadFormModal
         open={modal.open}
         mode={modal.mode}
@@ -307,6 +294,6 @@ export function PipelineBoard() {
         lead={modal.lead}
         onClose={() => setModal({ open: false, mode: 'create' })}
       />
-    </DndContext>
+    </>
   )
 }
