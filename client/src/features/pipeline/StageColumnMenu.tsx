@@ -101,7 +101,7 @@ export function StageColumnMenu({
 
   return (
     <>
-      <div className="relative" ref={menuRef}>
+      <div className="dropdown dropdown-end" ref={menuRef}>
         <button
           type="button"
           className="btn btn-ghost btn-xs btn-square"
@@ -112,26 +112,27 @@ export function StageColumnMenu({
         </button>
 
         {open && (
-          <div className="absolute right-0 top-full z-30 mt-1 bg-base-100 border border-base-200 rounded-lg shadow-lg py-1 min-w-[9rem]">
-            <button
-              type="button"
-              className="w-full px-3 py-1.5 text-sm text-left hover:bg-base-200 transition-colors"
-              onClick={() => {
-                onRename()
-                setOpen(false)
-              }}
-            >
-              Renomear
-            </button>
-            <button
-              type="button"
-              className="w-full px-3 py-1.5 text-sm text-left hover:bg-base-200 transition-colors"
-              onClick={() => setColorOpen((v) => !v)}
-            >
-              Alterar cor
-            </button>
+          <div className="dropdown-content z-30 mt-1 bg-base-100 border border-base-300 rounded-xl shadow-lg min-w-[9rem]">
+            <ul className="menu menu-sm p-1">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onRename()
+                    setOpen(false)
+                  }}
+                >
+                  Renomear
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => setColorOpen((v) => !v)}>
+                  Alterar cor
+                </button>
+              </li>
+            </ul>
             {colorOpen && (
-              <div className="px-3 py-2 border-t border-base-200">
+              <div className="px-3 py-2 border-t border-base-300">
                 <StageColorPicker
                   initialColor={stage.color}
                   onApply={handleColorApply}
@@ -140,13 +141,17 @@ export function StageColumnMenu({
               </div>
             )}
             {!stage.isDefaultEntry && (
-              <button
-                type="button"
-                className="w-full px-3 py-1.5 text-sm text-left text-error hover:bg-base-200 transition-colors border-t border-base-200"
-                onClick={handleDeleteClick}
-              >
-                Eliminar
-              </button>
+              <ul className="menu menu-sm p-1 border-t border-base-300">
+                <li>
+                  <button
+                    type="button"
+                    className="text-error"
+                    onClick={handleDeleteClick}
+                  >
+                    Eliminar
+                  </button>
+                </li>
+              </ul>
             )}
           </div>
         )}

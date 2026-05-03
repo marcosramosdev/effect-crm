@@ -59,9 +59,7 @@ describe('StageColumnMenu — color picker', () => {
     renderMenu()
     openColorPicker()
 
-    fireEvent.click(
-      screen.getByLabelText('Selecionar cor #ef4444'),
-    )
+    fireEvent.click(screen.getByLabelText('Selecionar cor #ef4444'))
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar' }))
 
     expect(mockUpdateStage.mutate).toHaveBeenCalledTimes(1)

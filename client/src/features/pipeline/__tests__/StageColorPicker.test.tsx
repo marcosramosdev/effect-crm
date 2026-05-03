@@ -14,7 +14,9 @@ describe('StageColorPicker', () => {
         onCancel={vi.fn()}
       />,
     )
-    expect(screen.getAllByRole('button', { name: /Selecionar cor/ })).toHaveLength(12)
+    expect(
+      screen.getAllByRole('button', { name: /Selecionar cor/ }),
+    ).toHaveLength(12)
     expect(screen.getByRole('button', { name: 'Aplicar' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
   })

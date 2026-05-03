@@ -30,16 +30,16 @@ export function StageColorPicker({
   const [custom, setCustom] = useState(false)
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-2">
         {PALETTE.map((color) => (
           <button
             key={color}
             type="button"
-            className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${
+            className={`w-7 h-7 rounded-full transition-transform hover:scale-110 ${
               draft === color
-                ? 'border-base-content scale-110'
-                : 'border-transparent'
+                ? 'ring-2 ring-base-content ring-offset-2 ring-offset-base-100 scale-110'
+                : ''
             }`}
             style={{ backgroundColor: color }}
             onClick={() => setDraft(color)}

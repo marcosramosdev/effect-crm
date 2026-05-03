@@ -69,7 +69,7 @@ export function PipelineBoardDnd({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="board-scroll flex gap-4 p-4 overflow-x-auto scroll-smooth [scroll-snap-type:x_proximity] [overscroll-behavior-x:contain] h-full">
+      <div className="board-scroll flex gap-3 px-4 py-3 overflow-x-auto scroll-smooth [scroll-snap-type:x_proximity] [overscroll-behavior-x:contain] h-full bg-base-100">
         {stages.map((stage) => {
           const stageLeads = leads
             .filter((l) => l.stageId === stage.id)
@@ -78,7 +78,7 @@ export function PipelineBoardDnd({
           return (
             <div
               key={stage.id}
-              className="flex flex-col w-72 shrink-0 bg-base-100 border border-base-300 rounded-lg min-h-full max-h-full [scroll-snap-align:start]"
+              className="flex flex-col w-[300px] shrink-0 bg-base-200/40 rounded-xl min-h-full max-h-full [scroll-snap-align:start]"
             >
               {renderColumnHeader(stage, stageLeads)}
 
@@ -87,8 +87,10 @@ export function PipelineBoardDnd({
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`flex flex-col gap-2 p-2 flex-1 overflow-y-auto min-h-16 ${
-                      snapshot.isDraggingOver ? 'bg-base-300/50' : ''
+                    className={`flex flex-col gap-2 p-2 flex-1 overflow-y-auto min-h-16 transition-colors ${
+                      snapshot.isDraggingOver
+                        ? 'bg-primary/5 ring-1 ring-primary/30 ring-inset rounded-md'
+                        : ''
                     }`}
                   >
                     {stageLeads.length === 0 && renderEmptyColumn?.(stage)}

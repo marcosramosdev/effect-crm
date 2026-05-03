@@ -30,6 +30,7 @@ interface LeadFormModalProps {
   open: boolean
   mode: 'create' | 'edit'
   stageId?: string
+  defaultStageId?: string
   lead?: PipelineLead
   onClose: () => void
   triggerRef?: React.RefObject<HTMLElement | null>
@@ -39,10 +40,12 @@ export function LeadFormModal({
   open,
   mode,
   stageId,
+  defaultStageId,
   lead,
   onClose,
   triggerRef,
 }: LeadFormModalProps) {
+  const seedStageId = stageId ?? defaultStageId
   const { data: customFieldsData } = useCustomFields()
   const { data: stagesData } = useStages()
   const createLead = useCreateLead()
@@ -72,7 +75,7 @@ export function LeadFormModal({
     defaultValues: {
       displayName: '',
       phoneNumber: '',
-      stageId: stageId ?? '',
+      stageId: seedStageId ?? '',
       customValues: {},
     },
   })
@@ -107,7 +110,7 @@ export function LeadFormModal({
         reset({
           displayName: '',
           phoneNumber: '',
-          stageId: stageId ?? '',
+          stageId: seedStageId ?? '',
           customValues: {},
         })
         for (const field of customFields) {
@@ -119,7 +122,7 @@ export function LeadFormModal({
       setFieldErrors({})
       clearErrors()
     }
-  }, [open, mode, lead, stageId, reset, clearErrors, customFields])
+  }, [open, mode, lead, seedStageId, reset, clearErrors, customFields])
 
   useEffect(() => {
     if (open) {
@@ -233,7 +236,7 @@ export function LeadFormModal({
     >
       <div
         ref={modalRef}
-        className="bg-white border border-base-200 rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-base-100 border border-base-300 rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

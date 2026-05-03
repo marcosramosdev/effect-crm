@@ -63,7 +63,7 @@ function SortHeader({ label, sortKey, active, dir, onSort }: SortHeaderProps) {
   const isActive = active === sortKey
   return (
     <th
-      className="px-3 py-2 text-left text-xs font-medium text-base-content/60 cursor-pointer select-none whitespace-nowrap"
+      className="px-3 py-2.5 text-left text-[11px] uppercase tracking-wider font-semibold text-base-content/60 cursor-pointer select-none whitespace-nowrap"
       aria-sort={
         isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'
       }
@@ -129,9 +129,9 @@ export function LeadListView() {
     <>
       <div className="overflow-auto h-full">
         <table className="w-full text-sm border-collapse">
-          <thead className="sticky top-0 bg-white border-b border-base-200 z-10">
+          <thead className="sticky top-0 bg-base-100 border-b border-base-300 z-10">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-base-content/60 whitespace-nowrap">
+              <th className="px-3 py-2.5 text-left text-[11px] uppercase tracking-wider font-semibold text-base-content/60 whitespace-nowrap">
                 Etapa
               </th>
               <SortHeader
@@ -141,13 +141,13 @@ export function LeadListView() {
                 dir={sortDir}
                 onSort={handleSort}
               />
-              <th className="px-3 py-2 text-left text-xs font-medium text-base-content/60">
+              <th className="px-3 py-2.5 text-left text-[11px] uppercase tracking-wider font-semibold text-base-content/60">
                 Telefone
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-base-content/60">
+              <th className="px-3 py-2.5 text-left text-[11px] uppercase tracking-wider font-semibold text-base-content/60">
                 Email
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-base-content/60">
+              <th className="px-3 py-2.5 text-left text-[11px] uppercase tracking-wider font-semibold text-base-content/60">
                 Instagram
               </th>
               <SortHeader
@@ -175,53 +175,53 @@ export function LeadListView() {
               return (
                 <tr
                   key={lead.id}
-                  className="border-b border-base-200 hover:bg-base-100 cursor-pointer"
+                  className="border-b border-base-200 hover:bg-base-200/50 cursor-pointer transition-colors"
                   onClick={() =>
                     setModal({ open: true, lead, stageId: lead.stageId })
                   }
                 >
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2.5">
                     {stage && (
                       <span
-                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium"
+                        className="badge badge-sm gap-1"
                         style={{
                           backgroundColor: `${stage.color}20`,
+                          borderColor: stage.color,
                           color: stage.color,
-                          borderLeft: `2px solid ${stage.color}`,
                         }}
                       >
                         {stage.name}
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 font-medium text-base-content">
+                  <td className="px-3 py-2.5 font-medium text-base-content">
                     {lead.displayName ?? (
                       <span className="text-base-content/40">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-base-content/70">
+                  <td className="px-3 py-2.5 text-base-content/70">
                     {lead.phoneNumber.startsWith('manual:') ? (
                       <span className="text-base-content/40">—</span>
                     ) : (
                       lead.phoneNumber
                     )}
                   </td>
-                  <td className="px-3 py-2 text-base-content/70">
+                  <td className="px-3 py-2.5 text-base-content/70">
                     {email ?? <span className="text-base-content/40">—</span>}
                   </td>
-                  <td className="px-3 py-2 text-base-content/70">
+                  <td className="px-3 py-2.5 text-base-content/70">
                     {instagram ? (
                       `@${instagram.replace(/^@/, '')}`
                     ) : (
                       <span className="text-base-content/40">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-base-content/70">
+                  <td className="px-3 py-2.5 text-base-content/70">
                     {apptDate ?? (
                       <span className="text-base-content/40">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-base-content/50 tabular-nums">
+                  <td className="px-3 py-2.5 text-base-content/50 tabular-nums">
                     {formatTimeInStage(lead.updatedAt)}
                   </td>
                 </tr>
@@ -231,7 +231,7 @@ export function LeadListView() {
               <tr>
                 <td
                   colSpan={7}
-                  className="px-3 py-12 text-center text-base-content/40 text-sm"
+                  className="px-3 py-16 text-center text-base-content/40 text-sm"
                 >
                   Nenhum lead encontrado
                 </td>

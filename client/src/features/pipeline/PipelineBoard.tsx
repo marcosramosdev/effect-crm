@@ -61,7 +61,7 @@ function StageColumnHeader({
 
   return (
     <div
-      className="px-3 py-2 font-semibold border-b border-base-300 border-t-4 rounded-t-lg sticky top-0 z-10 bg-white"
+      className="px-3 py-2.5 font-semibold border-b border-base-300 border-t-4 rounded-t-xl sticky top-0 z-10 bg-base-100"
       style={{ borderTopColor: stage.color }}
     >
       <div className="flex items-center justify-between">
@@ -94,7 +94,7 @@ function StageColumnHeader({
               {stage.name}
             </span>
           )}
-          <span className="badge badge-sm badge-ghost shrink-0">
+          <span className="text-xs font-medium text-base-content/50 tabular-nums shrink-0">
             {leadCount}
           </span>
         </div>
@@ -118,7 +118,7 @@ function StageColumnHeader({
         </div>
       </div>
       {stage.description && (
-        <p className="text-xs text-base-content/60 mt-1 truncate">
+        <p className="text-[11px] leading-relaxed text-base-content/60 mt-1 truncate">
           {stage.description}
         </p>
       )}
@@ -273,7 +273,7 @@ export function PipelineBoard() {
                     <button
                       type="button"
                       aria-label="Adicionar etapa"
-                      className="flex items-center justify-center gap-2 h-full min-h-32 rounded-lg border-2 border-dashed border-base-300 text-base-content/40 hover:border-primary/50 hover:text-primary/70 transition-colors"
+                      className="flex items-center justify-center gap-2 h-full min-h-32 rounded-xl border-2 border-dashed border-base-300 text-base-content/50 hover:bg-base-200/40 hover:border-primary/50 hover:text-primary/70 transition-colors"
                       onClick={() => setAddingStage(true)}
                     >
                       <Plus className="h-5 w-5" />

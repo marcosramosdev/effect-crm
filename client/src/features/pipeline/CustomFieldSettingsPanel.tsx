@@ -78,7 +78,7 @@ export function CustomFieldSettingsPanel({
       <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
 
       <div
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-xl flex flex-col"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-base-100 border-l border-base-300 flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label="Campos personalizados"
