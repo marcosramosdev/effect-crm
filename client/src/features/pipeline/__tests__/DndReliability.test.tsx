@@ -3,12 +3,12 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
-import type { DragEndEvent } from '@dnd-kit/core'
+import type { DropResult } from '@hello-pangea/dnd'
 import { overrideHandler } from '../../../test/msw/server'
 import { PipelineBoard } from '../PipelineBoard'
 
 const captured = vi.hoisted(() => ({
-  onDragEnd: undefined as ((e: DragEndEvent) => void) | undefined,
+  onDragEnd: undefined as ((r: DropResult) => void) | undefined,
 }))
 
 vi.mock('../../../lib/supabase', () => ({
@@ -21,49 +21,64 @@ vi.mock('../../../lib/supabase', () => ({
   },
 }))
 
-vi.mock('@dnd-kit/core', () => ({
-  DndContext: ({
+vi.mock('@hello-pangea/dnd', () => ({
+  DragDropContext: ({
     children,
     onDragEnd,
   }: {
     children: ReactNode
-    onDragStart?: () => void
-    onDragOver?: () => void
-    onDragEnd?: (e: DragEndEvent) => void
+    onDragEnd: (r: DropResult) => void
   }) => {
     captured.onDragEnd = onDragEnd
     return <div data-testid="dnd-context">{children}</div>
   },
-  DragOverlay: ({ children }: { children: ReactNode }) => <>{children}</>,
-  useSensor: () => ({}),
-  useSensors: () => ({}),
-  closestCorners: () => [],
-  useDroppable: () => ({ setNodeRef: () => {}, isOver: false }),
-  KeyboardSensor: {},
-  PointerSensor: {},
-}))
-
-vi.mock('@dnd-kit/sortable', () => ({
-  useSortable: ({ id }: { id: string }) => ({
-    attributes: { 'data-sortable-id': id },
-    listeners: {},
-    setNodeRef: () => {},
-    transform: null,
-    transition: null,
-    isDragging: false,
-  }),
-  SortableContext: ({ children }: { children: ReactNode }) => <>{children}</>,
-  arrayMove: (arr: unknown[], from: number, to: number) => {
-    const result = [...arr]
-    const [item] = result.splice(from, 1)
-    result.splice(to, 0, item)
-    return result
-  },
-  verticalListSortingStrategy: {},
-}))
-
-vi.mock('@dnd-kit/utilities', () => ({
-  CSS: { Transform: { toString: (t: unknown) => String(t ?? '') } },
+  Droppable: ({
+    children,
+    droppableId,
+  }: {
+    children: (p: object, s: object) => ReactNode
+    droppableId: string
+  }) =>
+    children(
+      {
+        innerRef: () => {},
+        droppableProps: { 'data-rfd-droppable-id': droppableId },
+        placeholder: null,
+      },
+      {
+        isDraggingOver: false,
+        draggingOverWith: null,
+        draggingFromThisWith: null,
+        isUsingPlaceholder: false,
+      },
+    ),
+  Draggable: ({
+    children,
+    draggableId,
+    index,
+  }: {
+    children: (p: object, s: object, r: object) => ReactNode
+    draggableId: string
+    index: number
+  }) =>
+    children(
+      { innerRef: () => {}, draggableProps: {}, dragHandleProps: {} },
+      {
+        isDragging: false,
+        isDropAnimating: false,
+        isClone: false,
+        dropAnimation: null,
+        draggingOver: null,
+        combineWith: null,
+        combineTargetFor: null,
+        mode: null,
+      },
+      {
+        draggableId,
+        type: 'DEFAULT',
+        source: { droppableId: 'unknown', index },
+      },
+    ),
 }))
 
 vi.mock('framer-motion', () => ({
@@ -139,21 +154,19 @@ describe('DnD reliability', () => {
     )
   })
 
-  it('drop with no over does not crash', async () => {
+  it('drop with no destination does not crash', async () => {
     render(<PipelineBoard />, { wrapper: makeWrapper() })
     await screen.findByText('Alice')
 
     expect(() => {
       captured.onDragEnd?.({
-        active: {
-          id: LEAD_ID,
-          data: { current: {} },
-          rect: { current: { initial: null, translated: null } },
-        },
-        over: null,
-        delta: { x: 0, y: 0 },
-        activatorEvent: {} as Event,
-        collisions: [],
+        draggableId: LEAD_ID,
+        type: 'DEFAULT',
+        mode: 'FLUID',
+        reason: 'CANCEL',
+        source: { droppableId: STAGE1_ID, index: 0 },
+        destination: null,
+        combine: null,
       })
     }).not.toThrow()
 
@@ -179,34 +192,21 @@ describe('DnD reliability', () => {
     await screen.findByText('Alice')
 
     captured.onDragEnd?.({
-      active: {
-        id: LEAD_ID,
-        data: { current: {} },
-        rect: { current: { initial: null, translated: null } },
-      },
-      over: {
-        id: STAGE2_ID,
-        data: { current: {} },
-        rect: {
-          width: 288,
-          height: 400,
-          left: 300,
-          top: 0,
-          right: 588,
-          bottom: 400,
-        },
-      },
-      delta: { x: 300, y: 0 },
-      activatorEvent: {} as Event,
-      collisions: [],
-    } as unknown as DragEndEvent)
+      draggableId: LEAD_ID,
+      type: 'DEFAULT',
+      mode: 'FLUID',
+      reason: 'DROP',
+      source: { droppableId: STAGE1_ID, index: 0 },
+      destination: { droppableId: STAGE2_ID, index: 0 },
+      combine: null,
+    })
 
     await waitFor(() => expect(patchBody).not.toBeNull())
     expect(patchBody!.stageId).toBe(STAGE2_ID)
     expect(patchBody!.position).toBe(1024)
   })
 
-  it('drop on column body below last card commits the move', async () => {
+  it('cross-column move fires PATCH mutation', async () => {
     let patchBody: { stageId: string; position?: number } | null = null
     overrideHandler(
       http.patch(
@@ -224,29 +224,15 @@ describe('DnD reliability', () => {
     render(<PipelineBoard />, { wrapper: makeWrapper() })
     await screen.findByText('Alice')
 
-    // Drop back on same column (below last card) — over = stage itself
     captured.onDragEnd?.({
-      active: {
-        id: LEAD_ID,
-        data: { current: {} },
-        rect: { current: { initial: null, translated: null } },
-      },
-      over: {
-        id: STAGE2_ID,
-        data: { current: {} },
-        rect: {
-          width: 288,
-          height: 400,
-          left: 300,
-          top: 0,
-          right: 588,
-          bottom: 400,
-        },
-      },
-      delta: { x: 300, y: 200 },
-      activatorEvent: {} as Event,
-      collisions: [],
-    } as unknown as DragEndEvent)
+      draggableId: LEAD_ID,
+      type: 'DEFAULT',
+      mode: 'FLUID',
+      reason: 'DROP',
+      source: { droppableId: STAGE1_ID, index: 0 },
+      destination: { droppableId: STAGE2_ID, index: 1 },
+      combine: null,
+    })
 
     await waitFor(() => expect(patchBody).not.toBeNull())
     expect(patchBody!.stageId).toBe(STAGE2_ID)

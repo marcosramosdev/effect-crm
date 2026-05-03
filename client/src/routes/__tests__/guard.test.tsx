@@ -16,38 +16,38 @@ vi.mock('../../lib/supabase', () => ({
 }))
 
 describe('route guards', () => {
-  // T-C-002
-  it('/app/settings/pipeline redirects agent to /app/inbox', async () => {
-    overrideHandler(
-      http.get('/api/auth/me', () =>
-        HttpResponse.json({
-          userId: '00000000-0000-0000-0000-000000000001',
-          email: 'agent@test.example',
-          tenantId: '00000000-0000-0000-0000-000000000002',
-          tenantName: 'Test Tenant',
-          role: 'agent',
-        }),
-      ),
-    )
-
-    const { Route } = await import('../app/settings/pipeline')
-
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
+  // contacts-pipeline-revamp 11.2 — legacy route redirects
+  it('/app/pipeline redirects to /app/contacts', async () => {
+    const { Route } = await import('../app/pipeline/index')
 
     let thrown: unknown
     try {
-      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({
-        context: { queryClient },
-      })
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({})
+    } catch (e) {
+      thrown = e
+    }
+
+    expect(thrown).toBeDefined()
+    const redirectOpts = (
+      thrown as { options?: { to?: string; search?: { view?: string } } }
+    ).options
+    expect(redirectOpts?.to).toBe('/app/contacts')
+    expect(redirectOpts?.search?.view).toBe('board')
+  })
+
+  it('/app/settings/pipeline redirects to /app/settings/profile', async () => {
+    const { Route } = await import('../app/settings/pipeline')
+
+    let thrown: unknown
+    try {
+      await (Route.options.beforeLoad as (ctx: unknown) => Promise<void>)({})
     } catch (e) {
       thrown = e
     }
 
     expect(thrown).toBeDefined()
     const redirectOpts = (thrown as { options?: { to?: string } }).options
-    expect(redirectOpts?.to).toBe('/app/inbox')
+    expect(redirectOpts?.to).toBe('/app/settings/profile')
   })
 
   // T016 — US1

@@ -1,9 +1,18 @@
 @import 'tailwindcss';
-@plugin "daisyui/index.js";
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
+}
 
 .board-scroll {
   scrollbar-width: thin;
-  scrollbar-color: oklch(var(--bc) / 0.2) transparent;
+  scrollbar-color: color-mix(
+      in oklch,
+      var(--color-base-content) 20%,
+      transparent
+    )
+    transparent;
 }
 
 .board-scroll::-webkit-scrollbar {
@@ -15,6 +24,10 @@
 }
 
 .board-scroll::-webkit-scrollbar-thumb {
-  background-color: oklch(var(--bc) / 0.2);
+  background-color: color-mix(
+    in oklch,
+    var(--color-base-content) 20%,
+    transparent
+  );
   border-radius: 3px;
 }

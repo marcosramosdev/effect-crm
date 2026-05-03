@@ -33,8 +33,22 @@ const LEAD_ID = '00000000-0000-4000-8000-000000000010'
 const stagesHandler = http.get('/api/pipeline/stages', () =>
   HttpResponse.json({
     stages: [
-      { id: STAGE_ID, name: 'Stage A', order: 1, isDefaultEntry: true, color: '#64748b', description: null },
-      { id: STAGE_ID_2, name: 'Stage B', order: 2, isDefaultEntry: false, color: '#64748b', description: null },
+      {
+        id: STAGE_ID,
+        name: 'Stage A',
+        order: 1,
+        isDefaultEntry: true,
+        color: '#64748b',
+        description: null,
+      },
+      {
+        id: STAGE_ID_2,
+        name: 'Stage B',
+        order: 2,
+        isDefaultEntry: false,
+        color: '#64748b',
+        description: null,
+      },
     ],
   }),
 )
@@ -88,7 +102,9 @@ describe('LeadFormModal', () => {
     let moveCalled = false
     overrideHandler(
       stagesHandler,
-      http.get('/api/pipeline/custom-fields', () => HttpResponse.json({ fields: [] })),
+      http.get('/api/pipeline/custom-fields', () =>
+        HttpResponse.json({ fields: [] }),
+      ),
       http.patch(`/api/pipeline/leads/${LEAD_ID}`, () =>
         HttpResponse.json({
           lead: { ...lead, stageId: STAGE_ID_2 },
@@ -100,10 +116,9 @@ describe('LeadFormModal', () => {
       }),
     )
 
-    render(
-      <LeadFormModal open mode="edit" lead={lead} onClose={vi.fn()} />,
-      { wrapper: makeWrapper() },
-    )
+    render(<LeadFormModal open mode="edit" lead={lead} onClose={vi.fn()} />, {
+      wrapper: makeWrapper(),
+    })
 
     await screen.findByText('Stage A')
 
@@ -209,7 +224,8 @@ describe('LeadFormModal', () => {
     await waitFor(() => {
       expect(capturedBody).not.toBeNull()
       expect(
-        (capturedBody as { customValues?: Record<string, unknown> }).customValues?.['f-cb'],
+        (capturedBody as { customValues?: Record<string, unknown> })
+          .customValues?.['f-cb'],
       ).toBe(true)
     })
   })
@@ -270,7 +286,8 @@ describe('LeadFormModal', () => {
     await waitFor(() => {
       expect(capturedBody).not.toBeNull()
       expect(
-        (capturedBody as { customValues?: Record<string, unknown> }).customValues?.['f-ig'],
+        (capturedBody as { customValues?: Record<string, unknown> })
+          .customValues?.['f-ig'],
       ).toBe('testuser')
     })
   })

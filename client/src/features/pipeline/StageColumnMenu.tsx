@@ -16,7 +16,7 @@ export function StageColumnMenu({
   onRename,
 }: StageColumnMenuProps) {
   const [open, setOpen] = useState(false)
-  const [showColor, setShowColor] = useState(false)
+  const [colorOpen, setColorOpen] = useState(false)
   const [deleteModal, setDeleteModal] = useState<{
     leadsAffected: number
   } | null>(null)
@@ -27,23 +27,44 @@ export function StageColumnMenu({
 
   useEffect(() => {
     if (!open) {
-      setShowColor(false)
+      setColorOpen(false)
     }
   }, [open])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
+      if (colorOpen) return
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
-    if (open) document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open])
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        if (colorOpen) {
+          setColorOpen(false)
+        } else {
+          setOpen(false)
+        }
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, colorOpen])
 
-  function handleColorChange(color: string) {
+  function handleColorApply(color: string) {
     updateStage.mutate({ stageId: stage.id, body: { color } })
+    setColorOpen(false)
     setOpen(false)
+  }
+
+  function handleColorCancel() {
+    setColorOpen(false)
   }
 
   function handleDeleteClick() {
@@ -80,7 +101,7 @@ export function StageColumnMenu({
 
   return (
     <>
-      <div className="relative" ref={menuRef}>
+      <div className="dropdown dropdown-end" ref={menuRef}>
         <button
           type="button"
           className="btn btn-ghost btn-xs btn-square"
@@ -91,40 +112,46 @@ export function StageColumnMenu({
         </button>
 
         {open && (
-          <div className="absolute right-0 top-full z-30 mt-1 bg-base-100 border border-base-200 rounded-lg shadow-lg py-1 min-w-[9rem]">
-            <button
-              type="button"
-              className="w-full px-3 py-1.5 text-sm text-left hover:bg-base-200 transition-colors"
-              onClick={() => {
-                onRename()
-                setOpen(false)
-              }}
-            >
-              Renomear
-            </button>
-            <button
-              type="button"
-              className="w-full px-3 py-1.5 text-sm text-left hover:bg-base-200 transition-colors"
-              onClick={() => setShowColor((v) => !v)}
-            >
-              Alterar cor
-            </button>
-            {showColor && (
-              <div className="px-3 py-2 border-t border-base-200">
+          <div className="dropdown-content z-30 mt-1 bg-base-100 border border-base-300 rounded-xl shadow-lg min-w-[9rem]">
+            <ul className="menu menu-sm p-1">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onRename()
+                    setOpen(false)
+                  }}
+                >
+                  Renomear
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => setColorOpen((v) => !v)}>
+                  Alterar cor
+                </button>
+              </li>
+            </ul>
+            {colorOpen && (
+              <div className="px-3 py-2 border-t border-base-300">
                 <StageColorPicker
-                  value={stage.color}
-                  onChange={handleColorChange}
+                  initialColor={stage.color}
+                  onApply={handleColorApply}
+                  onCancel={handleColorCancel}
                 />
               </div>
             )}
             {!stage.isDefaultEntry && (
-              <button
-                type="button"
-                className="w-full px-3 py-1.5 text-sm text-left text-error hover:bg-base-200 transition-colors border-t border-base-200"
-                onClick={handleDeleteClick}
-              >
-                Eliminar
-              </button>
+              <ul className="menu menu-sm p-1 border-t border-base-300">
+                <li>
+                  <button
+                    type="button"
+                    className="text-error"
+                    onClick={handleDeleteClick}
+                  >
+                    Eliminar
+                  </button>
+                </li>
+              </ul>
             )}
           </div>
         )}

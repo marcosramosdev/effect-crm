@@ -17,12 +17,11 @@ Notas de organização e padrões para o código dentro de `client/src/`.
 
 ## Pipeline / Board
 
-- Usar `@dnd-kit/core` + `@dnd-kit/sortable` para drag-and-drop entre colunas.
-- Cards usam `useSortable` com `activationConstraint: { distance: 5 }` para evitar cliques acidentais.
-- `PipelineBoard` gere `DndContext` com `onDragOver` (optimistic cross-column move) e `onDragEnd` (commit ao server com `position`).
-- `SortableLeadCard` e `DroppableColumn` vivem em `features/pipeline/dnd/`.
+- Usar `@hello-pangea/dnd` para drag-and-drop entre colunas.
+- `PipelineBoard` delega DnD para `PipelineBoardDnd` (wrapper em `features/pipeline/dnd-pangea/`).
+- `PipelineBoardDnd` usa `DragDropContext` + `Droppable` + `Draggable`; calcula `position` com midpoint strategy no `onDragEnd`.
 - `framer-motion` mantido apenas para `Reorder.Group` nos painéis de settings (etapas/campos).
-- Mockar `@dnd-kit/*` em testes (Vitest) para simplificar assertions de DOM.
+- Mockar `@hello-pangea/dnd` em testes (Vitest) para simplificar assertions de DOM.
 
 ## Imports / aliases
 
