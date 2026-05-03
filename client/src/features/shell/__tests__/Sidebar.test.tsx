@@ -75,25 +75,25 @@ describe('Sidebar', () => {
     render(<Sidebar />, { wrapper: makeWrapper() })
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Inbox')).toBeInTheDocument()
+      expect(screen.getByText('Painel')).toBeInTheDocument()
+      expect(screen.getByText('Caixa de entrada')).toBeInTheDocument()
       expect(screen.getByText('Pipeline')).toBeInTheDocument()
       expect(screen.getByText('Conectar')).toBeInTheDocument()
-      expect(screen.getByText('Configurar')).toBeInTheDocument()
+      expect(screen.getByText('Configurações')).toBeInTheDocument()
     })
   })
 
-  it('non-owner hides owner-only items (Conectar + Configurar)', async () => {
+  it('non-owner hides owner-only items (Conectar + Configurações)', async () => {
     render(<Sidebar />, { wrapper: makeWrapper() })
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Inbox')).toBeInTheDocument()
+      expect(screen.getByText('Painel')).toBeInTheDocument()
+      expect(screen.getByText('Caixa de entrada')).toBeInTheDocument()
       expect(screen.getByText('Pipeline')).toBeInTheDocument()
     })
 
     expect(screen.queryByText('Conectar')).not.toBeInTheDocument()
-    expect(screen.queryByText('Configurar')).not.toBeInTheDocument()
+    expect(screen.queryByText('Configurações')).not.toBeInTheDocument()
   })
 
   it('active route link has aria-current="page"', async () => {
@@ -101,15 +101,17 @@ describe('Sidebar', () => {
 
     render(<Sidebar />, { wrapper: makeWrapper() })
 
-    await waitFor(() => expect(screen.getByText('Inbox')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Caixa de entrada')).toBeInTheDocument(),
+    )
 
     const inboxLink = screen
-      .getByText('Inbox')
+      .getByText('Caixa de entrada')
       .closest('a') as HTMLAnchorElement
     expect(inboxLink).toHaveAttribute('aria-current', 'page')
 
     const dashboardLink = screen
-      .getByText('Dashboard')
+      .getByText('Painel')
       .closest('a') as HTMLAnchorElement
     expect(dashboardLink).not.toHaveAttribute('aria-current')
   })
@@ -118,10 +120,10 @@ describe('Sidebar', () => {
     render(<Sidebar />, { wrapper: makeWrapper() })
 
     await waitFor(() =>
-      expect(screen.getByText('Need support?')).toBeInTheDocument(),
+      expect(screen.getByText('Precisa de ajuda?')).toBeInTheDocument(),
     )
     expect(
-      screen.getByRole('button', { name: /contact us/i }),
+      screen.getByRole('button', { name: /falar conosco/i }),
     ).toBeInTheDocument()
   })
 

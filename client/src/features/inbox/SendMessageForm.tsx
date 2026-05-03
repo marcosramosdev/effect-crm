@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Send, Smile, Paperclip } from 'lucide-react'
 import type { z } from 'zod'
 import { apiFetch, RateLimitedError } from '../../lib/api'
 import { SendMessageRequestSchema } from '@shared/inbox'
@@ -124,24 +125,37 @@ export function SendMessageForm({
         e.preventDefault()
         submit()
       }}
-      className="p-3 border-t border-base-200"
+      className="px-4 sm:px-6 py-3 border-t border-base-200 bg-base-100"
     >
       {errorMsg && (
-        <div role="alert" className="alert alert-warning py-2 mb-2 text-sm">
+        <div
+          role="alert"
+          className="alert bg-warning/15 text-warning-content border-0 rounded-xl py-2 mb-2 text-sm"
+        >
           {errorMsg}
         </div>
       )}
       {retryAfterSecs !== null && (
-        <p role="status" className="text-sm text-warning mb-2">
+        <p
+          role="status"
+          className="text-xs text-warning mb-2 font-medium"
+        >
           Tente novamente em {retryAfterSecs} segundos
         </p>
       )}
-      <div className="flex gap-2 items-end">
+      <div className="flex items-end gap-2 rounded-2xl border border-base-200 bg-base-100 px-2 py-1.5 focus-within:border-primary/50 focus-within:shadow-[0_0_0_4px_color-mix(in_oklch,var(--color-primary)_15%,transparent)] transition-shadow">
+        <button
+          type="button"
+          aria-label="Anexar arquivo"
+          className="btn btn-ghost btn-sm btn-square text-base-content/50 mb-0.5"
+        >
+          <Paperclip className="h-4 w-4" />
+        </button>
         <textarea
           {...register('text')}
-          className="textarea textarea-bordered flex-1 resize-none"
+          className="textarea flex-1 resize-none min-h-[2.25rem] max-h-32 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 px-1 py-1.5 text-[14px] leading-relaxed"
           rows={1}
-          placeholder="Escreve uma mensagem..."
+          placeholder="Escreva uma mensagem…"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && !isDisabled) {
               e.preventDefault()
@@ -149,8 +163,20 @@ export function SendMessageForm({
             }
           }}
         />
-        <button type="submit" className="btn btn-primary" disabled={isDisabled}>
-          Enviar
+        <button
+          type="button"
+          aria-label="Inserir emoji"
+          className="btn btn-ghost btn-sm btn-square text-base-content/50 mb-0.5"
+        >
+          <Smile className="h-4 w-4" />
+        </button>
+        <button
+          type="submit"
+          aria-label="Enviar"
+          className="btn btn-primary btn-sm btn-square mb-0.5 shadow-[0_4px_14px_-6px_color-mix(in_oklch,var(--color-primary)_60%,transparent)]"
+          disabled={isDisabled}
+        >
+          <Send className="h-4 w-4" />
         </button>
       </div>
     </form>

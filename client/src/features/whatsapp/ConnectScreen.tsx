@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
+import { CheckCircle2, AlertCircle, Smartphone, Wifi } from 'lucide-react'
 import { apiFetch } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
@@ -91,8 +92,8 @@ export function ConnectScreen() {
 
   if (authLoading || connectionLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="loading loading-spinner loading-lg" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <span className="loading loading-spinner loading-lg text-primary" />
       </div>
     )
   }
@@ -102,61 +103,130 @@ export function ConnectScreen() {
   const isOwner = auth?.role === 'owner'
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-6 p-8">
-      <h1 className="text-2xl font-bold">WhatsApp Connection</h1>
-
-      {status === 'connected' && (
-        <div className="text-center">
-          <div className="badge badge-success gap-2 p-4 text-base">
-            Connected
-          </div>
-          {connection?.phoneNumber && (
-            <p className="mt-2 text-sm text-base-content/70">
-              {connection.phoneNumber}
+    <div className="relative max-w-3xl mx-auto py-10 px-4 anim-fade-up">
+      <div className="surface-elevated rounded-3xl p-8 sm:p-10 relative overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary/12 blur-3xl"
+        />
+        <div className="relative flex items-center gap-3 mb-6">
+          <span className="w-11 h-11 rounded-2xl bg-success/15 text-success flex items-center justify-center">
+            <Wifi className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="font-display font-bold text-2xl tracking-tight">
+              Conexão com o WhatsApp
+            </h1>
+            <p className="text-sm text-base-content/60">
+              Conecte o número da sua empresa para receber e responder mensagens
+              direto pelo CRM.
             </p>
-          )}
+          </div>
         </div>
-      )}
 
-      {status === 'qr_pending' && qr && (
-        <div className="text-center">
-          <p className="mb-4 text-sm">Scan the QR code with your phone</p>
-          <img src={qr} alt="QR Code" className="h-64 w-64 rounded-lg border" />
-        </div>
-      )}
+        {status === 'connected' && (
+          <div className="relative flex flex-col items-start gap-3 p-5 rounded-2xl border border-success/30 bg-success/8">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 className="h-5 w-5 text-success" />
+              <span className="font-semibold text-success">
+                WhatsApp conectado
+              </span>
+            </div>
+            {connection?.phoneNumber && (
+              <p className="text-sm text-base-content/70">
+                Número ativo:{' '}
+                <span className="font-mono font-medium text-base-content">
+                  {connection.phoneNumber}
+                </span>
+              </p>
+            )}
+            <p className="text-xs text-base-content/55">
+              As conversas chegam na caixa de entrada em tempo real.
+            </p>
+          </div>
+        )}
 
-      {status === 'connecting' && (
-        <div className="text-center">
-          <span className="loading loading-spinner loading-lg" />
-          <p className="mt-2">Connecting...</p>
-        </div>
-      )}
+        {status === 'qr_pending' && qr && (
+          <div className="relative grid sm:grid-cols-[auto_1fr] gap-6 items-center">
+            <div className="relative p-4 rounded-2xl bg-base-100 ring-1 ring-base-200 shadow-md">
+              <img
+                src={qr}
+                alt="QR Code"
+                className="h-56 w-56 rounded-lg block"
+              />
+              <span className="absolute -top-2 -right-2 chip chip-primary">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary anim-pulse-soft" />
+                Aguardando
+              </span>
+            </div>
+            <ol className="space-y-3 text-sm text-base-content/75 list-decimal list-inside">
+              <li>Abra o WhatsApp no seu celular.</li>
+              <li>
+                Vá em <span className="font-semibold">Configurações</span> →{' '}
+                <span className="font-semibold">Aparelhos conectados</span>.
+              </li>
+              <li>
+                Toque em <span className="font-semibold">Conectar aparelho</span>{' '}
+                e escaneie este QR code.
+              </li>
+              <li>Pronto — as conversas começam a entrar automaticamente.</li>
+            </ol>
+          </div>
+        )}
 
-      {(status === 'disconnected' || status === 'error') && (
-        <>
-          <p className="text-base-content/70">
-            {status === 'error'
-              ? 'Connection error'
-              : 'WhatsApp is disconnected'}
-          </p>
-          {status === 'error' && connection?.lastError && (
-            <p className="text-sm text-error">{connection.lastError}</p>
-          )}
-          {isOwner && (
-            <button
-              className="btn btn-primary"
-              onClick={() => connectMutation.mutate()}
-              disabled={connectMutation.isPending}
-            >
-              {connectMutation.isPending
-                ? 'Connecting...'
-                : status === 'error'
-                  ? 'Reconnect'
-                  : 'Connect'}
-            </button>
-          )}
-        </>
-      )}
+        {status === 'connecting' && (
+          <div className="relative flex flex-col items-center gap-4 py-10">
+            <span className="loading loading-spinner loading-lg text-primary" />
+            <p className="text-base-content/70">Conectando ao WhatsApp…</p>
+          </div>
+        )}
+
+        {(status === 'disconnected' || status === 'error') && (
+          <div className="relative flex flex-col items-start gap-4 p-5 rounded-2xl border border-base-200 bg-base-200/50">
+            <div className="flex items-center gap-2.5">
+              {status === 'error' ? (
+                <AlertCircle className="h-5 w-5 text-error" />
+              ) : (
+                <Smartphone className="h-5 w-5 text-base-content/55" />
+              )}
+              <span className="font-semibold">
+                {status === 'error'
+                  ? 'Erro na conexão'
+                  : 'WhatsApp desconectado'}
+              </span>
+            </div>
+            <p className="text-sm text-base-content/65">
+              {status === 'error'
+                ? 'Algo deu errado ao conectar. Tente novamente em instantes.'
+                : 'Seu número não está vinculado ainda. Conecte para começar a receber mensagens.'}
+            </p>
+            {status === 'error' && connection?.lastError && (
+              <p className="text-xs text-error font-mono bg-error/8 px-2 py-1 rounded-md">
+                {connection.lastError}
+              </p>
+            )}
+            {isOwner && (
+              <button
+                type="button"
+                className="btn btn-primary rounded-full px-5 mt-1 gap-1.5"
+                onClick={() => connectMutation.mutate()}
+                disabled={connectMutation.isPending}
+              >
+                {connectMutation.isPending
+                  ? 'Conectando…'
+                  : status === 'error'
+                    ? 'Reconectar'
+                    : 'Conectar agora'}
+              </button>
+            )}
+            {!isOwner && (
+              <p className="text-xs text-base-content/50">
+                Apenas o proprietário da conta pode conectar o WhatsApp.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

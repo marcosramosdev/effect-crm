@@ -105,7 +105,7 @@ describe('ConnectScreen', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText(/connected/i)).toBeInTheDocument()
+      expect(screen.getByText(/conectado/i)).toBeInTheDocument()
     })
   })
 
@@ -135,7 +135,7 @@ describe('ConnectScreen', () => {
     render(<ConnectScreen />, { wrapper: makeWrapper() })
 
     const connectButton = await screen.findByRole('button', {
-      name: /connect/i,
+      name: /conectar/i,
     })
     fireEvent.click(connectButton)
 
@@ -159,10 +159,10 @@ describe('ConnectScreen', () => {
 
     render(<ConnectScreen />, { wrapper: makeWrapper() })
 
-    await screen.findByText(/whatsapp is disconnected/i)
+    await screen.findByText(/whatsapp desconectado/i)
 
     expect(
-      screen.queryByRole('button', { name: /connect/i }),
+      screen.queryByRole('button', { name: /conectar agora/i }),
     ).not.toBeInTheDocument()
   })
 })

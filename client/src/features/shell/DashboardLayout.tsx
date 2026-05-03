@@ -24,11 +24,11 @@ export function DashboardLayout({
   viewTabs,
   onViewTabChange,
   actions,
-  contentClassName = 'bg-base-200 flex-1 overflow-auto p-6',
+  contentClassName = 'bg-base-200/60 flex-1 overflow-auto p-6',
   children,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-base-200">
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0">
         <AppBar

@@ -25,33 +25,37 @@ export function AppBar({
   actions,
 }: AppBarProps) {
   return (
-    <header className="flex items-center gap-4 h-14 px-4 bg-base-100 border-b border-base-200 shrink-0">
-      <div className="flex flex-col justify-center">
-        <h1 className="font-semibold text-base whitespace-nowrap">{title}</h1>
-        {subtitle && <p className="text-sm text-base-content/60">{subtitle}</p>}
+    <header className="flex items-center gap-4 min-h-[3.75rem] px-5 bg-base-100/85 backdrop-blur-sm border-b border-base-200 shrink-0 sticky top-0 z-20">
+      <div className="flex flex-col justify-center min-w-0">
+        <h1 className="font-display font-semibold text-[17px] tracking-tight whitespace-nowrap leading-tight">
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="text-xs text-base-content/55 truncate mt-0.5">
+            {subtitle}
+          </p>
+        )}
       </div>
 
-      {/* View tab strip in centre */}
+      {/* View tab strip */}
       {viewTabs && viewTabs.length > 0 && (
         <div className="flex-1 flex justify-center">
           <ViewTabs tabs={viewTabs} onChange={onViewTabChange} />
         </div>
       )}
 
-      {/* Fallback: filter pills if no viewTabs */}
+      {/* Fallback: filter pills */}
       {!viewTabs && filters && filters.length > 0 && (
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-center overflow-x-auto">
           <FilterPills pills={filters} onSelect={onFilterSelect} />
         </div>
       )}
 
-      {/* Spacer when no centre content */}
       {!viewTabs && (!filters || filters.length === 0) && (
         <div className="flex-1" />
       )}
 
-      {/* Action cluster + UserMenu */}
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-2 ml-auto shrink-0">
         {actions}
         <UserMenu />
       </div>
