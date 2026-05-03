@@ -14,7 +14,7 @@ export function PipelineCard({ lead, stage, onClick }: PipelineCardProps) {
 
   return (
     <div
-      className="card bg-base-100 border border-base-300 hover:bg-base-200/60 hover:shadow-sm transition-all duration-150 cursor-pointer"
+      className="group rounded-xl bg-base-100 border border-base-200 hover:border-base-content/15 hover:shadow-[0_8px_22px_-14px_rgba(0,0,0,0.18)] transition-all duration-150 cursor-pointer p-3 flex flex-col gap-2.5"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -25,51 +25,53 @@ export function PipelineCard({ lead, stage, onClick }: PipelineCardProps) {
         }
       }}
     >
-      <div className="card-body p-3 gap-2">
-        <div className="flex items-center justify-between">
-          {stage && (
+      <div className="flex items-center justify-between gap-2">
+        {stage && (
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border"
+            style={{
+              backgroundColor: stage.color + '15',
+              borderColor: stage.color + '40',
+              color: stage.color,
+            }}
+          >
             <span
-              className="badge badge-sm gap-1"
-              style={{
-                backgroundColor: stage.color + '18',
-                borderColor: stage.color,
-                color: stage.color,
-              }}
-            >
-              {stage.name}
-            </span>
-          )}
-          <div className="avatar placeholder">
-            <div className="bg-neutral text-neutral-content w-6 rounded-full ring-1 ring-base-300">
-              <span className="text-xs">{getInitials(displayName)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="font-semibold tracking-tight text-sm truncate"
-          title={displayName}
-        >
-          {displayName}
-        </div>
-
-        <div className="flex items-center gap-3 text-xs text-base-content/60">
-          <span className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            {dateStr}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: stage.color }}
+            />
+            {stage.name}
           </span>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {timeInStage}
-          </span>
+        )}
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-accent/15 ring-1 ring-base-200 flex items-center justify-center text-[10px] font-semibold text-base-content/75">
+          {getInitials(displayName)}
         </div>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <span className="badge badge-xs badge-outline">Novo</span>
-          <span className="flex items-center gap-1 text-xs text-base-content/60">
-            <MessageSquare className="h-3 w-3" />0
-          </span>
-        </div>
+      <p
+        className="font-display font-semibold tracking-tight text-[14px] truncate text-base-content"
+        title={displayName}
+      >
+        {displayName}
+      </p>
+
+      <div className="flex items-center gap-3 text-[11px] text-base-content/55">
+        <span className="inline-flex items-center gap-1">
+          <Calendar className="h-3 w-3" />
+          {dateStr}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          {timeInStage}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between pt-1.5 border-t border-base-200/70">
+        <span className="text-[10px] uppercase tracking-wider font-semibold text-base-content/45">
+          Novo
+        </span>
+        <span className="inline-flex items-center gap-1 text-[11px] text-base-content/55">
+          <MessageSquare className="h-3 w-3" />0
+        </span>
       </div>
     </div>
   )

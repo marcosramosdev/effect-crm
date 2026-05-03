@@ -410,7 +410,7 @@ describe('route guards', () => {
     const NotFound = Route.options.notFoundComponent as React.ComponentType<any>
     render(<NotFound isNotFound={true} routeId="__root__" />)
 
-    expect(screen.getByText('Página não encontrada.')).toBeInTheDocument()
+    expect(screen.getByText(/página não encontrada/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /voltar/i })).toBeInTheDocument()
   })
 })

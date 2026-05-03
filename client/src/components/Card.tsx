@@ -13,7 +13,7 @@ export function Card<T extends ElementType = 'div'>({
   const Tag: ElementType = as ?? 'div'
   return (
     <Tag
-      className={`card bg-base-100 shadow-sm border border-base-200 ${className ?? ''}`}
+      className={`card bg-base-100 border border-base-200 rounded-2xl transition-shadow duration-200 hover:shadow-[0_8px_28px_-18px_rgba(0,0,0,0.18)] ${className ?? ''}`}
       {...props}
     />
   )
@@ -27,7 +27,7 @@ type SlotProps = {
 export function CardHeader({ className, children }: SlotProps) {
   return (
     <div
-      className={`px-4 py-3 border-b border-base-200 flex items-center gap-2 ${className ?? ''}`}
+      className={`px-4 py-3 border-b border-base-200/80 flex items-center gap-2 ${className ?? ''}`}
     >
       {children}
     </div>
@@ -41,7 +41,7 @@ export function CardBody({ className, children }: SlotProps) {
 export function CardFooter({ className, children }: SlotProps) {
   return (
     <div
-      className={`px-4 py-3 border-t border-base-200 flex items-center gap-2 ${className ?? ''}`}
+      className={`px-4 py-3 border-t border-base-200/80 flex items-center gap-2 ${className ?? ''}`}
     >
       {children}
     </div>

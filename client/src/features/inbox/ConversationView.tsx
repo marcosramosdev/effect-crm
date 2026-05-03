@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { Phone, MoreVertical, ChevronUp } from 'lucide-react'
 import { apiFetch } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
@@ -36,22 +37,39 @@ function toMessage(row: Record<string, unknown>): Message {
   }
 }
 
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function getInitials(name: string): string {
+  const parts = name.replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).filter(Boolean)
+  if (parts.length >= 2)
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
+}
+
 function OutboundStatus({ status }: { status: Message['status'] }) {
   if (status === 'pending') {
     return (
-      <span className="loading loading-spinner loading-xs ml-1 align-middle" />
+      <span
+        className="loading loading-spinner loading-xs ml-1 align-middle opacity-70"
+        aria-label="Enviando"
+      />
     )
   }
   if (status === 'delivered') {
     return (
-      <span className="text-xs ml-1 opacity-60" aria-label="delivered">
+      <span className="text-[10px] ml-1.5 opacity-70" aria-label="Entregue">
         ✓✓
       </span>
     )
   }
   if (status === 'read') {
     return (
-      <span className="text-xs ml-1 text-blue-400" aria-label="read">
+      <span className="text-[10px] ml-1.5 text-info" aria-label="Lida">
         ✓✓
       </span>
     )
@@ -133,7 +151,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <span className="loading loading-spinner loading-lg" />
+        <span className="loading loading-spinner loading-lg text-primary" />
       </div>
     )
   }
@@ -145,61 +163,101 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
       .reverse()
       .flatMap((page) => [...page.messages].reverse()) ?? []
 
-  return (
-    <div className="flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-base-200">
-        <p className="font-semibold">
-          {lead?.displayName ?? lead?.phoneNumber}
-        </p>
-        {lead?.displayName && lead.phoneNumber && (
-          <p className="text-sm text-base-content/60">{lead.phoneNumber}</p>
-        )}
-      </div>
+  const headerName = lead?.displayName ?? lead?.phoneNumber ?? '—'
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+  return (
+    <div className="flex flex-col h-full bg-base-100">
+      <header className="flex items-center gap-3 px-5 h-16 border-b border-base-200 bg-base-100/85 backdrop-blur-sm">
+        <span className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/25 to-accent/25 flex items-center justify-center font-semibold text-sm text-base-content/80">
+          {getInitials(headerName)}
+        </span>
+        <div className="flex flex-col min-w-0">
+          <p className="font-display font-semibold text-[15px] truncate leading-tight">
+            {headerName}
+          </p>
+          {lead?.displayName && lead.phoneNumber && (
+            <p className="text-[11px] text-base-content/55 truncate font-mono mt-0.5">
+              {lead.phoneNumber}
+            </p>
+          )}
+        </div>
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm btn-square text-base-content/60"
+            aria-label="Ligar"
+          >
+            <Phone className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm btn-square text-base-content/60"
+            aria-label="Mais opções"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </button>
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto bg-base-200/40 px-4 sm:px-8 py-6 flex flex-col gap-1.5">
         {hasNextPage && (
           <button
-            className="btn btn-ghost btn-sm self-center"
+            type="button"
+            className="btn btn-ghost btn-sm self-center rounded-full text-base-content/60 gap-1.5"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
           >
             {isFetchingNextPage ? (
               <span className="loading loading-spinner loading-xs" />
             ) : (
-              'Load older messages'
+              <>
+                <ChevronUp className="h-3.5 w-3.5" />
+                Carregar mensagens anteriores
+              </>
             )}
           </button>
         )}
 
-        {allMessages.map((message) => (
-          <div
-            key={message.id}
-            className={`chat ${message.direction === 'outbound' ? 'chat-end' : 'chat-start'}`}
-          >
+        {allMessages.map((message, idx) => {
+          const isOutbound = message.direction === 'outbound'
+          const prev = allMessages[idx - 1]
+          const groupStart = !prev || prev.direction !== message.direction
+          return (
             <div
-              className={`chat-bubble ${message.direction === 'outbound' ? 'chat-bubble-primary' : ''}`}
+              key={message.id}
+              className={`chat ${isOutbound ? 'chat-end' : 'chat-start'} ${groupStart ? 'mt-3' : ''}`}
             >
-              {message.contentType === 'unsupported' ? (
-                <span className="text-sm italic opacity-70">
-                  Unsupported message type
+              <div
+                className={`chat-bubble max-w-[80%] text-[14px] leading-relaxed shadow-none border ${
+                  isOutbound
+                    ? 'chat-bubble-primary border-primary/20'
+                    : 'bg-base-100 text-base-content border-base-200'
+                }`}
+              >
+                {message.contentType === 'unsupported' ? (
+                  <span className="text-sm italic opacity-70">
+                    Tipo de mensagem não suportado
+                  </span>
+                ) : (
+                  message.text
+                )}
+                <span
+                  className={`block text-[10px] mt-1 ${isOutbound ? 'text-primary-content/70' : 'text-base-content/45'}`}
+                >
+                  {formatTime(message.createdAt)}
+                  {isOutbound && <OutboundStatus status={message.status} />}
                 </span>
-              ) : (
-                message.text
-              )}
-              {message.direction === 'outbound' && (
-                <OutboundStatus status={message.status} />
-              )}
-            </div>
-            {message.direction === 'outbound' &&
-              message.status === 'failed' && (
+              </div>
+              {isOutbound && message.status === 'failed' && (
                 <div className="chat-footer mt-1">
                   <div
                     role="alert"
-                    className="alert alert-error py-1 px-2 text-xs gap-1"
+                    className="alert bg-error/10 border-0 text-error py-1.5 px-2.5 text-xs gap-1.5 rounded-lg"
                   >
                     <span>Falha no envio</span>
                     <button
-                      className="btn btn-xs btn-ghost"
+                      type="button"
+                      className="btn btn-xs btn-ghost text-error"
                       onClick={() => handleRetry(message.text ?? '')}
                     >
                       Tentar novamente
@@ -207,8 +265,9 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
                   </div>
                 </div>
               )}
-          </div>
-        ))}
+            </div>
+          )
+        })}
 
         <div ref={messagesEndRef} />
       </div>

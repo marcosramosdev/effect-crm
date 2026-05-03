@@ -33,6 +33,7 @@ export function useRegisterMutation() {
         queryFn: () =>
           apiFetch('/auth/me', undefined, undefined, session.accessToken),
       })
+      queryClient.invalidateQueries({ queryKey: authQueryOptions.queryKey })
 
       navigate({ to: '/app' })
     },

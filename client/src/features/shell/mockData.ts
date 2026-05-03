@@ -31,7 +31,7 @@ export const MOCK_KPIS: KPI[] = [
   { id: 'pending', label: 'Pendentes', value: 4, delta: 1 },
   { id: 'responded', label: 'Respondidos', value: 12, delta: -2 },
   { id: 'assigned', label: 'Atribuídos', value: 15, delta: 3 },
-  { id: 'completed', label: 'Concluídos', value: 10, delta: 5 },
+  { id: 'completed', label: 'Convertidos', value: 10, delta: 5 },
 ]
 
 export const MOCK_KANBAN_COLUMNS: KanbanColumn[] = [
@@ -43,41 +43,41 @@ export const MOCK_KANBAN_COLUMNS: KanbanColumn[] = [
       {
         id: 'l1',
         code: '#324561324',
-        city: 'Lisboa, PT',
+        city: 'São Paulo, SP',
         assignedTo: 'Ana Silva',
-        expAt: '12 Abr',
+        expAt: '12 abr',
         status: 'Novo',
       },
       {
         id: 'l2',
         code: '#324561325',
-        city: 'Porto, PT',
+        city: 'Rio de Janeiro, RJ',
         assignedTo: 'Rui Costa',
-        expAt: '18 Abr',
+        expAt: '18 abr',
         status: 'Novo',
       },
     ],
   },
   {
     id: 'contacted',
-    label: 'Contactado',
+    label: 'Contatado',
     dot: 'bg-info',
     leads: [
       {
         id: 'l3',
         code: '#842391056',
-        city: 'Braga, PT',
+        city: 'Belo Horizonte, MG',
         assignedTo: 'Marta Lopes',
-        expAt: '14 Abr',
-        status: 'Contactado',
+        expAt: '14 abr',
+        status: 'Contatado',
       },
       {
         id: 'l4',
         code: '#772394810',
-        city: 'Faro, PT',
-        assignedTo: 'João Sousa',
-        expAt: '19 Abr',
-        status: 'Contactado',
+        city: 'Curitiba, PR',
+        assignedTo: 'João Souza',
+        expAt: '19 abr',
+        status: 'Contatado',
       },
     ],
   },
@@ -89,9 +89,9 @@ export const MOCK_KANBAN_COLUMNS: KanbanColumn[] = [
       {
         id: 'l5',
         code: '#194827364',
-        city: 'Coimbra, PT',
+        city: 'Florianópolis, SC',
         assignedTo: 'Inês Ferreira',
-        expAt: '15 Abr',
+        expAt: '15 abr',
         status: 'Ganho',
       },
     ],
@@ -99,7 +99,7 @@ export const MOCK_KANBAN_COLUMNS: KanbanColumn[] = [
 ]
 
 export const MOCK_PROMO: Promo = {
-  title: 'Analíticas avançadas',
-  body: 'Obtenha insights detalhados sobre o seu pipeline e equipa.',
-  ctaLabel: 'Ver Premium',
+  title: 'Análises avançadas para o seu funil',
+  body: 'Veja conversão por etapa, tempo médio e desempenho do time num só lugar.',
+  ctaLabel: 'Conhecer Premium',
 }

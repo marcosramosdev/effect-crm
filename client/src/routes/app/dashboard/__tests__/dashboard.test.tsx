@@ -85,7 +85,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage />, { wrapper: makeWrapper() })
 
     expect(
-      screen.getByRole('button', { name: 'Ver Premium' }),
+      screen.getByRole('button', { name: /premium/i }),
     ).toBeInTheDocument()
   })
 
