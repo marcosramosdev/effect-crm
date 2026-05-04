@@ -325,7 +325,14 @@ export function ConnectScreen() {
           </form>
         )}
 
-        {uiState === 'disconnected' && (
+        {connectInstanceMutation.isPending && (
+          <div className="flex flex-col items-center gap-4 py-10">
+            <span className="loading loading-spinner loading-lg text-primary" />
+            <p className="text-sm text-base-content/70">A gerar QR code…</p>
+          </div>
+        )}
+
+        {uiState === 'disconnected' && !connectInstanceMutation.isPending && (
           <div className="space-y-4 rounded-2xl border border-base-200 bg-base-200/50 p-5">
             <div className="flex items-center gap-2.5">
               <Smartphone className="h-5 w-5 text-base-content/55" />
@@ -370,8 +377,8 @@ export function ConnectScreen() {
                   className="block h-56 w-56 rounded-lg"
                 />
               ) : (
-                <div className="flex h-56 w-56 items-center justify-center rounded-lg bg-base-200 text-base-content/60">
-                  QR indisponível
+                <div className="flex h-56 w-56 items-center justify-center rounded-lg bg-base-200">
+                  <span className="loading loading-spinner loading-md text-primary" />
                 </div>
               )}
               <span className="chip chip-primary absolute -right-2 -top-2">
@@ -394,7 +401,7 @@ export function ConnectScreen() {
           </div>
         )}
 
-        {uiState === 'qr_pending_expired' && (
+        {uiState === 'qr_pending_expired' && !connectInstanceMutation.isPending && (
           <div className="space-y-4 rounded-2xl border border-warning/40 bg-warning/10 p-5">
             <div className="flex items-center gap-2.5">
               <AlertCircle className="h-5 w-5 text-warning" />

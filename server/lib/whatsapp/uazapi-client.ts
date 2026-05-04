@@ -53,6 +53,7 @@ export type UazapiInstanceStatus = {
   loggedIn: boolean
   phoneNumber: string | null
   instanceName: string | null
+  qr: string | null
 }
 
 function normalizePhoneNumber(value: unknown): string | null {
@@ -82,8 +83,9 @@ export async function createInstance(params: {
     headers: { 'Content-Type': 'application/json', admintoken: adminToken() },
     body: JSON.stringify(params),
   })
-  const data = (await checkResponse(res)) as { instanceId?: string; id?: string; token: string }
-  return { instanceId: (data.instanceId ?? data.id) as string, token: data.token }
+  const data = (await checkResponse(res)) as { instanceId?: string; id?: string; instance?: { id?: string }; token: string }
+  console.log('[uazapi] createInstance raw response:', JSON.stringify(data))
+  return { instanceId: data.instanceId ?? data.id ?? data.instance?.id ?? data.token, token: data.token }
 }
 
 export async function connect(instanceToken: string): Promise<{ qr: string | null; status: string }> {
@@ -92,7 +94,8 @@ export async function connect(instanceToken: string): Promise<{ qr: string | nul
     headers: { token: instanceToken },
   })
   const data = (await checkResponse(res)) as { qrcode?: string; status?: string }
-  return { qr: data.qrcode ?? null, status: data.status ?? 'connecting' }
+  console.log('[uazapi] connect raw response:', JSON.stringify(data))
+  return { qr: data.qrcode || null, status: data.status ?? 'connecting' }
 }
 
 export async function disconnect(instanceToken: string): Promise<void> {
@@ -123,6 +126,8 @@ export async function getInstanceStatus(token: string): Promise<UazapiInstanceSt
   const loggedIn = Boolean(data.loggedIn)
   const statusValue = typeof data.status === 'string' && data.status.length > 0 ? data.status : null
 
+  const qrRaw = typeof data.qrcode === 'string' ? data.qrcode : (typeof instance?.qrcode === 'string' ? instance.qrcode : null)
+
   return {
     status: statusValue ?? (connected ? 'connected' : 'disconnected'),
     connected,
@@ -131,6 +136,7 @@ export async function getInstanceStatus(token: string): Promise<UazapiInstanceSt
     instanceName:
       (typeof data.instanceName === 'string' ? data.instanceName : undefined) ??
       (typeof instance?.name === 'string' ? instance.name : null),
+    qr: qrRaw || null,
   }
 }
 

@@ -49,7 +49,7 @@ function normalizeStatusFromUazapi(
   return "disconnected";
 }
 
-function toStatusResponse(row: SessionRow | null): InstanceStatusDTO {
+function toStatusResponse(row: SessionRow | null, liveQr: string | null = null): InstanceStatusDTO {
   if (!row) {
     return {
       status: "disconnected",
@@ -78,7 +78,7 @@ function toStatusResponse(row: SessionRow | null): InstanceStatusDTO {
       typeof row.last_heartbeat_at === "string" ? row.last_heartbeat_at : null,
     lastError: typeof row.last_error === "string" ? row.last_error : null,
     qrExpiresAt,
-    qr: status === "qr_pending" && qrExpired ? null : null,
+    qr: status === "qr_pending" && !qrExpired ? liveQr : null,
   };
 }
 
@@ -232,11 +232,7 @@ export function createWhatsappRouter(
     }
 
     const session = sessionData as SessionRow | null;
-    if (
-      !session ||
-      !session.uazapi_instance_id ||
-      !session.uazapi_instance_token
-    ) {
+    if (!session || !session.uazapi_instance_token) {
       return c.json(
         {
           error: {
@@ -304,11 +300,7 @@ export function createWhatsappRouter(
     }
 
     const session = sessionData as SessionRow | null;
-    if (
-      !session ||
-      !session.uazapi_instance_id ||
-      !session.uazapi_instance_token
-    ) {
+    if (!session || !session.uazapi_instance_token) {
       return c.json(
         {
           error: {
@@ -433,8 +425,8 @@ export function createWhatsappRouter(
         ? session.uazapi_instance_token
         : null;
 
+    let uazapiStatus: import('../lib/whatsapp/uazapi-client').UazapiInstanceStatus | undefined
     if ((status === "qr_pending" || status === "connecting") && token) {
-      let uazapiStatus;
       try {
         uazapiStatus = await uazapiDeps.getInstanceStatus(token);
       } catch (err) {
@@ -479,7 +471,8 @@ export function createWhatsappRouter(
       session = { ...session, ...update };
     }
 
-    return c.json(toStatusResponse(session));
+    const liveQr = uazapiStatus?.qr ?? null;
+    return c.json(toStatusResponse(session, liveQr));
   });
 
   return router;

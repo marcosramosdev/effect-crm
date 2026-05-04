@@ -13,7 +13,7 @@ export const CreateInstanceBodySchema = z.object({
 })
 
 export const CreateInstanceResponseSchema = z.object({
-  instanceId: z.string(),
+  instanceId: z.string().optional(),
   name: z.string(),
   status: z.literal('disconnected'),
 })
