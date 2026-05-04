@@ -1,9 +1,9 @@
 ## 1. Schema e migrations
 
-- [ ] 1.1 Criar `server/db/migrations/006__whatsapp_instance_meta.sql` adicionando colunas `instance_name text` e `qr_expires_at timestamptz` em `whatsapp_sessions`
-- [ ] 1.2 Criar migration espelho em `supabase/migrations/` (mesmo SQL, prefixo de data)
-- [ ] 1.3 Atualizar view `whatsapp_sessions_public` em `005__views.sql` (ou nova migration) para expor `instance_name`, `qr_expires_at` (NUNCA expor tokens)
-- [ ] 1.4 Backfill best-effort: `update whatsapp_sessions set instance_name = tenants.name from tenants where tenants.id = whatsapp_sessions.tenant_id and whatsapp_sessions.instance_name is null`
+- [x] 1.1 Criar `server/db/migrations/006__whatsapp_instance_meta.sql` adicionando colunas `instance_name text` e `qr_expires_at timestamptz` em `whatsapp_sessions`
+- [x] 1.2 Criar migration espelho em `supabase/migrations/` (mesmo SQL, prefixo de data)
+- [x] 1.3 Atualizar view `whatsapp_sessions_public` em `005__views.sql` (ou nova migration) para expor `instance_name`, `qr_expires_at` (NUNCA expor tokens)
+- [x] 1.4 Backfill best-effort: `update whatsapp_sessions set instance_name = tenants.name from tenants where tenants.id = whatsapp_sessions.tenant_id and whatsapp_sessions.instance_name is null`
 
 ## 2. Cliente UAZAPI (server/lib/whatsapp)
 
