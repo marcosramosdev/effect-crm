@@ -7,12 +7,12 @@
 
 ## 2. Cliente UAZAPI (server/lib/whatsapp)
 
-- [ ] 2.1 Adicionar `deleteInstance(token: string): Promise<void>` em `uazapi-client.ts` (DELETE `/instance`, header `token`); tratar 404 como sucesso
-- [ ] 2.2 Adicionar `getInstanceStatus(token: string): Promise<{ status, connected, loggedIn, phoneNumber, instanceName }>` (GET `/instance/status`, header `token`); extrair `phoneNumber` de `instance.owner` ou `jid.user`
-- [ ] 2.3 Adicionar boot check em `server/index.ts`: se `NODE_ENV === 'production'` e `UAZAPI_ADMIN_TOKEN` vazio → throw com mensagem clara
-- [ ] 2.4 Adicionar warn no boot quando `NODE_ENV !== 'production'` e usando defaults free
-- [ ] 2.5 Cobrir `deleteInstance` e `getInstanceStatus` em `uazapi-client.test.ts` (sucesso, 401, 404, 429, 500)
-- [ ] 2.6 Reexportar novos métodos em `server/lib/whatsapp/index.ts`
+- [x] 2.1 Adicionar `deleteInstance(token: string): Promise<void>` em `uazapi-client.ts` (DELETE `/instance`, header `token`); tratar 404 como sucesso
+- [x] 2.2 Adicionar `getInstanceStatus(token: string): Promise<{ status, connected, loggedIn, phoneNumber, instanceName }>` (GET `/instance/status`, header `token`); extrair `phoneNumber` de `instance.owner` ou `jid.user`
+- [x] 2.3 Adicionar boot check em `server/index.ts`: se `NODE_ENV === 'production'` e `UAZAPI_ADMIN_TOKEN` vazio → throw com mensagem clara
+- [x] 2.4 Adicionar warn no boot quando `NODE_ENV !== 'production'` e usando defaults free
+- [x] 2.5 Cobrir `deleteInstance` e `getInstanceStatus` em `uazapi-client.test.ts` (sucesso, 401, 404, 429, 500)
+- [x] 2.6 Reexportar novos métodos em `server/lib/whatsapp/index.ts`
 
 ## 3. Rotas HTTP (server/routes/whatsapp.ts)
 

@@ -11,6 +11,25 @@ import { inboxRouter } from './routes/inbox'
 import { pipelineRouter } from './routes/pipeline'
 import { teamRouter } from './routes/team'
 
+const UAZAPI_FREE_BASE_URL = 'https://free.uazapi.com'
+
+function validateUazapiBootConfig() {
+  const nodeEnv = process.env.NODE_ENV ?? 'development'
+  const baseUrl = process.env.UAZAPI_BASE_URL ?? UAZAPI_FREE_BASE_URL
+  const adminToken = (process.env.UAZAPI_ADMIN_TOKEN ?? '').trim()
+
+  if (nodeEnv === 'production' && adminToken.length === 0) {
+    throw new Error('UAZAPI_ADMIN_TOKEN obrigatório em produção')
+  }
+
+  const isUsingFreeDefaults = baseUrl === UAZAPI_FREE_BASE_URL && adminToken.length === 0
+  if (nodeEnv !== 'production' && isUsingFreeDefaults) {
+    console.warn('[whatsapp] Usando defaults free da UAZAPI em ambiente não-produção')
+  }
+}
+
+validateUazapiBootConfig()
+
 const app = new Hono()
 
 app.use('*', structuredLogger())

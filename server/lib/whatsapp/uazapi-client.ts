@@ -14,6 +14,13 @@ export class UazapiRateLimitedError extends Error {
   }
 }
 
+export class UazapiNotFoundError extends Error {
+  constructor(message = 'Resource not found on uazapi') {
+    super(message)
+    this.name = 'UazapiNotFoundError'
+  }
+}
+
 export class UazapiTransientError extends Error {
   constructor(message: string) {
     super(message)
@@ -31,12 +38,39 @@ function adminToken(): string {
 
 async function checkResponse(res: Response): Promise<unknown> {
   if (res.status === 401) throw new UazapiUnauthorizedError()
+  if (res.status === 404) throw new UazapiNotFoundError()
   if (res.status === 429) {
     const header = res.headers.get('Retry-After')
     throw new UazapiRateLimitedError(header ? parseInt(header, 10) : undefined)
   }
   if (res.status >= 500) throw new UazapiTransientError(`uazapi server error: ${res.status}`)
   return res.json()
+}
+
+export type UazapiInstanceStatus = {
+  status: string
+  connected: boolean
+  loggedIn: boolean
+  phoneNumber: string | null
+  instanceName: string | null
+}
+
+function normalizePhoneNumber(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length === 0) return null
+  return value.includes('@') ? value.split('@')[0] ?? null : value
+}
+
+function extractPhoneNumber(data: Record<string, unknown>): string | null {
+  const instance = data.instance as Record<string, unknown> | undefined
+  const ownerFromInstance = normalizePhoneNumber(instance?.owner)
+  if (ownerFromInstance) return ownerFromInstance
+
+  const jidFromInstance = instance?.jid as Record<string, unknown> | undefined
+  const userFromInstanceJid = normalizePhoneNumber(jidFromInstance?.user)
+  if (userFromInstanceJid) return userFromInstanceJid
+
+  const jid = data.jid as Record<string, unknown> | undefined
+  return normalizePhoneNumber(jid?.user)
 }
 
 export async function createInstance(params: {
@@ -67,6 +101,37 @@ export async function disconnect(instanceToken: string): Promise<void> {
     headers: { token: instanceToken },
   })
   await checkResponse(res)
+}
+
+export async function deleteInstance(token: string): Promise<void> {
+  const res = await fetch(`${baseUrl()}/instance`, {
+    method: 'DELETE',
+    headers: { token },
+  })
+  if (res.status === 404) return
+  await checkResponse(res)
+}
+
+export async function getInstanceStatus(token: string): Promise<UazapiInstanceStatus> {
+  const res = await fetch(`${baseUrl()}/instance/status`, {
+    method: 'GET',
+    headers: { token },
+  })
+  const data = (await checkResponse(res)) as Record<string, unknown>
+  const instance = data.instance as Record<string, unknown> | undefined
+  const connected = Boolean(data.connected)
+  const loggedIn = Boolean(data.loggedIn)
+  const statusValue = typeof data.status === 'string' && data.status.length > 0 ? data.status : null
+
+  return {
+    status: statusValue ?? (connected ? 'connected' : 'disconnected'),
+    connected,
+    loggedIn,
+    phoneNumber: extractPhoneNumber(data),
+    instanceName:
+      (typeof data.instanceName === 'string' ? data.instanceName : undefined) ??
+      (typeof instance?.name === 'string' ? instance.name : null),
+  }
 }
 
 export async function sendText(params: {
