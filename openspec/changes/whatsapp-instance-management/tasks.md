@@ -16,14 +16,14 @@
 
 ## 3. Rotas HTTP (server/routes/whatsapp.ts)
 
-- [ ] 3.1 Refatorar `createWhatsappRouter` para injetar `deleteInstance` e `getInstanceStatus` em `UazapiDeps`
-- [ ] 3.2 Implementar `POST /api/whatsapp/instance` — valida `name` (1–64 trim), valida role=owner, recusa se já existe, chama `createInstance`, persiste `whatsapp_sessions` com `instance_name`, retorna 201
-- [ ] 3.3 Implementar `DELETE /api/whatsapp/instance` — valida role=owner, chama `deleteInstance` (idempotente em 404), apaga linha local, retorna 204
-- [ ] 3.4 Implementar `POST /api/whatsapp/instance/connect` — valida role=owner, exige instância existente, configura webhook, chama `connect`, persiste `status="qr_pending"` + `qr_expires_at = now() + 120s`, mapeia UAZAPI 429 → 503 `UAZAPI_OVERLOADED`
-- [ ] 3.5 Implementar `GET /api/whatsapp/instance/status` — retorna estado canônico; se `status ∈ {qr_pending, connecting}` chama `getInstanceStatus` na UAZAPI e atualiza linha local antes de responder
-- [ ] 3.6 Tratar `qr_expires_at < now()` em status: retornar `qr: null` mas manter `status="qr_pending"` para frontend mostrar botão "Gerar novo QR"
-- [ ] 3.7 Remover rotas legadas `GET /whatsapp/connection`, `POST /whatsapp/connection`, `POST /whatsapp/disconnect` (substituídas)
-- [ ] 3.8 Garantir que nenhuma resposta inclua `uazapi_instance_token` ou `uazapi_admin_token` (revisar `select` queries)
+- [x] 3.1 Refatorar `createWhatsappRouter` para injetar `deleteInstance` e `getInstanceStatus` em `UazapiDeps`
+- [x] 3.2 Implementar `POST /api/whatsapp/instance` — valida `name` (1–64 trim), valida role=owner, recusa se já existe, chama `createInstance`, persiste `whatsapp_sessions` com `instance_name`, retorna 201
+- [x] 3.3 Implementar `DELETE /api/whatsapp/instance` — valida role=owner, chama `deleteInstance` (idempotente em 404), apaga linha local, retorna 204
+- [x] 3.4 Implementar `POST /api/whatsapp/instance/connect` — valida role=owner, exige instância existente, configura webhook, chama `connect`, persiste `status="qr_pending"` + `qr_expires_at = now() + 120s`, mapeia UAZAPI 429 → 503 `UAZAPI_OVERLOADED`
+- [x] 3.5 Implementar `GET /api/whatsapp/instance/status` — retorna estado canônico; se `status ∈ {qr_pending, connecting}` chama `getInstanceStatus` na UAZAPI e atualiza linha local antes de responder
+- [x] 3.6 Tratar `qr_expires_at < now()` em status: retornar `qr: null` mas manter `status="qr_pending"` para frontend mostrar botão "Gerar novo QR"
+- [x] 3.7 Remover rotas legadas `GET /whatsapp/connection`, `POST /whatsapp/connection`, `POST /whatsapp/disconnect` (substituídas)
+- [x] 3.8 Garantir que nenhuma resposta inclua `uazapi_instance_token` ou `uazapi_admin_token` (revisar `select` queries)
 
 ## 4. Testes do server
 
