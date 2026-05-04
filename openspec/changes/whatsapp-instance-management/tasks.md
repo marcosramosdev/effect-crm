@@ -27,22 +27,22 @@
 
 ## 4. Testes do server
 
-- [ ] 4.1 Atualizar `server/routes/whatsapp.test.ts`: cenários de create (sucesso, 409 duplicado, 403 não-owner, 400 nome inválido)
-- [ ] 4.2 Adicionar cenários de delete (sucesso, 404 idempotente UAZAPI, 404 sem instância local, 403)
-- [ ] 4.3 Adicionar cenários de connect (sucesso, sem instância 404, 429 → 503)
-- [ ] 4.4 Adicionar cenários de status (sem linha, connected sem chamar UAZAPI, qr_pending refresh contra UAZAPI, QR expirado)
-- [ ] 4.5 Teste de integração: token nunca aparece em respostas JSON
+- [x] 4.1 Atualizar `server/routes/whatsapp.test.ts`: cenários de create (sucesso, 409 duplicado, 403 não-owner, 400 nome inválido)
+- [x] 4.2 Adicionar cenários de delete (sucesso, 404 idempotente UAZAPI, 404 sem instância local, 403)
+- [x] 4.3 Adicionar cenários de connect (sucesso, sem instância 404, 429 → 503)
+- [x] 4.4 Adicionar cenários de status (sem linha, connected sem chamar UAZAPI, qr_pending refresh contra UAZAPI, QR expirado)
+- [x] 4.5 Teste de integração: token nunca aparece em respostas JSON
 
 ## 5. Tipos compartilhados (shared/whatsapp)
 
-- [ ] 5.1 Atualizar `@shared/whatsapp` (ou criar) com tipos `InstanceStatusDTO`, `CreateInstanceBody`, `ConnectionStatus` alinhados às rotas novas
-- [ ] 5.2 Garantir que client e server importam o mesmo tipo
+- [x] 5.1 Atualizar `@shared/whatsapp` (ou criar) com tipos `InstanceStatusDTO`, `CreateInstanceBody`, `ConnectionStatus` alinhados às rotas novas
+- [x] 5.2 Garantir que client e server importam o mesmo tipo
 
 ## 6. Frontend — hooks e queries
 
-- [ ] 6.1 Criar `client/src/features/whatsapp/api.ts` com funções `getInstanceStatus`, `createInstance`, `deleteInstance`, `connectInstance` usando `apiFetch`
-- [ ] 6.2 Criar `useInstanceStatus()` hook em `client/src/features/whatsapp/useInstanceStatus.ts` com React Query: `refetchInterval` = 3000 quando `status ∈ {qr_pending, connecting}`, senão `false`
-- [ ] 6.3 Criar mutations `useCreateInstance`, `useConnectInstance`, `useDeleteInstance` invalidando a query de status
+- [x] 6.1 Criar `client/src/features/whatsapp/api.ts` com funções `getInstanceStatus`, `createInstance`, `deleteInstance`, `connectInstance` usando `apiFetch`
+- [x] 6.2 Criar `useInstanceStatus()` hook em `client/src/features/whatsapp/useInstanceStatus.ts` com React Query: `refetchInterval` = 3000 quando `status ∈ {qr_pending, connecting}`, senão `false`
+- [x] 6.3 Criar mutations `useCreateInstance`, `useConnectInstance`, `useDeleteInstance` invalidando a query de status
 
 ## 7. Frontend — ConnectScreen reescrita
 

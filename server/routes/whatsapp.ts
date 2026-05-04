@@ -6,12 +6,14 @@ import {
   connect,
   deleteInstance,
   getInstanceStatus,
+  UazapiNotFoundError,
   UazapiRateLimitedError,
 } from '../lib/whatsapp/uazapi-client'
 import type { AuthVariables } from '../middlewares/auth'
+import type { ConnectionStatus, CreateInstanceBody, InstanceStatusDTO } from '../types/whatsapp'
+import { CreateInstanceBodySchema } from '../types/whatsapp'
 
 type ServiceClient = Pick<ReturnType<typeof createServiceSupabase>, 'from'>
-type ConnectionStatus = 'disconnected' | 'qr_pending' | 'connecting' | 'connected' | 'error'
 type SessionRow = Record<string, unknown>
 
 interface UazapiDeps {
@@ -38,10 +40,10 @@ function normalizeStatusFromUazapi(status: string, connected: boolean, loggedIn:
   return 'disconnected'
 }
 
-function toStatusResponse(row: SessionRow | null) {
+function toStatusResponse(row: SessionRow | null): InstanceStatusDTO {
   if (!row) {
     return {
-      status: 'disconnected' as const,
+      status: 'disconnected',
       instanceName: null,
       phoneNumber: null,
       lastHeartbeatAt: null,
@@ -84,11 +86,12 @@ export function createWhatsappRouter(
       return c.json({ error: { code: 'FORBIDDEN', message: 'Apenas owner pode criar instância' } }, 403)
     }
 
-    const body = (await c.req.json().catch(() => null)) as Record<string, unknown> | null
-    const name = typeof body?.name === 'string' ? body.name.trim() : ''
-    if (name.length < 1 || name.length > 64) {
+    const bodyResult = CreateInstanceBodySchema.safeParse(await c.req.json().catch(() => null))
+    if (!bodyResult.success) {
       return c.json({ error: { code: 'INVALID_NAME', message: 'Nome da instância inválido' } }, 400)
     }
+    const body: CreateInstanceBody = bodyResult.data
+    const name = body.name
 
     const db = getServiceClient()
 
@@ -154,7 +157,13 @@ export function createWhatsappRouter(
       return c.json({ error: { code: 'INSTANCE_NOT_FOUND', message: 'Instância não encontrada' } }, 404)
     }
 
-    await uazapiDeps.deleteInstance(session.uazapi_instance_token as string)
+    try {
+      await uazapiDeps.deleteInstance(session.uazapi_instance_token as string)
+    } catch (error) {
+      if (!(error instanceof UazapiNotFoundError)) {
+        throw error
+      }
+    }
 
     const { error: deleteError } = await db.from('whatsapp_sessions').delete().eq('tenant_id', tenantId)
     if (deleteError) {

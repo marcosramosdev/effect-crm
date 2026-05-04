@@ -7,7 +7,7 @@ import { verifyTestJwt } from '../test/fixtures/jwts'
 import { tenantGuard } from '../middlewares/tenant-guard'
 import { errorHandler } from '../middlewares/error'
 import { createWhatsappRouter } from './whatsapp'
-import { UazapiRateLimitedError } from '../lib/whatsapp/uazapi-client'
+import { UazapiNotFoundError, UazapiRateLimitedError } from '../lib/whatsapp/uazapi-client'
 
 const TENANT_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 const USER_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
@@ -165,6 +165,20 @@ describe('POST /whatsapp/instance', () => {
 })
 
 describe('DELETE /whatsapp/instance', () => {
+  it('returns 403 when role is agent', async () => {
+    const { deps, calls } = makeUazapiDeps()
+    const app = makeApp(agentMember, [], deps)
+    const jwt = await ownerJwt()
+
+    const res = await app.request('/whatsapp/instance', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(403)
+    expect(calls.deleteInstance).toHaveLength(0)
+  })
+
   it('calls deleteInstance and returns 204', async () => {
     const sessionRows = [{
       tenant_id: TENANT_ID,
@@ -183,6 +197,29 @@ describe('DELETE /whatsapp/instance', () => {
     expect(res.status).toBe(204)
     expect(calls.deleteInstance).toHaveLength(1)
     expect(calls.deleteInstance[0]).toBe(INSTANCE_TOKEN)
+  })
+
+  it('returns 204 when UAZAPI reports instance not found (idempotent)', async () => {
+    const sessionRows = [{
+      tenant_id: TENANT_ID,
+      uazapi_instance_id: INSTANCE_ID,
+      uazapi_instance_token: INSTANCE_TOKEN,
+    }]
+    const { deps, calls } = makeUazapiDeps()
+    deps.deleteInstance = async (token: string) => {
+      calls.deleteInstance.push(token)
+      throw new UazapiNotFoundError()
+    }
+    const app = makeApp(ownerMember, sessionRows, deps)
+    const jwt = await ownerJwt()
+
+    const res = await app.request('/whatsapp/instance', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(204)
+    expect(calls.deleteInstance).toHaveLength(1)
   })
 
   it('returns 404 when local instance does not exist', async () => {
@@ -308,6 +345,32 @@ describe('GET /whatsapp/instance/status', () => {
     expect(calls.getInstanceStatus).toHaveLength(1)
   })
 
+  it('returns connected local state without calling UAZAPI', async () => {
+    const sessionRows = [{
+      tenant_id: TENANT_ID,
+      status: 'connected',
+      uazapi_instance_token: INSTANCE_TOKEN,
+      instance_name: 'Empresa X',
+      phone_number: '5511999999999',
+      last_heartbeat_at: '2024-01-01T00:00:00.000Z',
+      last_error: null,
+      qr_expires_at: null,
+    }]
+    const { deps, calls } = makeUazapiDeps()
+    const app = makeApp(ownerMember, sessionRows, deps)
+    const jwt = await ownerJwt()
+
+    const res = await app.request('/whatsapp/instance/status', {
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body.status).toBe('connected')
+    expect(body.phoneNumber).toBe('5511999999999')
+    expect(calls.getInstanceStatus).toHaveLength(0)
+  })
+
   it('keeps qr_pending and returns qr null when qr has expired', async () => {
     const sessionRows = [{
       tenant_id: TENANT_ID,
@@ -363,5 +426,61 @@ describe('GET /whatsapp/instance/status', () => {
     expect(body.uazapi_webhook_secret).toBeUndefined()
     expect(body.uazapi_admin_token).toBeUndefined()
     expect(body.uazapiInstanceToken).toBeUndefined()
+  })
+})
+
+describe('integration: tokens never appear in JSON responses', () => {
+  it('does not include instance/admin tokens in create/connect/status payloads', async () => {
+    const jwt = await ownerJwt()
+
+    const createApp = makeApp(ownerMember, [], makeUazapiDeps().deps)
+    const createRes = await createApp.request('/whatsapp/instance', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}` },
+      body: JSON.stringify({ name: 'Empresa X' }),
+    })
+    expect(createRes.status).toBe(201)
+    const createBody = (await createRes.json()) as Record<string, unknown>
+    expect(createBody.uazapi_instance_token).toBeUndefined()
+    expect(createBody.uazapi_admin_token).toBeUndefined()
+    expect(createBody.uazapiInstanceToken).toBeUndefined()
+
+    const connectRows = [{
+      tenant_id: TENANT_ID,
+      uazapi_instance_id: INSTANCE_ID,
+      uazapi_instance_token: INSTANCE_TOKEN,
+      uazapi_webhook_secret: WEBHOOK_SECRET,
+    }]
+    const connectApp = makeApp(ownerMember, connectRows, makeUazapiDeps().deps)
+    const connectRes = await connectApp.request('/whatsapp/instance/connect', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+    expect(connectRes.status).toBe(200)
+    const connectBody = (await connectRes.json()) as Record<string, unknown>
+    expect(connectBody.uazapi_instance_token).toBeUndefined()
+    expect(connectBody.uazapi_admin_token).toBeUndefined()
+    expect(connectBody.uazapiInstanceToken).toBeUndefined()
+
+    const statusRows = [{
+      tenant_id: TENANT_ID,
+      status: 'connected',
+      instance_name: 'Empresa X',
+      phone_number: '5511999999999',
+      last_heartbeat_at: '2024-01-01T00:00:00.000Z',
+      last_error: null,
+      uazapi_instance_id: INSTANCE_ID,
+      uazapi_instance_token: INSTANCE_TOKEN,
+      uazapi_webhook_secret: WEBHOOK_SECRET,
+    }]
+    const statusApp = makeApp(ownerMember, statusRows, makeUazapiDeps().deps)
+    const statusRes = await statusApp.request('/whatsapp/instance/status', {
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+    expect(statusRes.status).toBe(200)
+    const statusBody = (await statusRes.json()) as Record<string, unknown>
+    expect(statusBody.uazapi_instance_token).toBeUndefined()
+    expect(statusBody.uazapi_admin_token).toBeUndefined()
+    expect(statusBody.uazapiInstanceToken).toBeUndefined()
   })
 })
