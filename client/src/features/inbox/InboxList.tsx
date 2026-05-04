@@ -21,7 +21,10 @@ interface InboxListProps {
 }
 
 function getInitials(name: string): string {
-  const parts = name.replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).filter(Boolean)
+  const parts = name
+    .replace(/[^\p{L}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
   if (parts.length >= 2) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
@@ -167,7 +170,7 @@ export function InboxList({ onSelect }: InboxListProps) {
       {conversations.map((conversation) => {
         const name =
           conversation.leadDisplayName ?? conversation.leadPhoneNumber
-        const initials = getInitials(name ?? '?')
+        const initials = getInitials(name)
         const time = formatRelativeTime(conversation.lastMessageAt)
         const isUnread = conversation.unreadCount > 0
         const handleSelect = () => {
@@ -187,38 +190,38 @@ export function InboxList({ onSelect }: InboxListProps) {
             }}
             className="cursor-pointer flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-base-200/70 focus-visible:bg-base-200 transition-colors"
           >
-              <span className="relative shrink-0">
-                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 text-base-content/80 font-semibold text-sm flex items-center justify-center">
-                  {initials}
-                </span>
-                {isUnread && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-base-100" />
-                )}
+            <span className="relative shrink-0">
+              <span className="w-10 h-10 rounded-full bg-linear-to-br from-primary/20 to-accent/20 text-base-content/80 font-semibold text-sm flex items-center justify-center">
+                {initials}
               </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`truncate text-sm ${isUnread ? 'font-semibold text-base-content' : 'font-medium text-base-content/85'}`}
-                  >
-                    {name}
-                  </span>
-                  <span className="ml-auto text-[11px] text-base-content/45 tabular-nums shrink-0">
-                    {time}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <p
-                    className={`truncate text-[13px] flex-1 ${isUnread ? 'text-base-content/80' : 'text-base-content/55'}`}
-                  >
-                    {conversation.lastMessagePreview}
-                  </p>
-                  {isUnread && (
-                    <span className="shrink-0 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-primary text-primary-content text-[11px] font-semibold tabular-nums">
-                      {conversation.unreadCount}
-                    </span>
-                  )}
-                </div>
+              {isUnread && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-base-100" />
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`truncate text-sm ${isUnread ? 'font-semibold text-base-content' : 'font-medium text-base-content/85'}`}
+                >
+                  {name}
+                </span>
+                <span className="ml-auto text-[11px] text-base-content/45 tabular-nums shrink-0">
+                  {time}
+                </span>
               </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p
+                  className={`truncate text-[13px] flex-1 ${isUnread ? 'text-base-content/80' : 'text-base-content/55'}`}
+                >
+                  {conversation.lastMessagePreview}
+                </p>
+                {isUnread && (
+                  <span className="shrink-0 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-content text-[11px] font-semibold tabular-nums">
+                    {conversation.unreadCount}
+                  </span>
+                )}
+              </div>
+            </div>
           </li>
         )
       })}

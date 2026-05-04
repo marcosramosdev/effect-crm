@@ -82,8 +82,8 @@ export async function createInstance(params: {
     headers: { 'Content-Type': 'application/json', admintoken: adminToken() },
     body: JSON.stringify(params),
   })
-  const data = (await checkResponse(res)) as { id: string; token: string }
-  return { instanceId: data.id, token: data.token }
+  const data = (await checkResponse(res)) as { instanceId?: string; id?: string; token: string }
+  return { instanceId: (data.instanceId ?? data.id) as string, token: data.token }
 }
 
 export async function connect(instanceToken: string): Promise<{ qr: string | null; status: string }> {

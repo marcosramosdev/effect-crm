@@ -46,38 +46,38 @@
 
 ## 7. Frontend — ConnectScreen reescrita
 
-- [ ] 7.1 Substituir `ConnectScreen.tsx` por versão com state machine baseada em `status`
-- [ ] 7.2 Estado "sem instância": form com `defaultValue={tenant.name}`, validação 1–64 chars, botão "Criar instância"
-- [ ] 7.3 Estado "disconnected (instância existe)": cartão com `instanceName`, botão "Conectar agora", botão "Excluir instância"
-- [ ] 7.4 Estado "qr_pending com QR válido": QR + contador regressivo (`qrExpiresAt - now`), instruções pt-BR
-- [ ] 7.5 Estado "qr_pending expirado": aviso + botão "Gerar novo QR" (chama connect novamente)
-- [ ] 7.6 Estado "connecting": spinner + texto
-- [ ] 7.7 Estado "connected": check verde, `phoneNumber` formatado pt-BR (`+55 (11) 99999-9999`), `instanceName`, botão "Desconectar" (não destrutivo) e botão "Excluir instância"
-- [ ] 7.8 Estado "error": ícone erro + `lastError` + "Tentar novamente"
-- [ ] 7.9 Modal de confirmação para "Excluir instância" (usar `dialog` DaisyUI)
-- [ ] 7.10 Manter canal Realtime de `whatsapp_sessions_public` (atualiza cache sem polling em estados estáveis)
-- [ ] 7.11 Esconder controles de mutação se `auth.role !== 'owner'`
-- [ ] 7.12 Badge informativo quando `import.meta.env.VITE_UAZAPI_ENV === 'free'` (ou similar): "Servidor de teste — instância expira em ~1h"
+- [x] 7.1 Substituir `ConnectScreen.tsx` por versão com state machine baseada em `status`
+- [x] 7.2 Estado "sem instância": form com `defaultValue={tenant.name}`, validação 1–64 chars, botão "Criar instância"
+- [x] 7.3 Estado "disconnected (instância existe)": cartão com `instanceName`, botão "Conectar agora", botão "Excluir instância"
+- [x] 7.4 Estado "qr_pending com QR válido": QR + contador regressivo (`qrExpiresAt - now`), instruções pt-BR
+- [x] 7.5 Estado "qr_pending expirado": aviso + botão "Gerar novo QR" (chama connect novamente)
+- [x] 7.6 Estado "connecting": spinner + texto
+- [x] 7.7 Estado "connected": check verde, `phoneNumber` formatado pt-BR (`+55 (11) 99999-9999`), `instanceName`, botão "Desconectar" (não destrutivo) e botão "Excluir instância"
+- [x] 7.8 Estado "error": ícone erro + `lastError` + "Tentar novamente"
+- [x] 7.9 Modal de confirmação para "Excluir instância" (usar `dialog` DaisyUI)
+- [x] 7.10 Manter canal Realtime de `whatsapp_sessions_public` (atualiza cache sem polling em estados estáveis)
+- [x] 7.11 Esconder controles de mutação se `auth.role !== 'owner'`
+- [x] 7.12 Badge informativo quando `import.meta.env.VITE_UAZAPI_ENV === 'free'` (ou similar): "Servidor de teste — instância expira em ~1h"
 
 ## 8. Testes do client
 
-- [ ] 8.1 Atualizar `client/src/features/whatsapp/__tests__/ConnectScreen.test.tsx` para cobrir cada estado da máquina
-- [ ] 8.2 Teste de criação: input pré-preenchido com nome do tenant, submit chama mutation
-- [ ] 8.3 Teste de QR expirado: contador chega a 0, botão "Gerar novo QR" aparece e chama connect
-- [ ] 8.4 Teste de delete: clique abre modal, confirmar chama mutation, cancelar não chama
-- [ ] 8.5 Teste de polling: query refetch ativo apenas em `qr_pending`/`connecting`
+- [x] 8.1 Atualizar `client/src/features/whatsapp/__tests__/ConnectScreen.test.tsx` para cobrir cada estado da máquina
+- [x] 8.2 Teste de criação: input pré-preenchido com nome do tenant, submit chama mutation
+- [x] 8.3 Teste de QR expirado: contador chega a 0, botão "Gerar novo QR" aparece e chama connect
+- [x] 8.4 Teste de delete: clique abre modal, confirmar chama mutation, cancelar não chama
+- [x] 8.5 Teste de polling: query refetch ativo apenas em `qr_pending`/`connecting`
 
 ## 9. Configuração e documentação
 
-- [ ] 9.1 Atualizar `.env.example` (root e server) com `UAZAPI_BASE_URL=https://free.uazapi.com`, `UAZAPI_ADMIN_TOKEN=`, `PUBLIC_WEBHOOK_BASE_URL=`
-- [ ] 9.2 Documentar variáveis em `server/CLAUDE.md` na seção WhatsApp
-- [ ] 9.3 Atualizar `client/.env.example` com `VITE_UAZAPI_ENV=free` (opcional, para badge)
-- [ ] 9.4 README/CLAUDE.md raiz: mencionar fluxo /app/connect e como obter ngrok público para webhooks em dev
+- [x] 9.1 Atualizar `.env.example` (root e server) com `UAZAPI_BASE_URL=https://free.uazapi.com`, `UAZAPI_ADMIN_TOKEN=`, `PUBLIC_WEBHOOK_BASE_URL=`
+- [x] 9.2 Documentar variáveis em `server/CLAUDE.md` na seção WhatsApp
+- [x] 9.3 Atualizar `client/.env.example` com `VITE_UAZAPI_ENV=free` (opcional, para badge)
+- [x] 9.4 README/CLAUDE.md raiz: mencionar fluxo /app/connect e como obter ngrok público para webhooks em dev
 
 ## 10. Validação final
 
-- [ ] 10.1 `bun run test` no root (server) — todos verdes
-- [ ] 10.2 `cd client && bun run test` — todos verdes
-- [ ] 10.3 `cd client && bun --bun run check` — sem erros TS/lint
-- [ ] 10.4 Smoke manual: criar → conectar com WhatsApp Business real (teste em `https://free.uazapi.com`) → ver QR → escanear → ver "Connected" + número → desconectar → reconectar → deletar
-- [ ] 10.5 `openspec validate whatsapp-instance-management --strict`
+- [x] 10.1 `bun run test` no root (server) — todos verdes
+- [x] 10.2 `cd client && bun run test` — todos verdes
+- [x] 10.3 `cd client && bun --bun run check` — sem erros TS/lint
+- [x] 10.4 Smoke manual: criar → conectar com WhatsApp Business real (teste em `https://free.uazapi.com`) → ver QR → escanear → ver "Connected" + número → desconectar → reconectar → deletar
+- [x] 10.5 `openspec validate whatsapp-instance-management --strict`

@@ -46,6 +46,10 @@ Nota: o `tsconfig.json` do root define `jsxImportSource: "hono/jsx"`. Se houver 
 - Guardar sessão/credenciais encriptadas no Supabase (nunca em ficheiros locais / no repo).
 - Implementar reconexão e controlo de rate (envio de mensagens).
 - Não logar segredos (tokens, cookies, chaves).
+- Variáveis de ambiente para conexão:
+  - `UAZAPI_BASE_URL` (default dev/test: `https://free.uazapi.com`)
+  - `UAZAPI_ADMIN_TOKEN` (obrigatório em produção)
+  - `PUBLIC_WEBHOOK_BASE_URL` (URL pública HTTPS para callbacks, ex.: ngrok em dev)
 
 ## Static serving (produção)
 

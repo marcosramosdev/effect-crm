@@ -84,9 +84,7 @@ describe('DashboardPage', () => {
     const { DashboardPage } = await import('../index')
     render(<DashboardPage />, { wrapper: makeWrapper() })
 
-    expect(
-      screen.getByRole('button', { name: /premium/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /premium/i })).toBeInTheDocument()
   })
 
   it('makes no dashboard-specific API calls (data comes from mockData)', async () => {

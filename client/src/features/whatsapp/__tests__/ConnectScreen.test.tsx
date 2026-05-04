@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { overrideHandler } from '../../../test/msw/server'
 import { ConnectScreen } from '../ConnectScreen'
+import { instanceStatusQueryOptions } from '../useInstanceStatus'
 
 const realtimeState = vi.hoisted(() => ({
   callbacks: [] as Array<(payload: { new: Record<string, unknown> }) => void>,
@@ -17,24 +18,32 @@ vi.mock('../../../lib/supabase', () => ({
         Promise.resolve({ data: { session: null }, error: null }),
       signOut: vi.fn(),
     },
-    channel: () => ({
-      on: (
-        _event: string,
-        _filter: unknown,
-        cb: (payload: { new: Record<string, unknown> }) => void,
-      ) => {
-        realtimeState.callbacks.push(cb)
-        return { subscribe: vi.fn() }
-      },
-    }),
+    channel: () => {
+      const channel = {
+        on: (
+          _event: string,
+          _filter: unknown,
+          cb: (payload: { new: Record<string, unknown> }) => void,
+        ) => {
+          realtimeState.callbacks.push(cb)
+          return channel
+        },
+        subscribe: () => channel,
+      }
+      return channel
+    },
     removeChannel: vi.fn(),
   },
 }))
 
 function makeWrapper() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
   }
 }
 
@@ -46,123 +55,248 @@ const ownerAuth = {
   role: 'owner' as const,
 }
 
+const agentAuth = {
+  ...ownerAuth,
+  role: 'agent' as const,
+}
+
+function statusPayload(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    status: 'disconnected',
+    instanceName: null,
+    phoneNumber: null,
+    lastHeartbeatAt: null,
+    lastError: null,
+    qrExpiresAt: null,
+    qr: null,
+    ...overrides,
+  }
+}
+
+beforeAll(() => {
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+    configurable: true,
+    value: function showModal() {
+      this.setAttribute('open', '')
+    },
+  })
+  Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+    configurable: true,
+    value: function close() {
+      this.removeAttribute('open')
+    },
+  })
+})
+
 describe('ConnectScreen', () => {
   beforeEach(() => {
     realtimeState.callbacks.length = 0
+    vi.useRealTimers()
   })
 
-  // T-C-010
-  it('shows QR image when status is qr_pending', async () => {
+  // 8.1
+  it.each([
+    {
+      title: 'renders no_instance state',
+      payload: statusPayload({ status: 'disconnected', instanceName: null }),
+      matcher: /nome da instância/i,
+      byLabel: true,
+    },
+    {
+      title: 'renders disconnected state',
+      payload: statusPayload({
+        status: 'disconnected',
+        instanceName: 'Empresa X',
+      }),
+      matcher: /instância desconectada/i,
+    },
+    {
+      title: 'renders qr_pending valid state',
+      payload: statusPayload({
+        status: 'qr_pending',
+        qr: 'data:image/png;base64,qr',
+        qrExpiresAt: new Date(Date.now() + 120_000).toISOString(),
+      }),
+      matcher: /expira em/i,
+    },
+    {
+      title: 'renders qr_pending expired state',
+      payload: statusPayload({
+        status: 'qr_pending',
+        qr: null,
+        qrExpiresAt: new Date(Date.now() - 1_000).toISOString(),
+      }),
+      matcher: /qr expirado/i,
+    },
+    {
+      title: 'renders connecting state',
+      payload: statusPayload({ status: 'connecting' }),
+      matcher: /sincronizando com whatsapp/i,
+    },
+    {
+      title: 'renders connected state',
+      payload: statusPayload({
+        status: 'connected',
+        instanceName: 'Empresa X',
+        phoneNumber: '5511999999999',
+      }),
+      matcher: /whatsapp conectado/i,
+    },
+    {
+      title: 'renders error state',
+      payload: statusPayload({ status: 'error', lastError: 'Falha na sessão' }),
+      matcher: /erro na conexão/i,
+    },
+  ])('$title', async ({ payload, matcher, byLabel }) => {
     overrideHandler(
       http.get('/api/auth/me', () => HttpResponse.json(ownerAuth)),
-      http.get('/api/whatsapp/connection', () =>
-        HttpResponse.json({
-          status: 'qr_pending',
-          qr: 'data:image/png;base64,abc123',
-          phoneNumber: null,
-          lastHeartbeatAt: null,
-          lastError: null,
-        }),
+      http.get('/api/whatsapp/instance/status', () =>
+        HttpResponse.json(payload),
       ),
     )
 
     render(<ConnectScreen />, { wrapper: makeWrapper() })
-
-    const qrImage = await screen.findByRole('img', { name: /qr code/i })
-    expect(qrImage).toBeInTheDocument()
-    expect(qrImage).toHaveAttribute('src', 'data:image/png;base64,abc123')
+    if (byLabel) {
+      expect(await screen.findByLabelText(matcher)).toBeInTheDocument()
+    } else {
+      expect(await screen.findByText(matcher)).toBeInTheDocument()
+    }
   })
 
-  // T-C-011
-  it('updates to connected when realtime event is received', async () => {
-    overrideHandler(
-      http.get('/api/whatsapp/connection', () =>
-        HttpResponse.json({
-          status: 'disconnected',
-          qr: null,
-          phoneNumber: null,
-          lastHeartbeatAt: null,
-          lastError: null,
-        }),
-      ),
-    )
-
-    render(<ConnectScreen />, { wrapper: makeWrapper() })
-
-    await waitFor(() =>
-      expect(realtimeState.callbacks.length).toBeGreaterThan(0),
-    )
-
-    act(() => {
-      realtimeState.callbacks[0]({
-        new: {
-          status: 'connected',
-          phone_number: '+351912345678',
-          last_heartbeat_at: new Date().toISOString(),
-          last_error: null,
-        },
-      })
-    })
-
-    await waitFor(() => {
-      expect(screen.getByText(/conectado/i)).toBeInTheDocument()
-    })
-  })
-
-  // T-C-012
-  it('connect button calls POST /api/whatsapp/connection when disconnected', async () => {
+  // 8.2
+  it('prefills tenant name and submits create mutation', async () => {
+    let createBody: unknown = null
     overrideHandler(
       http.get('/api/auth/me', () => HttpResponse.json(ownerAuth)),
-      http.get('/api/whatsapp/connection', () =>
-        HttpResponse.json({
-          status: 'disconnected',
-          qr: null,
-          phoneNumber: null,
-          lastHeartbeatAt: null,
-          lastError: null,
-        }),
+      http.get('/api/whatsapp/instance/status', () =>
+        HttpResponse.json(
+          statusPayload({ status: 'disconnected', instanceName: null }),
+        ),
       ),
-    )
-
-    let postCalled = false
-    overrideHandler(
-      http.post('/api/whatsapp/connection', () => {
-        postCalled = true
-        return HttpResponse.json({ status: 'qr_pending', qr: null })
+      http.post('/api/whatsapp/instance', async ({ request }) => {
+        createBody = await request.json()
+        return HttpResponse.json(
+          { instanceId: 'inst-1', name: 'Test Tenant', status: 'disconnected' },
+          { status: 201 },
+        )
       }),
     )
 
     render(<ConnectScreen />, { wrapper: makeWrapper() })
 
-    const connectButton = await screen.findByRole('button', {
-      name: /conectar/i,
-    })
-    fireEvent.click(connectButton)
+    const input = await screen.findByLabelText(/nome da instância/i)
+    expect(input).toHaveValue('Test Tenant')
+    fireEvent.click(screen.getByRole('button', { name: /criar instância/i }))
 
-    await waitFor(() => expect(postCalled).toBe(true))
+    await waitFor(() => expect(createBody).toEqual({ name: 'Test Tenant' }))
   })
 
-  // T-C-013
-  it('agent does not see the connect button', async () => {
-    // default handler returns role: 'agent'
+  // 8.3
+  it('shows "Gerar novo QR" when QR expires and calls connect mutation', async () => {
+    let connectCalls = 0
     overrideHandler(
-      http.get('/api/whatsapp/connection', () =>
-        HttpResponse.json({
-          status: 'disconnected',
-          qr: null,
-          phoneNumber: null,
-          lastHeartbeatAt: null,
-          lastError: null,
-        }),
+      http.get('/api/auth/me', () => HttpResponse.json(ownerAuth)),
+      http.get('/api/whatsapp/instance/status', () =>
+        HttpResponse.json(
+          statusPayload({
+            status: 'qr_pending',
+            instanceName: 'Empresa X',
+            qr: null,
+            qrExpiresAt: new Date(Date.now() - 5_000).toISOString(),
+          }),
+        ),
       ),
+      http.post('/api/whatsapp/instance/connect', () => {
+        connectCalls += 1
+        return HttpResponse.json({
+          status: 'qr_pending',
+          qr: 'data:image/png;base64,new-qr',
+          qrExpiresAt: new Date(Date.now() + 120_000).toISOString(),
+        })
+      }),
+    )
+
+    render(<ConnectScreen />, { wrapper: makeWrapper() })
+    const button = await screen.findByRole('button', { name: /gerar novo qr/i })
+    fireEvent.click(button)
+    await waitFor(() => expect(connectCalls).toBe(1))
+  })
+
+  // 8.4
+  it('opens delete modal, cancel does not call delete, confirm calls delete', async () => {
+    let deleteCalls = 0
+    overrideHandler(
+      http.get('/api/auth/me', () => HttpResponse.json(ownerAuth)),
+      http.get('/api/whatsapp/instance/status', () =>
+        HttpResponse.json(
+          statusPayload({ status: 'disconnected', instanceName: 'Empresa X' }),
+        ),
+      ),
+      http.delete('/api/whatsapp/instance', () => {
+        deleteCalls += 1
+        return new HttpResponse(null, { status: 204 })
+      }),
     )
 
     render(<ConnectScreen />, { wrapper: makeWrapper() })
 
-    await screen.findByText(/whatsapp desconectado/i)
+    const openModalButton = await screen.findByRole('button', {
+      name: /excluir instância/i,
+    })
+    fireEvent.click(openModalButton)
 
+    const cancelButton = await screen.findByRole('button', {
+      name: /cancelar/i,
+    })
+    fireEvent.click(cancelButton)
+    expect(deleteCalls).toBe(0)
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /excluir instância/i }),
+    )
+    fireEvent.click(
+      await screen.findByRole('button', { name: /confirmar exclusão/i }),
+    )
+
+    await waitFor(() => expect(deleteCalls).toBe(1))
+  })
+
+  // 8.5
+  it('polls only for qr_pending/connecting states', () => {
+    expect(
+      instanceStatusQueryOptions.refetchInterval({
+        state: { data: statusPayload({ status: 'qr_pending' }) as never },
+      }),
+    ).toBe(3000)
+    expect(
+      instanceStatusQueryOptions.refetchInterval({
+        state: { data: statusPayload({ status: 'connecting' }) as never },
+      }),
+    ).toBe(3000)
+    expect(
+      instanceStatusQueryOptions.refetchInterval({
+        state: { data: statusPayload({ status: 'connected' }) as never },
+      }),
+    ).toBe(false)
+  })
+
+  it('hides mutation controls for non-owner', async () => {
+    overrideHandler(
+      http.get('/api/auth/me', () => HttpResponse.json(agentAuth)),
+      http.get('/api/whatsapp/instance/status', () =>
+        HttpResponse.json(
+          statusPayload({ status: 'disconnected', instanceName: 'Empresa X' }),
+        ),
+      ),
+    )
+
+    render(<ConnectScreen />, { wrapper: makeWrapper() })
+    await screen.findByText(/apenas o proprietário pode gerenciar a conexão/i)
     expect(
       screen.queryByRole('button', { name: /conectar agora/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /excluir instância/i }),
     ).not.toBeInTheDocument()
   })
 })

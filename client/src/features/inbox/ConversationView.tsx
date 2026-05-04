@@ -45,7 +45,10 @@ function formatTime(iso: string): string {
 }
 
 function getInitials(name: string): string {
-  const parts = name.replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).filter(Boolean)
+  const parts = name
+    .replace(/[^\p{L}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
   if (parts.length >= 2)
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   return name.slice(0, 2).toUpperCase()
@@ -168,7 +171,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
   return (
     <div className="flex flex-col h-full bg-base-100">
       <header className="flex items-center gap-3 px-5 h-16 border-b border-base-200 bg-base-100/85 backdrop-blur-sm">
-        <span className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/25 to-accent/25 flex items-center justify-center font-semibold text-sm text-base-content/80">
+        <span className="w-9 h-9 rounded-full bg-linear-to-br from-primary/25 to-accent/25 flex items-center justify-center font-semibold text-sm text-base-content/80">
           {getInitials(headerName)}
         </span>
         <div className="flex flex-col min-w-0">
@@ -220,8 +223,8 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
 
         {allMessages.map((message, idx) => {
           const isOutbound = message.direction === 'outbound'
-          const prev = allMessages[idx - 1]
-          const groupStart = !prev || prev.direction !== message.direction
+          const groupStart =
+            idx === 0 || allMessages[idx - 1].direction !== message.direction
           return (
             <div
               key={message.id}

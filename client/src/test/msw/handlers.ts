@@ -11,4 +11,17 @@ export const handlers: RequestHandler[] = [
       role: 'agent',
     })
   }),
+  http.get('/api/whatsapp/instance/status', () =>
+    HttpResponse.json({
+      status: 'disconnected',
+      phoneNumber: null,
+      lastHeartbeatAt: null,
+      lastError: null,
+      qr: null,
+    }),
+  ),
+  http.get('/api/pipeline/stages', () => HttpResponse.json({ stages: [] })),
+  http.get('/api/pipeline/custom-fields', () =>
+    HttpResponse.json({ fields: [] }),
+  ),
 ]
