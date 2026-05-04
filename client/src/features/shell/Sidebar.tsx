@@ -62,7 +62,10 @@ export function Sidebar() {
       </div>
 
       {/* Nav list */}
-      <nav className="flex flex-col gap-1 flex-1 py-4 px-3" aria-label="Principal">
+      <nav
+        className="flex flex-col gap-1 flex-1 py-4 px-3"
+        aria-label="Principal"
+      >
         <p className="px-3 pb-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-base-content/40">
           Trabalho
         </p>

@@ -13,7 +13,7 @@ export const Route = createFileRoute('/app/dashboard/')({
   component: DashboardPage,
 })
 
-export function DashboardPage() {
+function DashboardPage() {
   return (
     <DashboardLayout
       title="Painel"

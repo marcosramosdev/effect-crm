@@ -7,7 +7,7 @@ const LEAD_ID = '22222222-2222-4222-8222-222222222222'
 
 const stage = {
   id: STAGE_ID,
-  name: 'Novo',
+  name: 'Qualificado',
   order: 1,
   isDefaultEntry: true,
   color: '#22c55e',
@@ -69,22 +69,13 @@ describe('PipelineCard', () => {
   })
 
   it('renders stage tag when stage is provided', () => {
-    const { container } = render(
-      <PipelineCard lead={lead} stage={stage} onClick={() => {}} />,
-    )
-
-    const stageBadge = container.querySelector('.badge-sm.gap-1')
-    expect(stageBadge).toBeInTheDocument()
-    expect(stageBadge).toHaveTextContent('Novo')
+    render(<PipelineCard lead={lead} stage={stage} onClick={() => {}} />)
+    expect(screen.getByText('Qualificado')).toBeInTheDocument()
   })
 
   it('gracefully omits stage tag when stage is absent', () => {
-    const { container } = render(
-      <PipelineCard lead={lead} onClick={() => {}} />,
-    )
-
-    const stageBadge = container.querySelector('.badge-sm.gap-1')
-    expect(stageBadge).not.toBeInTheDocument()
+    render(<PipelineCard lead={lead} onClick={() => {}} />)
+    expect(screen.queryByText('Qualificado')).not.toBeInTheDocument()
     expect(screen.getByText('Alice Silva')).toBeInTheDocument()
   })
 

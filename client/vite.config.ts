@@ -22,7 +22,7 @@ const config = defineConfig({
   plugins: [
     tailwindcss(),
     devtools(),
-    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    tanstackRouter({ target: 'react', autoCodeSplitting: true, routeFileIgnorePattern: '__tests__' }),
     viteReact(),
   ],
   server: {

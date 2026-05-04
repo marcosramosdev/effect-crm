@@ -3,8 +3,11 @@ import {
   createInstance,
   connect,
   disconnect,
+  deleteInstance,
+  getInstanceStatus,
   sendText,
   configureWebhook,
+  UazapiNotFoundError,
   UazapiUnauthorizedError,
   UazapiRateLimitedError,
   UazapiTransientError,
@@ -150,5 +153,106 @@ describe('uazapi-client', () => {
     await expect(
       sendText({ token: 'inst-token', number: '111', text: 'test' }),
     ).rejects.toBeInstanceOf(UazapiTransientError)
+  })
+
+  it('deleteInstance envia DELETE /instance com header token', async () => {
+    mockFetch(200, { ok: true })
+
+    await deleteInstance('inst-token-001')
+
+    expect(lastFetch!.method).toBe('DELETE')
+    expect(lastFetch!.url).toBe(`${UAZAPI_BASE_URL}/instance`)
+    expect(lastFetch!.headers['token']).toBe('inst-token-001')
+  })
+
+  it('deleteInstance trata 404 como sucesso (idempotente)', async () => {
+    mockFetch(404, { error: 'Not found' })
+
+    await expect(deleteInstance('inst-token-001')).resolves.toBeUndefined()
+  })
+
+  it('deleteInstance propaga 401 como UazapiUnauthorizedError', async () => {
+    mockFetch(401, { error: 'Unauthorized' })
+
+    await expect(deleteInstance('bad-token')).rejects.toBeInstanceOf(UazapiUnauthorizedError)
+  })
+
+  it('deleteInstance propaga 429 como UazapiRateLimitedError', async () => {
+    mockFetch(429, { error: 'Rate limited' }, { 'Retry-After': '15' })
+
+    const err = await deleteInstance('inst-token').catch((e) => e)
+
+    expect(err).toBeInstanceOf(UazapiRateLimitedError)
+    expect((err as UazapiRateLimitedError).retryAfter).toBe(15)
+  })
+
+  it('deleteInstance propaga 500 como UazapiTransientError', async () => {
+    mockFetch(500, { error: 'Internal Server Error' })
+
+    await expect(deleteInstance('inst-token')).rejects.toBeInstanceOf(UazapiTransientError)
+  })
+
+  it('getInstanceStatus retorna status canônico extraindo owner e instance name', async () => {
+    mockFetch(200, {
+      status: 'connecting',
+      connected: false,
+      loggedIn: false,
+      instance: { owner: '5511999999999@s.whatsapp.net', name: 'Acme Instance' },
+    })
+
+    const result = await getInstanceStatus('inst-token-001')
+
+    expect(lastFetch!.method).toBe('GET')
+    expect(lastFetch!.url).toBe(`${UAZAPI_BASE_URL}/instance/status`)
+    expect(lastFetch!.headers['token']).toBe('inst-token-001')
+    expect(result).toEqual({
+      status: 'connecting',
+      connected: false,
+      loggedIn: false,
+      phoneNumber: '5511999999999',
+      instanceName: 'Acme Instance',
+    })
+  })
+
+  it('getInstanceStatus extrai phoneNumber de jid.user quando owner não existe', async () => {
+    mockFetch(200, {
+      connected: true,
+      loggedIn: true,
+      status: 'connected',
+      jid: { user: '5511888888888' },
+      instanceName: 'Second Instance',
+    })
+
+    const result = await getInstanceStatus('inst-token-001')
+
+    expect(result.phoneNumber).toBe('5511888888888')
+    expect(result.instanceName).toBe('Second Instance')
+  })
+
+  it('getInstanceStatus propaga 401 como UazapiUnauthorizedError', async () => {
+    mockFetch(401, { error: 'Unauthorized' })
+
+    await expect(getInstanceStatus('bad-token')).rejects.toBeInstanceOf(UazapiUnauthorizedError)
+  })
+
+  it('getInstanceStatus propaga 404 como UazapiNotFoundError', async () => {
+    mockFetch(404, { error: 'Not found' })
+
+    await expect(getInstanceStatus('inst-token-001')).rejects.toBeInstanceOf(UazapiNotFoundError)
+  })
+
+  it('getInstanceStatus propaga 429 como UazapiRateLimitedError', async () => {
+    mockFetch(429, { error: 'Rate limited' }, { 'Retry-After': '7' })
+
+    const err = await getInstanceStatus('inst-token').catch((e) => e)
+
+    expect(err).toBeInstanceOf(UazapiRateLimitedError)
+    expect((err as UazapiRateLimitedError).retryAfter).toBe(7)
+  })
+
+  it('getInstanceStatus propaga 500 como UazapiTransientError', async () => {
+    mockFetch(500, { error: 'Internal Server Error' })
+
+    await expect(getInstanceStatus('inst-token')).rejects.toBeInstanceOf(UazapiTransientError)
   })
 })

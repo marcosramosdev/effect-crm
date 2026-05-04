@@ -136,10 +136,7 @@ export function SendMessageForm({
         </div>
       )}
       {retryAfterSecs !== null && (
-        <p
-          role="status"
-          className="text-xs text-warning mb-2 font-medium"
-        >
+        <p role="status" className="text-xs text-warning mb-2 font-medium">
           Tente novamente em {retryAfterSecs} segundos
         </p>
       )}

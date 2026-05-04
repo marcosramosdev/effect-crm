@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { authQueryOptions } from '../../hooks/useAuth'
-import { connectionQueryOptions } from '../../features/whatsapp/ConnectScreen'
+import { instanceStatusQueryOptions } from '../../features/whatsapp/useInstanceStatus'
 
 export const Route = createFileRoute('/app/')({
   beforeLoad: async ({ context }) => {
@@ -11,7 +11,7 @@ export const Route = createFileRoute('/app/')({
     }
 
     const connection = await context.queryClient.ensureQueryData(
-      connectionQueryOptions,
+      instanceStatusQueryOptions,
     )
 
     if (connection.status === 'connected') {

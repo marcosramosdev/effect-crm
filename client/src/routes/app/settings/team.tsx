@@ -89,8 +89,8 @@ function TeamSettingsPage() {
                 Membros
               </h2>
               <p className="text-sm text-base-content/60 mt-1">
-                {members.length}{' '}
-                {members.length === 1 ? 'pessoa' : 'pessoas'} na equipe.
+                {members.length} {members.length === 1 ? 'pessoa' : 'pessoas'}{' '}
+                na equipe.
               </p>
             </div>
           </header>

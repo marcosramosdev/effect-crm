@@ -78,10 +78,12 @@ Objetivo: um único processo/porta em runtime.
 
 - Atenção: integrações “não-oficiais” podem violar Termos do WhatsApp e quebrar sem aviso. Não assumir estabilidade.
 - Encapsular a integração atrás de um “provider/adaptor” (não espalhar chamadas da lib WhatsApp pela app).
+- Fluxo de gestão no frontend: `/app/connect` (criar instância → gerar QR → conectar → gerir estado).
 - Fluxo mínimo esperado:
   1.  iniciar ligação e disponibilizar QR (ou equivalente) ao frontend
   2.  receber mensagens → persistir no Supabase → actualizar dashboard/inbox
   3.  enviar mensagens a partir do CRM → passar pelo server → persistir resultado
+- Em dev local, usar túnel público HTTPS (ex.: `ngrok http 3000`) e configurar `PUBLIC_WEBHOOK_BASE_URL` com a URL gerada.
 
 ## Notas importantes do client
 

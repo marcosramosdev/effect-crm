@@ -305,7 +305,7 @@ describe('route guards', () => {
           role: 'owner',
         }),
       ),
-      http.get('/api/whatsapp/connection', () =>
+      http.get('/api/whatsapp/instance/status', () =>
         HttpResponse.json({
           status: 'connected',
           phoneNumber: '+351912345678',
@@ -347,7 +347,7 @@ describe('route guards', () => {
           role: 'owner',
         }),
       ),
-      http.get('/api/whatsapp/connection', () =>
+      http.get('/api/whatsapp/instance/status', () =>
         HttpResponse.json({
           status: 'disconnected',
           phoneNumber: null,

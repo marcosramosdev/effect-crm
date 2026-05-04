@@ -30,7 +30,9 @@ export function PromoCard({
         <p className="font-display text-lg leading-tight text-balance text-base-content">
           {title}
         </p>
-        <p className="text-sm text-base-content/70 mt-1.5 text-pretty">{body}</p>
+        <p className="text-sm text-base-content/70 mt-1.5 text-pretty">
+          {body}
+        </p>
       </div>
       <button
         type="button"

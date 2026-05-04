@@ -7,6 +7,8 @@ create or replace view whatsapp_sessions_public as
   select
     ws.tenant_id,
     ws.status,
+    ws.instance_name,
+    ws.qr_expires_at,
     ws.phone_number,
     ws.last_heartbeat_at,
     ws.last_error
