@@ -93,9 +93,11 @@ export async function connect(instanceToken: string): Promise<{ qr: string | nul
     method: 'POST',
     headers: { token: instanceToken },
   })
-  const data = (await checkResponse(res)) as { qrcode?: string; status?: string }
+  const data = (await checkResponse(res)) as Record<string, unknown>
+  const instance = data.instance as Record<string, unknown> | undefined
   console.log('[uazapi] connect raw response:', JSON.stringify(data))
-  return { qr: data.qrcode || null, status: data.status ?? 'connecting' }
+  const qr = typeof data.qrcode === 'string' ? data.qrcode : (typeof instance?.qrcode === 'string' ? instance.qrcode as string : null)
+  return { qr: qr || null, status: 'connecting' }
 }
 
 export async function disconnect(instanceToken: string): Promise<void> {
@@ -124,7 +126,9 @@ export async function getInstanceStatus(token: string): Promise<UazapiInstanceSt
   const instance = data.instance as Record<string, unknown> | undefined
   const connected = Boolean(data.connected)
   const loggedIn = Boolean(data.loggedIn)
-  const statusValue = typeof data.status === 'string' && data.status.length > 0 ? data.status : null
+  const statusValue =
+    (typeof data.status === 'string' && data.status.length > 0 ? data.status : null) ??
+    (typeof instance?.status === 'string' && (instance.status as string).length > 0 ? instance.status as string : null)
 
   const qrRaw = typeof data.qrcode === 'string' ? data.qrcode : (typeof instance?.qrcode === 'string' ? instance.qrcode : null)
 

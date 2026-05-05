@@ -94,6 +94,33 @@ describe('uazapi-client', () => {
     expect(lastFetch!.body).toBeNull()
   })
 
+  it('connect extrai qr de instance.qrcode quando data.qrcode ausente', async () => {
+    mockFetch(200, {
+      connected: false,
+      instance: { qrcode: 'data:image/png;base64,qr-from-instance', status: 'connecting' },
+      status: { connected: false, jid: null, loggedIn: false },
+    })
+
+    const result = await connect('inst-token-001')
+
+    expect(result.qr).toBe('data:image/png;base64,qr-from-instance')
+    expect(result.status).toBe('connecting')
+  })
+
+  it('getInstanceStatus extrai status de instance.status quando data.status é objeto', async () => {
+    mockFetch(200, {
+      connected: false,
+      loggedIn: false,
+      instance: { qrcode: 'data:image/png;base64,qr', status: 'connecting', name: 'Test' },
+      status: { connected: false, jid: null, loggedIn: false },
+    })
+
+    const result = await getInstanceStatus('inst-token-001')
+
+    expect(result.status).toBe('connecting')
+    expect(result.qr).toBe('data:image/png;base64,qr')
+  })
+
   // T-S-013
   it('sendText monta POST /send/text com body correcto', async () => {
     mockFetch(200, { id: 'msg-001' })
@@ -211,6 +238,7 @@ describe('uazapi-client', () => {
       loggedIn: false,
       phoneNumber: '5511999999999',
       instanceName: 'Acme Instance',
+      qr: null,
     })
   })
 

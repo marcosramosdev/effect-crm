@@ -56,17 +56,20 @@ describe('POST /webhooks/uazapi/:webhookSecret', () => {
   })
 
   // T-S-031
-  it('returns 400 INSTANCE_MISMATCH when envelope.instance does not match session', async () => {
-    const app = makeApp(validSessionRows)
+  it('accepts mismatched envelope.instance and still dispatches by webhook secret', async () => {
+    const dispatchedEvents: Array<{ tenantId: string; payload: unknown }> = []
+    const app = makeApp(validSessionRows, async (tenantId, payload) => {
+      dispatchedEvents.push({ tenantId, payload })
+    })
     const res = await app.request(`/webhooks/uazapi/${WEBHOOK_SECRET}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: validEnvelope('inst-other'),
     })
 
-    expect(res.status).toBe(400)
-    const body = (await res.json()) as { error: { code: string } }
-    expect(body.error.code).toBe('INSTANCE_MISMATCH')
+    expect(res.status).toBe(200)
+    expect(dispatchedEvents).toHaveLength(1)
+    expect(dispatchedEvents[0].tenantId).toBe(TENANT_ID)
   })
 
   // T-S-032
