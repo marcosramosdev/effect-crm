@@ -345,6 +345,40 @@ describe('GET /whatsapp/instance/status', () => {
     expect(calls.getInstanceStatus).toHaveLength(1)
   })
 
+  it('returns live qr when provider status is connecting', async () => {
+    const sessionRows = [{
+      tenant_id: TENANT_ID,
+      status: 'qr_pending',
+      uazapi_instance_token: INSTANCE_TOKEN,
+      instance_name: 'Empresa X',
+      qr_expires_at: '2099-01-01T00:00:00.000Z',
+    }]
+    const { deps, calls } = makeUazapiDeps()
+    deps.getInstanceStatus = async (token: string) => {
+      calls.getInstanceStatus.push(token)
+      return {
+        status: 'connecting',
+        connected: false,
+        loggedIn: false,
+        phoneNumber: null,
+        instanceName: 'Empresa X',
+        qr: 'data:image/png;base64,live-qr',
+      }
+    }
+    const app = makeApp(ownerMember, sessionRows, deps)
+    const jwt = await ownerJwt()
+
+    const res = await app.request('/whatsapp/instance/status', {
+      headers: { Authorization: `Bearer ${jwt}` },
+    })
+
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body.status).toBe('connecting')
+    expect(body.qr).toBe('data:image/png;base64,live-qr')
+    expect(calls.getInstanceStatus).toHaveLength(1)
+  })
+
   it('returns connected local state without calling UAZAPI', async () => {
     const sessionRows = [{
       tenant_id: TENANT_ID,

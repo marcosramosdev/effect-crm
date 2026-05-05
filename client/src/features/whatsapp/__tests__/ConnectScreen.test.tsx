@@ -117,7 +117,7 @@ describe('ConnectScreen', () => {
         qr: 'data:image/png;base64,qr',
         qrExpiresAt: new Date(Date.now() + 120_000).toISOString(),
       }),
-      matcher: /expira em/i,
+      matcher: /expira em \d+:\d+/i,
     },
     {
       title: 'renders qr_pending expired state',
@@ -222,6 +222,38 @@ describe('ConnectScreen', () => {
     await waitFor(() => expect(connectCalls).toBe(1))
   })
 
+  it('keeps showing qr from connect response even if status refresh has no qr', async () => {
+    overrideHandler(
+      http.get('/api/auth/me', () => HttpResponse.json(ownerAuth)),
+      http.get('/api/whatsapp/instance/status', () =>
+        HttpResponse.json(
+          statusPayload({
+            status: 'disconnected',
+            instanceName: 'Empresa X',
+            qr: null,
+            qrExpiresAt: null,
+          }),
+        ),
+      ),
+      http.post('/api/whatsapp/instance/connect', () =>
+        HttpResponse.json({
+          status: 'qr_pending',
+          qr: 'data:image/png;base64,new-qr',
+          qrExpiresAt: new Date(Date.now() + 120_000).toISOString(),
+        }),
+      ),
+    )
+
+    render(<ConnectScreen />, { wrapper: makeWrapper() })
+    fireEvent.click(
+      await screen.findByRole('button', { name: /conectar agora/i }),
+    )
+
+    expect(
+      await screen.findByAltText(/qr code do whatsapp/i),
+    ).toBeInTheDocument()
+  })
+
   // 8.4
   it('opens delete modal, cancel does not call delete, confirm calls delete', async () => {
     let deleteCalls = 0
@@ -298,5 +330,25 @@ describe('ConnectScreen', () => {
     expect(
       screen.queryByRole('button', { name: /excluir instância/i }),
     ).not.toBeInTheDocument()
+  })
+
+  it('keeps showing qr while provider status is connecting', async () => {
+    overrideHandler(
+      http.get('/api/auth/me', () => HttpResponse.json(ownerAuth)),
+      http.get('/api/whatsapp/instance/status', () =>
+        HttpResponse.json(
+          statusPayload({
+            status: 'connecting',
+            qr: 'data:image/png;base64,qr',
+            qrExpiresAt: new Date(Date.now() + 120_000).toISOString(),
+          }),
+        ),
+      ),
+    )
+
+    render(<ConnectScreen />, { wrapper: makeWrapper() })
+    expect(
+      await screen.findByAltText(/qr code do whatsapp/i),
+    ).toBeInTheDocument()
   })
 })

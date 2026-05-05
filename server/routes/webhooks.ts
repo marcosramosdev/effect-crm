@@ -26,7 +26,7 @@ export function createWebhooksRouter(deps: WebhooksDeps = {}) {
 
     const { data: session } = await db
       .from('whatsapp_sessions')
-      .select('tenant_id, uazapi_instance_id')
+      .select('tenant_id, uazapi_instance_id, uazapi_webhook_secret')
       .eq('uazapi_webhook_secret', webhookSecret)
       .maybeSingle()
 
@@ -59,8 +59,11 @@ export function createWebhooksRouter(deps: WebhooksDeps = {}) {
       return c.json({ error: { code: 'VALIDATION_ERROR', message: 'Envelope inválido' } }, 400)
     }
 
-    if (envelope.data.instance !== row.uazapi_instance_id) {
-      return c.json({ error: { code: 'INSTANCE_MISMATCH', message: 'Instance ID não coincide' } }, 400)
+    if (
+      typeof row.uazapi_instance_id === 'string' &&
+      envelope.data.instance !== row.uazapi_instance_id
+    ) {
+      log(`Webhook instance mismatch tenant=${row.tenant_id as string}`)
     }
 
     const tenantId = row.tenant_id as string

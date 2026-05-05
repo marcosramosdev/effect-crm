@@ -49,6 +49,13 @@ function normalizeStatusFromUazapi(
   return "disconnected";
 }
 
+function normalizeIsoDateTime(value: unknown): string | null {
+  if (typeof value !== "string" || value.trim().length === 0) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString();
+}
+
 function toStatusResponse(row: SessionRow | null, liveQr: string | null = null): InstanceStatusDTO {
   if (!row) {
     return {
@@ -63,8 +70,7 @@ function toStatusResponse(row: SessionRow | null, liveQr: string | null = null):
   }
 
   const status = normalizeConnectionStatus(row.status);
-  const qrExpiresAt =
-    typeof row.qr_expires_at === "string" ? row.qr_expires_at : null;
+  const qrExpiresAt = normalizeIsoDateTime(row.qr_expires_at);
   const qrExpired = qrExpiresAt
     ? new Date(qrExpiresAt).getTime() < Date.now()
     : false;
@@ -74,11 +80,10 @@ function toStatusResponse(row: SessionRow | null, liveQr: string | null = null):
     instanceName:
       typeof row.instance_name === "string" ? row.instance_name : null,
     phoneNumber: typeof row.phone_number === "string" ? row.phone_number : null,
-    lastHeartbeatAt:
-      typeof row.last_heartbeat_at === "string" ? row.last_heartbeat_at : null,
+    lastHeartbeatAt: normalizeIsoDateTime(row.last_heartbeat_at),
     lastError: typeof row.last_error === "string" ? row.last_error : null,
     qrExpiresAt,
-    qr: status === "qr_pending" && !qrExpired ? liveQr : null,
+    qr: (status === "qr_pending" || status === "connecting") && !qrExpired ? liveQr : null,
   };
 }
 
@@ -324,7 +329,7 @@ export function createWhatsappRouter(
     try {
       await uazapiDeps.configureWebhook({
         token: instanceToken,
-        url: `${publicBase}/api/webhooks/uazapi/${webhookSecret}`,
+        url: `${publicBase}/webhooks/uazapi/${webhookSecret}`,
         events: ["messages", "messages_update", "connection"],
         excludeMessages: ["wasSentByApi"],
       });
@@ -416,9 +421,6 @@ export function createWhatsappRouter(
 
     let session = sessionData as SessionRow;
 
-    if (!session.uazapi_instance_token || !session.uazapi_instance_id) {
-      return c.json(toStatusResponse(null));
-    }
     const status = normalizeConnectionStatus(session.status);
     const token =
       typeof session.uazapi_instance_token === "string"

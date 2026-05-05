@@ -30,6 +30,19 @@ type UiState =
   | 'connected'
   | 'error'
 
+function normalizeQrValue(qr: string | null | undefined): string | null {
+  if (!qr) return null
+  const trimmed = qr.trim()
+  if (trimmed.length === 0) return null
+  if (trimmed.startsWith('data:image/')) return trimmed
+  return `data:image/png;base64,${trimmed}`
+}
+
+function isFutureIsoDate(value: string | null | undefined): boolean {
+  if (!value) return false
+  return new Date(value).getTime() > Date.now()
+}
+
 function formatPhonePtBr(phoneNumber: string | null): string | null {
   if (!phoneNumber) return null
   const digits = phoneNumber.replace(/\D/g, '')
@@ -62,7 +75,12 @@ function getUiState(
       ? 'qr_pending_valid'
       : 'qr_pending_expired'
   }
-  if (status === 'connecting') return 'connecting'
+  if (status === 'connecting') {
+    if (qrExpiresAt && new Date(qrExpiresAt).getTime() > Date.now()) {
+      return 'qr_pending_valid'
+    }
+    return 'connecting'
+  }
   if (status === 'connected') return 'connected'
   return 'error'
 }
@@ -94,25 +112,32 @@ export function ConnectScreen() {
   }, [tenantName])
 
   useEffect(() => {
-    if (statusData?.qr) setLocalQr(statusData.qr)
+    const normalizedServerQr = normalizeQrValue(statusData?.qr)
+    if (normalizedServerQr) setLocalQr(normalizedServerQr)
     if (statusData?.qrExpiresAt) setLocalQrExpiresAt(statusData.qrExpiresAt)
   }, [statusData?.qr, statusData?.qrExpiresAt])
 
   useEffect(() => {
-    if (connectInstanceMutation.data?.qr)
-      setLocalQr(connectInstanceMutation.data.qr)
+    const normalizedMutationQr = normalizeQrValue(
+      connectInstanceMutation.data?.qr,
+    )
+    if (normalizedMutationQr) setLocalQr(normalizedMutationQr)
     if (connectInstanceMutation.data?.qrExpiresAt)
       setLocalQrExpiresAt(connectInstanceMutation.data.qrExpiresAt)
   }, [connectInstanceMutation.data])
 
   useEffect(() => {
-    if (status !== 'qr_pending') {
+    if (
+      status === 'connected' ||
+      status === 'error' ||
+      (status === 'disconnected' && !statusData?.instanceName)
+    ) {
       setLocalQr(null)
       setLocalQrExpiresAt(null)
     }
-  }, [status])
+  }, [status, statusData?.instanceName])
 
-  const effectiveQr = statusData?.qr ?? localQr
+  const effectiveQr = normalizeQrValue(statusData?.qr) ?? localQr
   const effectiveQrExpiresAt = statusData?.qrExpiresAt ?? localQrExpiresAt
 
   useEffect(() => {
@@ -184,15 +209,22 @@ export function ConnectScreen() {
     }
   }, [auth?.tenantId, queryClient])
 
-  const uiState = useMemo(
-    () =>
-      getUiState(
-        status,
-        statusData?.instanceName ?? null,
-        effectiveQrExpiresAt ?? null,
-      ),
-    [effectiveQrExpiresAt, status, statusData?.instanceName],
-  )
+  const uiState = useMemo(() => {
+    if (
+      status !== 'connected' &&
+      status !== 'error' &&
+      effectiveQr &&
+      isFutureIsoDate(effectiveQrExpiresAt)
+    ) {
+      return 'qr_pending_valid'
+    }
+
+    return getUiState(
+      status,
+      statusData?.instanceName ?? null,
+      effectiveQrExpiresAt ?? null,
+    )
+  }, [effectiveQr, effectiveQrExpiresAt, status, statusData?.instanceName])
 
   const isBusy =
     createInstanceMutation.isPending ||
@@ -350,9 +382,7 @@ export function ConnectScreen() {
                   onClick={handleConnect}
                   disabled={isBusy}
                 >
-                  {connectInstanceMutation.isPending
-                    ? 'Conectando…'
-                    : 'Conectar agora'}
+                  Conectar agora
                 </button>
                 <button
                   type="button"
@@ -401,30 +431,29 @@ export function ConnectScreen() {
           </div>
         )}
 
-        {uiState === 'qr_pending_expired' && !connectInstanceMutation.isPending && (
-          <div className="space-y-4 rounded-2xl border border-warning/40 bg-warning/10 p-5">
-            <div className="flex items-center gap-2.5">
-              <AlertCircle className="h-5 w-5 text-warning" />
-              <span className="font-semibold">QR expirado</span>
+        {uiState === 'qr_pending_expired' &&
+          !connectInstanceMutation.isPending && (
+            <div className="space-y-4 rounded-2xl border border-warning/40 bg-warning/10 p-5">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="h-5 w-5 text-warning" />
+                <span className="font-semibold">QR expirado</span>
+              </div>
+              <p className="text-sm text-base-content/70">
+                O QR code expirou. Gere um novo QR para continuar a conexão.
+              </p>
+              {isOwner && (
+                <button
+                  type="button"
+                  className="btn btn-primary rounded-full px-5 gap-2"
+                  onClick={handleConnect}
+                  disabled={isBusy}
+                >
+                  <RefreshCcw className="h-4 w-4" />
+                  Gerar novo QR
+                </button>
+              )}
             </div>
-            <p className="text-sm text-base-content/70">
-              O QR code expirou. Gere um novo QR para continuar a conexão.
-            </p>
-            {isOwner && (
-              <button
-                type="button"
-                className="btn btn-primary rounded-full px-5 gap-2"
-                onClick={handleConnect}
-                disabled={isBusy}
-              >
-                <RefreshCcw className="h-4 w-4" />
-                {connectInstanceMutation.isPending
-                  ? 'Gerando…'
-                  : 'Gerar novo QR'}
-              </button>
-            )}
-          </div>
-        )}
+          )}
 
         {uiState === 'connecting' && (
           <div className="flex flex-col items-center gap-4 py-10">
